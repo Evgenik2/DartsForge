@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="Description" content="The darts calculator.">
+		<title>Darts Forge</title>
+		<link href="styles.css" rel="stylesheet" type="text/css" />
+		<link href="menu.css" rel="stylesheet" type="text/css" />
+		<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+		<link rel="manifest" href="site.webmanifest">
+		<link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
+		<meta name="apple-mobile-web-app-title" content="DartsForge">
+		<meta name="application-name" content="DartsForge">
+		<meta name="msapplication-TileColor" content="#da532c">
+		<meta name="theme-color" content="#ffffff">
+		<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'/>
+		<script>
+			let deferredPrompt;
+			window.addEventListener('beforeinstallprompt', event => {
+				event.preventDefault();
+				deferredPrompt = event;
+				document.querySelector('#installBanner').addEventListener('click', event => {
+					deferredPrompt.prompt();
+					deferredPrompt.userChoice.then((choiceResult) => {
+						if (choiceResult.outcome === 'accepted') {
+							document.querySelector('#banner').style.display = 'none';
+							console.log('User accepted the A2HS prompt');
+						} else {
+							console.log('User dismissed the A2HS prompt');
+						}
+						deferredPrompt = null;
+					});
+				});
+				document.querySelector('#banner-close').addEventListener('click', event => {
+					document.querySelector('#banner').style.display = 'none';
+					event.preventDefault();
+				});
+				// Update UI notify the user they can add to home screen
+				document.querySelector('#banner').style.display = 'flex';
+			});
+		</script>
+		<script src="vue.min.js"></script>
+		<script src="aws-sdk-2.283.1.min.js"></script>
+		<script src="swipe.js"></script>
+		<script src="endings.js"></script>
+		<script src="indexedDB.js"></script>
+		<script src="settings.js"></script>
+		<script src="language.js"></script>
+		<script src="vueComponents.js"></script>
+		<link href="media.css" rel="stylesheet" type="text/css" />
+		<script>
+			function registerServiceWorker() {
+				var root = "/DartsForge/";
+				if ('serviceWorker' in navigator) {
+					navigator.serviceWorker.register('sw.js', { scope: root }).then(() => {
+						console.log('Service Worker registered successfully.');
+					}).catch(error => {
+						console.log('Service Worker registration failed:', error);
+					});
+				}
+			}
+			registerServiceWorker();
+		</script>
+		<style>
+			.menu-collapsed {
+				display: none;
+			}
+			.element-hidden {
+				visibility: hidden;
+			}
+			.element-collapsed {
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<section id="banner" class="banner">
+			<div id="installBanner" class="banner-install">
+				<img class="banner-img" src="android-chrome-192x192.png" alt="Install application banner"/>
+				<div class="banner-btn-group">
+					<div class="banner-btn">{{language.bannerInstall}}</div>
+					<div class="banner-btn">{{language.bannerDescription}}</div>
+				</div>
+			</div>
+			<div id="banner-close" class="banner-close">
+				<svg viewbox="0 0 40 40">
+					<path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" />
+				</svg>
+			</div>
+		</section>
+		<div id="app" class="app">
+			<div id="caption" class="caption">
+<!--				<div>User name:</div>
+				<input id="username"/>
+				<div>Password:</div>
+				<input id="password"/>-->
+				<a class="loginButton" href="https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=http://localhost:8887/DartsForge/">Log In | Sign In</a>
+			</div>
+			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
+				<div class="history-container">
+						<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
+						<div class="menu-row">
+						</div>
+				</div>
+			</div> 
+			<div id="history" class="history" v-bind:class="{ 'menu-collapsed': currentView != 1 }">
+				<div class="history-container">
+					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
+					<div class="history-data">
+						{{language.historyTotal}} {{history.length}}
+						<history-component  is="history-component" v-for="item in history" v-bind:item="item" v-bind:key="item.timeStamp"></history-component>
+					</div>
+				</div>
+			</div>
+			<div id="historyGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 2 }">
+				<div class="history-container">
+					<div class="menu-key" v-on:click="currentView = 1">{{language.menuMenu}}</div>
+					<div class="history-data">
+						<history-component  is="history-component" v-for="item in historyItemList" v-bind:item="item" v-bind:key="item.timeStamp">
+						</history-component>
+						<game-set-component is="game-set-component" v-for="item in historyItemLegs" v-bind:item="item" v-bind:key="item.leg">
+						</game-set-component>
+					</div>
+				</div>
+			</div>
+			<div id="dartsGame" class="dartsGame" v-bind:class="{ 'menu-collapsed': currentView != 0 }">
+				<div id="keyboard">
+					<div id="keyboard-keys">
+						<div id="keyboard-menu" class="keyboard-menu" v-bind:class="{ 'menu-collapsed': !menuShown }">
+							<div class="menu-empty"></div>
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-key" v-on:click="showProfile()">{{language.menuProfile}}</div>
+									<div class="menu-key" v-on:click="showHistory()">{{language.menuHistory}}</div>
+								</div>
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-maidenFirst" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
+									<div class="menu-inc-key" v-on:click="changeEnding()">{{endings}}</div>
+									<div class="menu-inc-key" v-on:click="changeLanguage()">{{language.language}}</div>
+								</div>
+								<div class="menu-row">
+									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label></div>
+									<input class="menu-input" maxlength="20" v-model="game.player1" id="player1" name="player1"/>
+								</div>
+								<div class="menu-row">
+									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuSecondPlayer}}</label></div>
+									<input class="menu-input" maxlength="20" v-model="game.player2" id="player1" name="player1"/>
+								</div>
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-text"><div class="menu-text-span"></div>{{language.menuGame}}</span></div>
+									<div class="menu-options-row-group"> 
+										<div class="menu-options-row">
+											<div class="menu-inc-key" v-on:click="menuKeyClick('gameMinus')">-</div>
+											<div class="menu-number-key">{{newGameLength}}</div>
+											<div class="menu-inc-key" v-on:click="menuKeyClick('gamePlus')">+</div>
+										</div>
+									</div>
+								</div>
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-text"><div class="menu-text-span"></div>{{language.menuSets}}</span></div>
+									<div class="menu-options-row">
+										<div class="menu-inc-key" v-on:click="menuKeyClick('setMinus')">-</div>
+										<div class="menu-number-key">{{newSetLength}}</div>
+										<div class="menu-inc-key" v-on:click="menuKeyClick('setPlus')">+</div>
+									</div>
+								</div>
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-text"><div class="menu-text-span"></div>{{language.menuLegs}}</span></div>
+									<div class="menu-options-row">
+										<div class="menu-inc-key" v-on:click="menuKeyClick('legMinus')">-</div>
+										<div class="menu-number-key">{{newLegLength}}</div>
+										<div class="menu-inc-key" v-on:click="menuKeyClick('legPlus')">+</div>
+									</div>
+								</div>
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-key" v-on:click="newGame()">{{language.menuNewGame}}</div>
+								</div>
+								<div class="menu-row menu-entering-collapsed">
+										<div class="menu-key" v-on:click="menuShown = false">{{language.menuContinue}}</div>
+								</div>
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-text menu-text-ver">v.1.01</div>
+								</div>
+								<div class="menu-empty"></div>
+						</div>
+						<div id="keyboard-numbers" class="keyboard-numbers" v-bind:class="{ 'element-collapsed': menuShown }">
+							<div class="keyboard-row">
+								<div class="regular-key" id="key1" v-on:click="keyboardClick(1)"> 1 </div>
+								<div class="regular-key" id="key2" v-on:click="keyboardClick(2)"> 2 </div>
+								<div class="regular-key" id="key3" v-on:click="keyboardClick(3)"> 3 </div>
+							</div>
+							<div class="keyboard-row">
+								<div class="regular-key" id="key4" v-on:click="keyboardClick(4)"> 4 </div>
+								<div class="regular-key" id="key5" v-on:click="keyboardClick(5)"> 5 </div>
+								<div class="regular-key" id="key6" v-on:click="keyboardClick(6)"> 6 </div>
+							</div>
+							<div class="keyboard-row">
+								<div class="regular-key" id="key7" v-on:click="keyboardClick(7)"> 7 </div>
+								<div class="regular-key" id="key8" v-on:click="keyboardClick(8)"> 8 </div>
+								<div class="regular-key" id="key9" v-on:click="keyboardClick(9)"> 9 </div>
+							</div>
+							<div class="keyboard-row">
+								<div class="regular-key" id="keyC" v-on:click="showMenu"> M </div>
+								<div class="regular-key" id="key0" v-on:click="keyboardClick(0)"> 0 </div>
+								<div class="regular-key" id="keyD" v-on:click="keyboardDelete"> ↩ </div>
+							</div>
+						</div>
+						<div id="keyboard-score" class="keyboard-score" v-bind:class="{ 'element-collapsed': menuShown }">
+							<div class="keyboard-row">
+								<div class="score-key" id="keyScore">{{value}}</div>
+							</div>
+							<div class="keyboard-row">
+								<div class="score-ok-key" id="keyOk" v-on:click="keyboardOk" v-longpress="keyboardLongOk">Ok</div>
+							</div>
+							<div class="keyboard-score-row" v-bind:class="{ 'element-hidden': disabledCloses >= 3 }">
+								<div class="score-double-key" v-bind:class="{ 'score-double-key-checked': doubles >= 1, 'score-double-key-disabled': disabledDoubles >= 3 }" v-on:click="doubles = disabledDoubles >= 3 ? doubles : (doubles >= 1 ? 0 : 1)"> </div>
+								<div class="score-double-key" v-bind:class="{ 'score-double-key-checked': doubles >= 2, 'score-double-key-disabled': disabledDoubles >= 2 }" v-on:click="doubles = disabledDoubles >= 2 ? doubles : 2"> </div>
+								<div class="score-double-key" v-bind:class="{ 'score-double-key-checked': doubles >= 3, 'score-double-key-disabled': disabledDoubles >= 1 }" v-on:click="doubles = disabledDoubles >= 1 ? doubles : 3"> </div>
+							</div>
+							<div class="keyboard-score-row" v-bind:class="{ 'element-hidden': disabledCloses >= 3 }">
+								<div class="score-x-key" v-bind:class="{ 'score-x-key-checked': closes >= 1, 'score-x-key-disabled': disabledCloses >= 1 }" v-on:click="keyboardClose(1)">X1</div>
+								<div class="score-x-key" v-bind:class="{ 'score-x-key-checked': closes >= 2, 'score-x-key-disabled': disabledCloses >= 2 }" v-on:click="keyboardClose(2)">X2</div>
+								<div class="score-x-key" v-bind:class="{ 'score-x-key-checked': closes >= 3, 'score-x-key-disabled': disabledCloses >= 3 }" v-on:click="keyboardClose(3)">X3</div>
+							</div>
+						</div>
+					</div>
+					<div class="keyboard-stats" v-bind:class="{ 'element-collapsed': menuShown }">
+						<div id="stats-list" class="keyboard-stats-list">
+							<stats-component is="stats-component" v-for="item in stats" v-bind:item="item" v-bind:key="item.name">
+							</stats-component>
+						</div>
+					</div>
+				</div>
+				<div id="scoring" class="scoring">
+					<div id="game-component">
+							<div id="scoring-data" class="scoring-data"> <!-- v-swipe="swipeLeg"-->
+								<div class="scoring-head">
+									<div class="scoring-player" v-on:click="prev">{{legs[legN].player1}}</div>
+									<div class="scoring-leg" v-bind:class="{ 'element-collapsed': showSeparator }">
+											{{language.leg}} {{legs[legN].leg + 1}}
+									</div>
+									<div class="scoring-leg-group" v-bind:class="{ 'element-collapsed': !showSeparator }">
+										<div class="scoring-leg">
+											{{language.set}} {{legs[legN].set + 1}}
+										</div>
+										<div class="scoring-leg-separator"></div>
+										<div class="scoring-leg">
+											{{language.leg}} {{legs[legN].leg + 1}}
+										</div>
+									</div>
+									<div class="scoring-player" v-on:click="next">{{legs[legN].player2}}</div>
+								</div>
+								<div id="scoring-throws">
+									<div id="scoring-throws-group">
+										<game-leg-component is="game-leg-component" v-for="item in legs[legN].throws" v-bind:item="item" v-bind:key="item.name">
+										</game-leg-component>
+										<div class="scoring-throws-space"></div>
+									</div>
+								</div>
+							</div>
+					</div>
+					<div class="keyboard-stats" v-bind:class="{ 'element-collapsed': menuShown }">
+						<div id="scoring-stats" class="keyboard-stats-list">
+							<div class="stat-game-way-player"> 
+									<div class="stat-game-way-head">{{gameStat.name}}</div>
+									<div class="stat-game-way">{{gameStat.player1}}</div>
+									<div class="stat-game-way">{{gameStat.player2}}</div>
+							</div>
+							<game-way-component is="game-way-component" v-for="item in statsSetLeg" v-bind:item="item" v-bind:key="item.name">
+							</game-way-component>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script defer>
+			var keyboardKeys;
+			var banner;
+
+			function validateThrow(value, left) {
+				if(value < 0 || value > 180)
+					return false;
+				if(value == 179 || value == 178 || value == 176 || value == 175 || value == 173 || 
+					value == 172 || value == 169 || value == 166 || value == 163)
+					return false;
+				if(value >= left)
+					return false;
+				if(left - value < 2)
+					return false;
+				return true;
+			}
+			var game = {
+					timeStamp: new Date(),
+					player1: 'Player 1',
+					player2: 'Player 2',
+					setLength: 1,
+					legLength: 3,
+					gameLength: 501,
+					noStartSwap: false,
+					step: 0,
+					wonSets1: 0,
+					wonSets2: 0,
+					legs: [],
+					game: [ 
+						[//set
+							{//leg
+								firstThrows: [],
+								secondThrows: []
+							}
+						] 
+					],
+					stats: [],
+					lastLeg : [],
+					storeCurrentState: function () {
+						setRecord("CurrentGame", this.step, JSON.stringify(this));
+					},
+					restoreLastState: function () {
+						getLastRecord("CurrentGame", function(v) {
+							if(v == undefined) {
+								game.game = [ 
+									[//set
+										{//leg
+											firstThrows: [],
+											secondThrows: []
+										}
+									]
+								];
+								game.updateAll();
+								return;
+							}
+							var g = JSON.parse(v);
+							game.timeStamp = new Date(g.timeStamp);
+							game.player1 = g.player1;
+							game.player2 = g.player2;
+							game.setLength = g.setLength;
+							game.legLength = g.legLength;
+							game.gameLength = g.gameLength;
+							game.noStartSwap = g.noStartSwap;
+							game.step = g.step;
+							game.game = g.game;
+							game.legs = g.legs;
+							game.updateAll();
+						});
+					},
+					undo: function() {
+						if(this.step == 0) return;
+						deleteRecord("CurrentGame", this.step);
+						this.restoreLastState();
+					},
+					updateStats: function() {
+						this.stats = [
+							{ name: "100+", player1: 0, player2: 0 },
+							{ name: "140+", player1: 0, player2: 0 },
+							{ name: "180", player1: 0, player2: 0 },
+							{ name: "Av", player1: 0, player2: 0 },
+							{ name: "HC", player1: 0, player2: 0 },
+							{ name: "Dbls", player1: "0/0", player2: "0/0" },
+							{ name: "%", player1: 0, player2: 0 },
+							{ name: "Best", player1: 0, player2: 0 },
+							{ name: "LWAT", player1: 0, player2: 0 },
+						];
+						var fThrow = 0, fTotal = 0, fDbl = 0, fCl = 0, fBst = 10000, fLwat = 0;
+						for(var i = 0; i < this.game.length; i++)
+							for(var j = 0; j < this.game[i].length; j++) {
+								var l = this.game[i][j];
+								var fc = 0;
+								l.firstThrows.forEach((v) => {
+									var vv = v % 1000;
+									if(vv == 180) this.stats[2].player1 += 1;
+									else if(vv >= 140) this.stats[1].player1 += 1;
+									else if(vv >= 100) this.stats[0].player1 += 1;
+									fThrow += 1;
+									fTotal += vv;
+									if(v > 10000) {
+										this.stats[4].player1 = Math.max(this.stats[0].player1, vv);
+									}
+									if(v > 1000)
+										fDbl += Math.floor(v % 10000 / 1000);
+									if(v > 10000) {
+										fc = Math.floor(v / 10000);
+										fCl += 1;
+										if(!this.isFirstStart(i, j))
+											fLwat += 1;
+									}
+
+								});
+								if(fc > 0)
+									fBst = Math.min(fBst, (l.firstThrows.length - 1) * 3 + fc);
+							}
+						this.stats[3].player1 = fThrow > 0 ? Math.round(fTotal / fThrow) : 0;
+						this.stats[5].player1 = fCl + "/" + Math.round(fDbl);
+						this.stats[6].player1 = fDbl > 0 ? Math.round(fCl / fDbl * 100) : 0;
+						this.stats[7].player1 = fBst == 10000 ? 0 : fBst;
+						this.stats[8].player1 = fLwat;
+						var sThrow = 0, sTotal = 0, sDbl = 0, sCl = 0, sBst = 10000, sLwat = 0;
+						for(var i = 0; i < this.game.length; i++)
+							for(var j = 0; j < this.game[i].length; j++) {
+								var l = this.game[i][j];
+								var sc = 0;
+								l.secondThrows.forEach((v) => {
+									var vv =  v % 1000;
+									if(vv == 180) this.stats[2].player2+=1;
+									else if(vv >= 140) this.stats[1].player2+=1;
+									else if(vv >= 100) this.stats[0].player2+=1;
+									sThrow += 1;
+									sTotal += vv;
+									if(v > 10000) {
+										this.stats[4].player2 = Math.max(this.stats[0].player2, vv);
+									}
+									if(v > 1000)
+										sDbl += Math.floor(v % 10000 / 1000);
+									if(v > 10000) {
+										sc = Math.floor(v / 10000);
+										sCl += 1;
+										if(this.isFirstStart(i, j))
+											sLwat += 1;
+									}
+								});
+								if(sc > 0)
+									sBst = Math.min(sBst, (l.secondThrows.length - 1) * 3 + sc);
+							}
+							this.stats[3].player2 = sThrow > 0 ? Math.round(sTotal / sThrow) : 0;
+							this.stats[5].player2 = sCl + "/" + Math.round(sDbl);
+							this.stats[6].player2 = sDbl > 0 ? Math.round(sCl / sDbl * 100) : 0;
+							this.stats[7].player2 = sBst == 10000 ? 0 : sBst;
+							this.stats[8].player2 = sLwat;							
+						keyboardKeys.stats = this.stats;
+					},
+					updateAll: function() {
+						game.lastLeg = game.getVisualLeg(game.game.length - 1, game.game[game.game.length - 1].length - 1);
+						game.updateStats();
+						var res = [];
+						game.wonSets1 = 0;
+						game.wonSets2 = 0;
+						for(var i = 0; i < game.game.length; i++) {
+							game.game[i].wonLegs1 = 0;
+							game.game[i].wonLegs2 = 0;
+							for(var j = 0; j <  game.game[i].length; j++) {
+								var l = game.getVisualLeg(i, j);
+								res.push(l);
+								game.game[i].wonLegs1 += l.left1 > 0 ? 0 : 1;
+								game.game[i].wonLegs2 += l.left2 > 0 ? 0 : 1;
+							}
+							if(game.game[i].wonLegs1 >  Math.floor(game.legLength / 2)) 
+								game.wonSets1 += 1;
+							if(game.game[i].wonLegs2 >  Math.floor(game.legLength / 2)) 
+								game.wonSets2 += 1;
+						}
+						keyboardKeys.showSeparator = game.setLength > 1;
+						keyboardKeys.legN = res.length - 1;
+						game.legs = keyboardKeys.legs = res;
+						keyboardKeys.newGameLength = settings.newGameLength;
+						keyboardKeys.newLegLength = settings.newLegLength;
+						keyboardKeys.newSetLength = settings.newSetLength;
+						keyboardKeys.newNoStartSwap = settings.newNoStartSwap;
+						keyboardKeys.languageName = settings.language;
+						keyboardKeys.language = languages[settings.language];
+						keyboardKeys.endings = settings.endings;
+						keyboardKeys.game = game;
+						keyboardKeys.doubles = Math.max(keyboardKeys.doubles, game.minimumDoubles());
+						keyboardKeys.minimumDoubles = game.minimumDoubles();
+						keyboardKeys.disabledCloses = game.disabledCloses();
+						keyboardKeys.disabledDoubles = game.disabledDoubles();
+						keyboardKeys.legN = keyboardKeys.legs.length - 1;
+						keyboardKeys.gameStat = { 
+							name: "Best of " + game.setLength + " sets of " + game.legLength + " legs", 
+							player1: settings.getEnding(this.lastLeg.left1, game.player1), 
+							player2: settings.getEnding(this.lastLeg.left2, game.player2)
+						},
+						keyboardKeys.statsSetLeg = [
+												{ name: keyboardKeys.language.sets, player1: game.wonSets1, player2: game.wonSets2 },
+												{ name: keyboardKeys.language.legs, player1: game.game[game.game.length - 1].wonLegs1, player2: game.game[game.game.length - 1].wonLegs2 },
+											];
+						keyboardKeys.scrollToView();
+					},
+					nextThrow: function(value) {
+						if(this.lastLeg == undefined || this.lastLeg.next == 0) return;
+						var t = this.lastLeg.throws;
+						var s = this.game[this.game.length - 1];
+						if(t[t.length-1].next == 1)
+							s[s.length - 1].firstThrows.push(value);
+						else
+							s[s.length - 1].secondThrows.push(value);
+						this.step++;
+					},
+					newLeg: function() {
+						if(this.lastLeg.next != 0) return;
+						game.updateAll();
+						var s = this.game[this.game.length - 1];
+						if(s.wonLegs1 >  Math.floor(this.legLength / 2) || s.wonLegs2 >  Math.floor(this.legLength / 2) || s.length >= this.legLength) {
+							if(this.game.length >= this.setLength || this.wonSets1 > Math.floor(this.setLength / 2) || this.wonSets2 > Math.floor(this.setLength / 2))  {
+								setRecord("History", this.timeStamp, JSON.stringify(this));
+								return;
+							}
+							this.game.push([]);
+						}
+						this.game[this.game.length - 1].push({ firstThrows: [], secondThrows: [] });
+					},
+					actualLeft: function() {
+						if(this.lastLeg.next == 0) return 0;
+						if(this.lastLeg.next == 1)
+							return this.lastLeg.left1;
+						return this.lastLeg.left2;
+					},
+					validateNumber: function(value) {
+						if(this.lastLeg.next == 0) return false;
+						return value <= this.actualLeft();
+					},
+					minimumDoubles: function() {
+						if(this.lastLeg.next == 0) return 0;
+						return this.availableCloses() == 1 ? 1 : 0;
+					},
+					disabledCloses: function() {
+						return this.availableCloses() - 1;
+					},
+					disabledDoubles: function() {
+						return this.disabledCloses();
+					},
+					availableCloses: function() {
+						if(this.lastLeg.next == 0) return 99;
+						var left = this.actualLeft();
+						if(minDartClose[left] != undefined)
+							return minDartClose[left];
+						return 99;
+					},
+					isFirstStart: function(setN, legN) {
+						if(this.noStartSwap)
+							return true;
+						return setN % 2 == 0 ? legN % 2 == 0 : legN % 2 != 0;
+					},
+					getVisualLeg: function(setN, legN) {
+						var legRes = {
+								player1: game.player1,
+								player2: game.player2,
+								set: setN,
+								leg: legN,
+								left1: game.gameLength,
+								left2: game.gameLength,
+								throw: 0,
+								startsFirst: true,
+								next: 0,		
+								throws: [
+									{
+										throw1: "",
+										left1: game.gameLength, 
+										throw2: "",
+										left2: game.gameLength,
+										throw: 0
+									}
+								]
+							};
+						var set = game.game[legRes.set], leg = set[legRes.leg], isFirstPlayer = true;
+						for(i = 0; i < Math.max(leg.firstThrows.length, leg.secondThrows.length); i++) {
+							legRes.throws.push({
+								throw1: i < leg.firstThrows.length ? leg.firstThrows[i] : "",
+								left1: "", 
+								throw2: i < leg.secondThrows.length ? leg.secondThrows[i] : "",
+								left2: "",
+								throw: (i + 1) * 3	
+							});
+						}
+						for(i = 0; i < leg.firstThrows.length; i++) {
+							legRes.left1 -= leg.firstThrows[i] % 1000;
+							legRes.throws[i + 1].left1 = legRes.left1 == 0 ? "" : legRes.left1;
+						}
+						for(i = 0; i < leg.secondThrows.length; i++) {
+							legRes.left2 -= leg.secondThrows[i] % 1000;
+							legRes.throws[i + 1].left2 = legRes.left2 == 0 ? "" : legRes.left2;
+						}
+						if(legRes.left1 > 0 && legRes.left2 > 0)
+							if(leg.firstThrows.length == leg.secondThrows.length) {
+								legRes.throws.push({
+									throw1: "",
+									left1: "", 
+									throw2: "",
+									left2: "",
+									throw: (legRes.throws.length) * 3,
+									next: this.isFirstStart(setN, legN) ? 1 : 2
+								});
+								legRes.next = this.isFirstStart(setN, legN) ? 1 : 2;
+							} else {
+								if(this.isFirstStart(setN, legN) && leg.firstThrows.length > leg.secondThrows.length) {
+									legRes.next = 2;
+									legRes.throws[legRes.throws.length-1].next = 2;
+								} else {
+									legRes.next = 1;
+									legRes.throws[legRes.throws.length-1].next = 1;
+								}
+							}
+						return legRes;
+					}
+				};
+			keyboardKeys = new Vue({
+				el: "#app",
+				data: {					
+					userCredentials: {
+						publicKey: "",
+						privateKey: ""
+					},
+					language: languages[settings.language],
+					languages: languages,
+					languageName: settings.language,
+					newSetLength: settings.newSetLength,
+					newLegLength: settings.newLegLength,
+					newGameLength: settings.newGameLength,
+					newNoStartSwap: settings.newStartSwap,
+					game: game,
+					value: 0,
+					doubles: 0,
+					closes: 0,
+					disabledDoubles: 0,
+					disabledCloses: 0,
+					minimumDoubles: 0,
+					menuShown: true,
+					currentView: 0,
+					historyItemLegs: [],
+					historyItemList: [],
+					stats: game.stats,
+					endings: "Default",
+					history: [],
+					gameStat: { name: "Best of 1 sets of 5 legs", player1: "Player 1", player2: "Player 2" },
+					statsSetLeg: [
+						{ name: "Sets", player1: "0", player2: "0", width: 1 },
+						{ name: "Legs", player1: "0", player2: "0", width: 1 },
+					],
+					showSeparator: false,
+					legN: 0,
+					legs: [ {
+								player1: game.player1,
+								player2: game.player2,
+								set: 0,
+								leg: 0,
+								left1: game.gameLength,
+								left2: game.gameLength,
+								throw: 0,
+								startsFirst: true,
+								next: 0,		
+								throws: [
+									{
+										throw1: "",
+										left1: game.gameLength, 
+										throw2: "",
+										left2: game.gameLength,
+										throw: 0
+									}
+								]
+							} ]
+				},
+				watch: {
+					'game.player1': function(val, preVal){
+						game.updateAll();
+					},
+					'game.player2': function(val, preVal){
+						game.updateAll();
+					},
+				},
+				methods: {
+					login: function() {
+						var un = document.getElementById("username").value;
+						var pw = document.getElementById("password").value;
+						var poolData = {
+							UserPoolId : "us-east-2_GFcVOejW2", // your user pool id here
+							ClientId : "2l9l4t5o41uenmn9sg0ohre60d" // your app client id here
+						};
+						var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+					},
+					updateAll: function() {
+						game.updateAll();
+					},
+					prev: function() {
+						this.legN--;
+						if(this.legN < 0)
+							this.legN = 0;
+						else {
+							var elm = document.getElementById("scoring-data");
+							elm.classList.remove("animSwipeRight");
+							elm.classList.remove("animSwipeLeft");
+							void elm.offsetWidth;
+							elm.classList.add("animSwipeRight");
+						}
+					},
+					next: function() {
+						this.legN++;
+						if(this.legN >= this.legs.length)
+							this.legN = this.legs.length - 1;
+						else {
+							var elm = document.getElementById("scoring-data");
+							elm.classList.remove("animSwipeLeft");
+							elm.classList.remove("animSwipeRight");
+							void elm.offsetWidth;
+							elm.classList.add("animSwipeLeft");
+						}
+					},
+					swipeLeg: function(e) {
+						if(e.detail.moving) {
+							if(e.detail.dir == "up")
+								document.getElementById("scoring-throws").scrollTop += e.detail.dist;
+							if(e.detail.dir == "down")
+								document.getElementById("scoring-throws").scrollTop -= e.detail.dist;
+						} else {
+							if(e.detail.dir == "right")
+								this.prev();
+							if(e.detail.dir == "left")
+								this.next();
+						}
+					},
+					showMenu: function() {
+						this.menuShown = true;
+						var elm = document.getElementById("keyScore");
+						elm.classList.remove("animError");
+					},
+					keyboardClick: function (value) {
+						var v = this.value * 10 + value;
+						if(v > 180)
+							v = 0;
+						if(!game.validateNumber(v))
+							v = 0;
+						this.value = v;
+						this.legN = this.legs.length - 1;
+					},
+					changeEnding: function() {
+						let k = Object.keys(endings);
+						var i = k.indexOf(this.endings) + 1;
+						if(i >= k.length)
+							i = 0;
+						settings.endings = this.endings = k[i];
+						settings.store();
+						game.updateAll();
+					},
+					changeLanguage : function() {
+						let k = Object.keys(languages);
+						var i = k.indexOf(this.languageName) + 1;
+						if(i >= k.length)
+							i = 0;
+						settings.language = this.languageName = k[i];
+						banner.language = this.language = languages[this.languageName];
+						settings.store();
+						game.updateAll();
+					},
+					showProfile: function() {
+						this.currentView = 3;
+
+						this.changeView();
+					},
+					showHistory: function() {
+						this.currentView = 1;
+						var to = new Date();
+						var from = new Date();
+						from.setDate(from.getDate() - 365);
+						getRecords("History", from, to, function(r) {
+							keyboardKeys.history = r.reverse();
+						});
+						this.changeView();
+					},
+					showHistoryItem: function(t) {
+						this.currentView = 2;
+						var historyItem = this.history.find((i) => { return i.timeStamp == t});
+						this.historyItemLegs = historyItem.legs;
+						this.historyItemList = [historyItem];
+					},
+					newGame: function() {
+						game.timeStamp = new Date();
+						game.setLength = this.newSetLength;
+						game.legLength = this.newLegLength;
+						game.gameLength = this.newGameLength;
+						game.noStartSwap = this.newNoStartSwap;
+						game.game = [ 
+									[//set
+										{//leg
+											firstThrows: [],
+											secondThrows: []
+										}
+									]
+								];
+						deleteAll("CurrentGame");
+						game.updateAll();
+						this.menuShown = false;
+					},
+					menuKeyClick: function(value) {
+						gameLengths = [ 101, 301, 501, 701, 1001, 2001 ];
+						if(value == "gameMinus") {
+							var i = gameLengths.indexOf(this.newGameLength);
+							if(i > 0)
+								settings.newGameLength = this.newGameLength = gameLengths[i - 1];
+						}
+						if(value == "gamePlus") {
+							var i = gameLengths.indexOf(this.newGameLength);
+							if(i < gameLengths.length - 1)
+								settings.newGameLength = this.newGameLength = gameLengths[i + 1];
+						}
+						if(value == "setMinus")
+							settings.newSetLength = this.newSetLength = Math.max(1, this.newSetLength - 1);
+						if(value == "setPlus")
+							settings.newSetLength = this.newSetLength = Math.min(10, this.newSetLength + 1);
+						if(value == "legMinus")
+							settings.newLegLength = this.newLegLength = Math.max(1, this.newLegLength - 1);
+						if(value == "legPlus")
+							settings.newLegLength = this.newLegLength = Math.min(20, this.newLegLength + 1);
+						if(value == "noStartSwap")
+							settings.newNoStartSwap = this.newNoStartSwap = !this.newNoStartSwap;
+						settings.store();
+					},
+					keyboardDelete: function() {
+						game.undo();
+					},
+					keyboardClose: function(x) {
+						this.closes = this.disabledCloses >= x ? this.closes : (this.disabledCloses == x - 1 && this.closes > x - 1 ? 0 : x);
+						if(this.closes > 0)
+							this.doubles = Math.max(this.doubles, 1);
+					},
+					showError: function() {
+						var elm = document.getElementById("keyScore");
+						elm.classList.remove("animError");
+						void elm.offsetWidth;
+						elm.classList.add("animError");
+					},
+					keyboardLongOk() {
+						if(game.lastLeg.next == 0) return;
+						var left = game.lastLeg.next == 1 ? game.lastLeg.left1 : game.lastLeg.left2;
+						var v = left - this.value;
+						this.value = v;
+						if(!validateThrow(this.value, left)) {
+							this.showError();
+							game.updateAll();
+							this.game = game;
+							this.value = 0;
+							this.closes = 0;
+						}
+					},
+					keyboardOk: function() {
+						if(game.lastLeg.throws.next == 0) return;
+						var t = game.lastLeg.throws;
+						var s = game.game[game.game.length - 1];
+						if(this.closes > 0) {
+							if(this.closes >= game.availableCloses()) {
+								game.nextThrow(this.closes * 10000 + this.doubles * 1000 + game.actualLeft());
+								game.lastLeg.next = 0;
+								game.newLeg();
+							}
+						} else {
+							if(game.lastLeg.next == 0) return;
+							if(validateThrow(this.value, game.lastLeg.next == 1 ? game.lastLeg.left1 : game.lastLeg.left2))
+								game.nextThrow(this.doubles * 1000 + this.value);
+							else {
+								this.showError();
+							}
+						}
+						game.updateAll();
+						this.game = game;
+						this.value = 0;
+						this.closes = 0;
+						this.doubles = game.minimumDoubles();
+						this.minimumDoubles = game.minimumDoubles();
+						this.disabledCloses = game.disabledCloses();
+						this.disabledDoubles = game.disabledDoubles();
+						this.legN = this.legs.length - 1;
+						this.scrollToView();
+						game.storeCurrentState();
+					},
+					scrollToView: function() {
+						var element = document.getElementById("scoring-throws");
+						if(element)
+					    	element.scrollTop = element.scrollHeight;
+					},
+					changeView: function() {
+						var elm = document.getElementById("scoring-data");
+						elm.classList.remove("animSwipeRight");
+						elm.classList.remove("animSwipeLeft");
+					}
+				}
+			});
+			banner = new Vue({
+					el: "#installBanner",
+					data: {
+						language: languages[settings.language]
+					},
+					methods: {
+						close: function() {
+
+						}
+					}
+				});
+			/*var swipeBlock = document.getElementById("scoring");
+			swipe(swipeBlock, { maxTime: 1000, minTime: 100, maxDist: 150,  minDist: 60 });
+			swipeBlock.addEventListener("swipe", function() {
+				if(e.detail.swipeType == "right") {
+					gameComponent.legN--;
+					if(gameComponent.legN < 0)
+						gameComponent.legN = 0;
+				}
+				if(e.detail.swipeType == "left") {
+					gameComponent.legN++;
+					if(gameComponent.legN >= gameComponent.legs.length)
+						gameComponent.legN = gameComponent.legs.length - 1;
+				}
+			});
+			*/
+			function updateAll() {
+				game.updateAll();
+			}
+			CreateObjectStore("Settings", function() {
+				CreateObjectStore("CurrentGame", function() {
+					CreateObjectStore("History", function() {
+						game.restoreLastState();
+						settings.restore();
+						updateAll();
+					});
+				});
+			});
+			var app = document.getElementById("app");
+		</script>
+	</body>
+</html>

@@ -1,0 +1,29 @@
+@media only screen and (max-height: 150px) {
+    .menu-entering-collapsed {
+        display: none;
+    }
+}
+@media all and (orientation:landscape) {
+    .dartsGame {
+        width: 100%;
+        display: flex;
+        flex: 1;
+        height: 100%;
+        flex-direction: row;
+        align-self: stretch;
+    }
+
+}
+@media all and (orientation:portrait) {
+    .dartsGame {
+        width: 100%;
+        display: flex;
+        flex: 1;
+        height: 100%;
+        flex-direction: column-reverse;
+        align-self: stretch;
+    }
+    .keyboard-stats {
+        display: none;
+    }
+}

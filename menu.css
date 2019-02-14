@@ -1,0 +1,180 @@
+.keyboard-menu {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    margin-right: 1vmax;
+    margin-left: 1vmax;
+}
+.menu-text {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    color: #666666;
+    font-size: 2vmax;
+}
+.menu-text-ver {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+.menu-text-span {
+    display: inline-block;
+    vertical-align: middle;
+}
+.menu-key:active {
+    background: #888888;
+}
+.menu-key {
+    text-align: center;
+    display: flex;
+    flex: 1;
+    background: #449def;
+    color: white;
+    font-size: 2vmax;
+    justify-content: center;
+    align-items: center;
+    padding: 0.8vmax 0 0.8vmax 0;
+}
+.menu-centered-row {
+    align-items: center;
+}
+.menu-options-row {
+    display: flex;
+    flex: 2;
+    flex-direction: row;
+    align-items: stretch;
+}
+.menu-options-double-row {
+    display: flex;
+    flex: 4;
+    flex-direction: row;
+    align-items: stretch;
+}
+.menu-options-row::-webkit-scrollbar {
+    display: none;
+}
+.menu-options-row-group {
+    display: flex;
+    flex: 2;
+    flex-direction: column;
+    align-items: stretch;
+}
+.menu-game-length-key {
+    text-align: center;
+    display: flex;
+    margin: 0.2vmax;
+    padding: 0.8vmax 0 0.8vmax 0;
+    background: #888888;
+    color: white;
+    font-size: 2vmax;
+    justify-content: center;
+    align-items: center;
+    border: 0.3vmax solid #888888;
+    height: 2vmax;
+}
+.menu-maidenFirst {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    padding: 0.8vmax 0 0.8vmax 0;
+    background: #888888;
+    color: white;
+    font-size: 2vmax;
+    justify-content: center;
+    align-items: center;
+    border: 0.3vmax solid #888888;
+    height: 2vmax;
+}
+.menu-game-length-checked {
+    border-color: #449def;
+    background: #449def;
+}
+.menu-inc-key {
+    text-align: center;
+    display: flex;
+    flex: 1;
+    margin: 0 0.2vmax 0 0.2vmax;
+    background: #449def;
+    color: white;
+    font-size: 2vmax;
+    justify-content: center;
+    align-items: center; 
+    padding: 0.8vmax 0 0.8vmax 0;
+}
+.menu-number-key {
+    text-align: center;
+    display: flex;
+    flex: 3;
+    margin: 0 0.2vmax 0 0.2vmax;
+    background: white;
+    color: #666666;
+    font-size: 2vmax;
+    justify-content: center;
+    align-items: center; 
+    padding: 0.8vmax 0 0.8vmax 0;
+}
+.menu-inc-key:active {
+    background: #888888;
+}
+.menu-input {
+    text-align: center;
+    display: flex;
+    flex: 2;
+    background: white;
+    color: #666666;
+    font-size: 2vmax;
+    justify-content: center;
+    align-items: center;
+    border-width: 0;
+    padding: 0.8vmax 0 0.8vmax 0;
+}
+.menu-empty {
+    display: flex;
+    flex: 1;
+}
+.menu-row {
+    display: flex;
+    margin-bottom: 0.5vmax;
+    flex-direction: row;
+    align-self: stretch;
+    color: #666666;
+    text-align: center;
+    justify-content: center;
+    font-size: 6vmax;
+}
+.history {
+    flex: 1;
+    align-self: stretch;
+    font-size: 1.8vmax;
+}
+.history-container {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+}
+.history-item-container {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+}
+.history-data {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-self: stretch;
+    color: #666666;
+    font-weight: 600;
+    font-size: 2vmax;
+}
+.history-item {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+}
+.history-timeStamp {
+    font-size: 4vmax;
+    font-weight: 800;
+    color: #666666;
+    font-size: 2vmax;
+}
