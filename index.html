@@ -96,9 +96,9 @@
 				<div>Password:</div>
 				<input id="password"/>
 				<a class="loginButton" href="https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=http://localhost:8887/DartsForge/">Log In | Sign In</a>-->
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" v-bind:href="logInUrl">Log In | Sign In</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" v-bind:href="logInUrl">{{language.menuLoginSignin}}</a>
 				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }">{{userName}}</div>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" v-bind:href="logOutUrl">Log Out</a> 
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" v-bind:href="logOutUrl">{{language.menuLogout}}</a> 
 			</div>
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
 				<div class="history-container">
