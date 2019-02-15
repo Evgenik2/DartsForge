@@ -13,8 +13,9 @@ function bytesToHex(bytes) {
     }
     return hex.join("");
 }
+var token = "";
 function parseJwt () {
-    var token = document.URL.split('id_token=')[1];
+    token = document.URL.split('id_token=')[1];
     if(token == undefined)
         return {};
     token = token.split("&")[0];
@@ -26,6 +27,7 @@ function parseJwt () {
 };
 var settings = {
     userName: "",
+    token: "",
     newSetLength: 1,
     newLegLength: 2,
     newGameLength: 501,
@@ -63,3 +65,4 @@ var settings = {
     }
 };
 settings.userName = parseJwt()['cognito:username'];
+settings.token = token;
