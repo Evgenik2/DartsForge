@@ -13,7 +13,19 @@ function bytesToHex(bytes) {
     }
     return hex.join("");
 }
+function parseJwt () {
+    var token = document.URL.split('id_token=')[1];
+    if(token == undefined)
+        return {};
+    token = token.split("&")[0];
+    if(token == undefined)
+        return {};
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+};
 var settings = {
+    userName: "",
     newSetLength: 1,
     newLegLength: 2,
     newGameLength: 501,
@@ -44,8 +56,10 @@ var settings = {
                 keyboardKeys.newLegLength = settings.newLegLength = r.newLegLength;
                 keyboardKeys.newGameLength = settings.newGameLength = r.newGameLength;
                 keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
+                keyboardKeys.userName = settings.userName;
                 updateAll();
             }
         });
     }
 };
+settings.userName = parseJwt()['cognito:username'];

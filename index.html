@@ -42,7 +42,7 @@
 			});
 		</script>
 		<script src="vue.min.js"></script>
-		<script src="aws-sdk-2.283.1.min.js"></script>
+		<script src="aws-amplify.min.js"></script>
 		<script src="swipe.js"></script>
 		<script src="endings.js"></script>
 		<script src="indexedDB.js"></script>
@@ -97,7 +97,9 @@
 				<div>Password:</div>
 				<input id="password"/>
 				<a class="loginButton" href="https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=http://localhost:8887/DartsForge/">Log In | Sign In</a>-->
-				<a class="loginButton" href="https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=https://evgenik2.github.io/DartsForge/">Log In | Sign In</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" v-bind:href="logInUrl">Log In | Sign In</a>
+				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }">{{userName}}</div>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" v-bind:href="logOutUrl">Log Out</a> 
 			</div>
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
 				<div class="history-container">
@@ -592,9 +594,13 @@
 						return legRes;
 					}
 				};
+			var hostUrl = document.URL.split("/DartsForge/")[0];
 			keyboardKeys = new Vue({
 				el: "#app",
-				data: {					
+				data: {				
+					logInUrl: "https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=" + hostUrl + "/DartsForge/",
+					logOutUrl: "https://dartsforge.auth.us-east-2.amazoncognito.com/logout?client_id=2l9l4t5o41uenmn9sg0ohre60d&logout_uri=" + hostUrl + "/DartsForge/",	
+					userName: "",
 					userCredentials: {
 						publicKey: "",
 						privateKey: ""
