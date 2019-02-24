@@ -31,6 +31,7 @@ var settings = {
     newSetLength: 1,
     newLegLength: 2,
     newGameLength: 501,
+    communities: [],
     newNoStartSwap: false,
     endings: "Default",
     language: "en",
@@ -58,7 +59,8 @@ var settings = {
                 keyboardKeys.newLegLength = settings.newLegLength = r.newLegLength;
                 keyboardKeys.newGameLength = settings.newGameLength = r.newGameLength;
                 keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
-                keyboardKeys.userName = settings.userName;
+                keyboardKeys.userName = settings.userName = r.userName;
+                keyboardKeys.communities = settings.communities = r.communities;
                 updateAll();
             }
         });

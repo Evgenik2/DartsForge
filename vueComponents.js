@@ -65,6 +65,16 @@ Vue.component("stats-component", {
         item: Object
     }
 });
+Vue.component("communities-component", {
+    template: `
+        <div class="menu-row"> 
+            <div class="stat-head">{{item.name}} (Region: {{item.region}} City: {{item.city}} Owner: {{item.owner}})</div>
+        </div>
+    `,
+    props: {
+        item: Object
+    }
+});
 Vue.component("game-way-component", {
     template: `
         <div class="stat-game-way-item"> 

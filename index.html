@@ -5,6 +5,7 @@
 		<meta name="Description" content="The darts calculator.">
 		<title>Darts Forge</title>
 		<link href="styles.css" rel="stylesheet" type="text/css" />
+		<link href="flags.css" rel="stylesheet" type="text/css" />
 		<link href="menu.css" rel="stylesheet" type="text/css" />
 		<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 		<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -48,6 +49,7 @@
 		<script src="settings.js"></script>
 		<script src="language.js"></script>
 		<script src="vueComponents.js"></script>
+		<script src="flags.js"></script>
 		<link href="media.css" rel="stylesheet" type="text/css" />
 		<script>
 			function registerServiceWorker() {
@@ -98,8 +100,30 @@
 				<a class="loginButton" href="https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=http://localhost:8887/DartsForge/">Log In | Sign In</a>-->
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" v-bind:href="logInUrl">{{language.menuLoginSignin}}</a>
 				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }">{{userName}}</div>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined && community != undefined }" > {{language.menuInCommunity}} {{community}}</a>
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" v-bind:href="logOutUrl">{{language.menuLogout}}</a> 
 			</div>
+			<div id="communities" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 4 }">
+				<div class="history-container">
+					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
+					<div class="menu-row">
+						<div class="loginButton" >{{language.communities}} </div>
+						<a class="loginButton" href="_" v-on:click="refreshCommunities(); event.preventDefault();">{{language.refresh}}</a>
+					</div>
+					<div class="menu-row">
+						<div class="loginButton">{{language.createCommunity}}</div>
+						<select class="menu-key" id="newCommunityRegion" v-model="newCommunityRegion">
+						</select>
+					</div>
+					<div class="menu-row">
+						<input class="menu-key" :placeholder="language.createCommunityCity"/>
+						<input class="menu-key" :placeholder="language.createCommunityName"/>
+						<a class="loginButton" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.createCommunityBtn}}</a>
+					</div>
+					<communities-component  is="communities-component" v-for="item in communities" v-bind:item="item" v-bind:key="item.name"></history-component>
+				</div>
+			</div> 
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
 				<div class="history-container">
 						<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
@@ -139,7 +163,7 @@
 								<div class="menu-row menu-entering-collapsed">
 									<div class="menu-maidenFirst" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
 									<div class="menu-inc-key" v-on:click="changeEnding()">{{endings}}</div>
-									<div class="menu-inc-key" v-on:click="changeLanguage()">{{language.language}}</div>
+									<div class="menu-inc-key" v-on:click="changeLanguage()"><i :class="[language.flag]"></i> {{language.language}}</div>
 								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label></div>
@@ -600,6 +624,9 @@
 					logInUrl: "https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=" + hostUrl + "/DartsForge/",
 					logOutUrl: "https://dartsforge.auth.us-east-2.amazoncognito.com/logout?client_id=2l9l4t5o41uenmn9sg0ohre60d&logout_uri=" + hostUrl + "/DartsForge/",	
 					userName: "",
+					communities: [],
+					community: "",
+					newCommunityRegion: "RU",
 					userCredentials: {
 						publicKey: "",
 						privateKey: ""
@@ -864,6 +891,25 @@
 						var elm = document.getElementById("scoring-data");
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
+					},
+					refreshCommunities: function() {
+						fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev/communities')  
+							.then(  
+								function(response) {  
+									if (response.status !== 200) {  
+										console.log('Looks like there was a problem. Status Code: ' + response.status);  
+										return;  
+									}
+									// Examine the text in the response  
+									response.json().then(function(data) {  
+										settings.communities = keyboardKeys.communities = data.Items.map(e => { return { name: e.Name, region: e.Region, city: e.City, owner: e.Owner } });
+										settings.store();
+									});  
+								}  
+							)  
+							.catch(function(err) {  
+								console.log('Fetch Error :-S', err);  
+							});
 					}
 				}
 			});
@@ -906,6 +952,13 @@
 				});
 			});
 			var app = document.getElementById("app");
+			var r = document.getElementById("newCommunityRegion");
+			for (var i = 0; i < flags.length; i++) {
+				var opt = document.createElement('option');
+			    opt.innerHTML = flags[i][1];
+				opt.value = flags[i][0];
+    			r.appendChild(opt);
+			}
 		</script>
 	</body>
 </html>

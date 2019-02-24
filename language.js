@@ -1,5 +1,6 @@
 var languages = {
     "en": {
+        flag: "flag-GB",
         language: "English",
         menuNoStartSwap: "Maiden first",
         menuFirstPlayer: "First player: ",
@@ -24,9 +25,18 @@ var languages = {
         menuPublicKey: "Public key",
         menuPrivateKey: "Private key",
         menuLoginSignin: "Log In | Sign In",
-        menuLogout: "Log Out"
+        menuLogout: "Log Out",
+        menuSelectCommunity: "Select Community",
+        menuInCommunity: " at ",
+        communities: "Communities: ",
+        refresh: "Refresh",
+        createCommunity: "Create community:",
+        createCommunityBtn: "Create",
+        createCommunityCity: "City",
+        createCommunityName: "Community Name"
     },
     "ru": {
+        flag: "flag-RU",
         language: "Русский",
         menuNoStartSwap: "Maiden first",
         menuFirstPlayer: "Первый игрок: ",
@@ -51,7 +61,15 @@ var languages = {
         menuPublicKey: "Публичный ключ",
         menuPrivateKey: "Секретный ключ",
         menuLoginSignin: "Войти",
-        menuLogout: "Выйти"
+        menuLogout: "Выйти",
+        menuSelectCommunity: "Выберите Сообщество",
+        menuInCommunity: " в ",
+        communities: "Сообщества: ",
+        refresh: "Обновить",
+        createCommunity: "Создать сообщество:",
+        createCommunityBtn: "Создать",
+        createCommunityCity: "Город",
+        createCommunityName: "Название"
     }
 
 };

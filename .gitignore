@@ -1,0 +1,4 @@
+node_modules
+*.zip
+Serverless/authorizationLambda/package-lock.json
+Serverless/newCommunity/package-lock.json

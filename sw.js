@@ -29,6 +29,9 @@ self.addEventListener('install', e => {
               root + 'swipe.js',
               root + 'vue.min.js',
               root + 'vueComponents.js',
+              root + 'flags.js',
+              root + 'flags.css',
+              root + 'flags.png',
             ]);
         })
     );
