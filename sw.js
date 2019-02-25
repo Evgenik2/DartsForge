@@ -39,9 +39,14 @@ self.addEventListener('install', e => {
 
 self.addEventListener('fetch', function(event) {
   console.log(event.request.url);
-  event.respondWith(fromNetwork(event.request, 400).catch(function () {
-    return fromCache(event.request);
-  }));
+  if(event.request.method == 'POST')
+    event.respondWith(fromNetworkOnly(event.request).catch(function() {
+        return { authorized: event.response.headers['x-amzn-errortype'] != 'UnauthorizedException' };
+    }));  
+  else
+    event.respondWith(fromNetwork(event.request, 400).catch(function () {
+      return fromCache(event.request);
+    }));
 });
 function fromCache(request) {
   return caches.open(cacheName).then(function (cache) {
@@ -56,6 +61,10 @@ function fromCache(request) {
     });
   });
 }
+function fromNetworkOnly(request) {
+  return fetch(request);
+}
+
 function fromNetwork(request, timeout) {
   return new Promise(function (fulfill, reject) {
     var timeoutId = setTimeout(reject, timeout);

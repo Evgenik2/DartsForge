@@ -59,7 +59,7 @@ var settings = {
                 keyboardKeys.newLegLength = settings.newLegLength = r.newLegLength;
                 keyboardKeys.newGameLength = settings.newGameLength = r.newGameLength;
                 keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
-                keyboardKeys.userName = settings.userName = r.userName;
+                keyboardKeys.userName = settings.userName;
                 keyboardKeys.communities = settings.communities = r.communities;
                 updateAll();
             }
