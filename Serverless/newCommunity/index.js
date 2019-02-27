@@ -14,64 +14,102 @@ var AWS = require('aws-sdk'),
                     'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW'],
     documentClient = new AWS.DynamoDB.DocumentClient(); 
 
-exports.newCommunity = function(event, context, callback) {
-	//console.log(event.requestContext.authorizer.claims);
-	var action =  event['body-json'].action;
-	var userName = event.context.cognitoUser;
-	var communityName = event['body-json'].name;
-	var userItem = {};
-	if(action == 'newCommunity') {
-    	var item = {
-      					"Name" : communityName,
-      					"Region" : event['body-json'].region,
-      					"City" : event['body-json'].city,
-      					"Owner" : userName
-      				};
-      			
-      	if(communityName == undefined) {
-      		callback(null, JSON.stringify({error: 'Community name is not defined'}));
-          	return;
-      	}
-      	if(item.Owner == undefined) {
-      		callback(null, JSON.stringify({error: 'User is not defined'}));
-          	return;
-      	}
-      	if(item.City == undefined) {
-      	    callback(null, JSON.stringify({error: 'City is not defined'}));
-          	return;
-      	}
-      	if(!flags.includes(item.Region)) {
-      	    callback(null, JSON.stringify({error: 'Region is undefined or is not in list of acceptable regions "' + item.Region + '"'}));
-          	return;
-      	}
-      	
-    
-      	documentClient.get({ Key: { "Name" : userName }, TableName : process.env.UsersTableName }, function(err1, data1) {
-    	    var userOwnedCommunities = [];
-    	    userItem = data1.Item;
-      	    if(data1.Item != undefined) {
-      	        userOwnedCommunities = JSON.parse(data1.Item.OwnedCommunities);
-      	    } else {
-      	        userItem = { Name: userName };
-      	    }
-          	if(userOwnedCommunities.length > 0) {
-      	        callback(null, JSON.stringify({error: 'User already owns the community ' + userOwnedCommunities[0]}));
-          	    return;
-      	    }
-      	    userOwnedCommunities.push(communityName);
-      	    userItem.OwnedCommunities = JSON.stringify(userOwnedCommunities);
-      	    documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }, function(err, data) {
-          		if(data.Item != undefined) {
-          		    callback(err, JSON.stringify({error: "The community exists"}));
-                 	return;
-      	        }
-      			documentClient.put({ Item : userItem, TableName : process.env.UsersTableName }, function(err, data) {
-              		documentClient.put({ Item : item, TableName : process.env.CommunitiesTableName }, function(err, data) {
-      			        callback(err, JSON.stringify({message: "Community created"}));
-          			});
-			    });
-          	});
-      	});	
-  	} else
-  	    callback(null, JSON.stringify({action: action, event: event}));
+var userProfile = async function(userName) {
+    let userData = await documentClient.get({ Key: { "Name" : userName }, TableName : process.env.UsersTableName }).promise();
+    let userItem = !userData.Item ? { Name: userName, OwnedCommunities: [], JoinedCommunities: [], RefereeCommunities: [] }
+                                  : { Name: userName, 
+                                      OwnedCommunities: userData.Item.OwnedCommunities ? userData.Item.OwnedCommunities.values : [], 
+                                      JoinedCommunities: userData.Item.JoinedCommunities ? userData.Item.JoinedCommunities.values : [], 
+                                      RefereeCommunities: userData.Item.RefereeCommunities ? userData.Item.RefereeCommunities.values : [] };
+    let invitesData = await documentClient.scan({ 
+        FilterExpression: "UserName = :userName", 
+        ExpressionAttributeValues : { ':userName' : userName }, 
+        TableName : process.env.InvitesTableName }).promise();
+    if(invitesData.Items)
+        userItem.Courts = invitesData.Items;
+    return userItem;
+};
+var getCommunities = async function() {
+    return (await documentClient.scan({ TableName : process.env.CommunitiesTableName }).promise()).Items;
+};
+var courtCommunity = async function(userName, communityName) {
+    if(!communityName) throw 'Community name is not defined';
+    let p = await userProfile(userName);
+    if(p.OwnedCommunities.includes(communityName)) throw "User "+ userName +" own the community " + communityName;
+    if(p.JoinedCommunities.includes(communityName)) throw "User "+ userName +" joined the community " + communityName;
+    if(p.Courts.includes(communityName)) throw "User "+ userName +" courted the community " + communityName;
+    if(p.OwnedCommunities.length + p.JoinedCommunities.length + p.Courts.length > 32) throw "User "+ userName +" exceeded 32 communities limit. Contact us if you ned more.";
+    await documentClient.put({ Item : { CommunityName : communityName, UserName : userName }, TableName : process.env.InvitesTableName }).promise();
+    return { message: "Community " + communityName +" courted by " + userName };
+};
+var getCourties = async function(userName, communityName) {
+    if(communityName == undefined) throw 'Community name is not defined';
+    let p = await userProfile(userName);
+    if(!p.OwnedCommunities.includes(communityName) && !p.RefereeCommunities.includes(communityName)) throw "User " + userName + " doesn't own or referee the community " + communityName;
+    let invitesData = await documentClient.query({ 
+        KeyConditionExpression: "CommunityName = :communityName",
+        ExpressionAttributeValues: { ":communityName": communityName },
+        TableName : process.env.InvitesTableName }).promise();
+    return invitesData.Items;
+};
+var newCommunity = async function(userName, communityName, regionName, cityName) {
+  	if(!communityName) throw 'Community name is not defined';
+  	if(!cityName) throw { error: 'City is not defined' };
+  	if(!flags.includes(regionName)) throw 'Region is undefined or is not in list of acceptable regions "' + regionName + '"';
+    var communityData = await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise();
+  	if(!communityData.Item) throw "The community exists";
+  	let p = userProfile(userName);
+  	if(p.OwnedCommunities.length > 0) throw 'User already owns the community ' + p.OwnedCommunities[0];
+    p.OwnedCommunities.push(communityName);
+  	await documentClient.put({ Item : p, TableName : process.env.UsersTableName }).promise();
+  	await documentClient.put({ Item : { "Name" : communityName, "Region" : regionName, "City" : cityName, "Owner" : userName }, TableName : process.env.CommunitiesTableName }).promise();
+    return { message: "Community created" };
+};
+var joinCommunity = async function(userName, communityName, courtName) {
+    if(!communityName) throw { error: 'Community name is not defined' };
+    let p = await userProfile(userName);
+    if(!p.OwnedCommunities.includes(communityName) && !p.RefereeCommunities.includes(communityName))
+        throw "User " + userName + " doesn't own or referee the community " + communityName;
+    let invitesData = await documentClient.query({ 
+        KeyConditionExpression: "CommunityName = :communityName and UserName = :userName",
+        ExpressionAttributeValues: { ":communityName": communityName, ":userName": courtName },
+        TableName : process.env.InvitesTableName }).promise();
+    if(invitesData.Items.length < 1)
+        throw "User " + courtName + " doesn't court the community " + communityName;
+    await documentClient.delete({ 
+        KeyConditionExpression: "CommunityName = :communityName and UserName = :userName",
+        ExpressionAttributeValues: { ":communityName": communityName, ":userName": courtName },
+        TableName : process.env.InvitesTableName }).promise();
+    let courtP = await userProfile(courtName);
+    if(courtP.OwnedCommunities.includes(communityName) || courtP.RefereeCommunities.includes(communityName))
+        throw "User " + courtName + " already owns or joined the community " + communityName;
+    courtP.JoinedCommunities.push(communityName);
+  	await documentClient.put({ Item : courtP, TableName : process.env.UsersTableName }).promise();
+    return { message: "Ok" };
+};
+exports.newCommunity = async function(event, context) {
+    try {
+    	let action = event['body-json'].action;
+    	let userName = event.context.cognitoUser;
+    	let communityName = event['body-json'].name;
+      	if(userName == undefined) throw 'User is not defined';
+  		switch(action) {
+  		    case 'getCommunities':
+      	        return JSON.stringify(await getCommunities());
+      	    case 'userProfile':
+      	        return JSON.stringify(await userProfile(userName));
+      	    case 'courtCommunity':
+      	        return JSON.stringify(await courtCommunity(userName, communityName));
+      	    case 'getCourties':
+      	        return JSON.stringify(await getCourties(userName, communityName));
+      	    case 'newCommunity':
+      	        return JSON.stringify(await newCommunity(userName, communityName, event['body-json'].region, event['body-json'].city));
+      	    case 'joinCommunity':
+      	        return JSON.stringify(await joinCommunity(userName, communityName));
+            default:
+      	        return JSON.stringify({ action: action, message: 'Command not recognized' });
+  		}
+    } catch (e) {
+ 	    return JSON.stringify({ error: e, message: 'Something goes wrong' });
+    }
 };

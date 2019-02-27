@@ -178,3 +178,12 @@
     color: #666666;
     font-size: 2vmax;
 }
+.menu-select-key {
+    color: white;
+    max-width: 50%;
+    border-width: 0;
+}
+.menu-input-key {
+    color: white;
+    border-width: 0;
+}

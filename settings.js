@@ -61,6 +61,7 @@ var settings = {
                 keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
                 keyboardKeys.userName = settings.userName;
                 keyboardKeys.communities = settings.communities = r.communities;
+				keyboardKeys.fillCommunitiesList();
                 updateAll();
             }
         });

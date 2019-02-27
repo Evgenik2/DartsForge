@@ -113,13 +113,20 @@
 					</div>
 					<div class="menu-row">
 						<div class="loginButton">{{language.createCommunity}}</div>
-						<select class="menu-key" id="newCommunityRegion" v-model="newCommunityRegion">
+						<select class="menu-key menu-select-key" id="newCommunityRegion" v-model="newCommunityRegion">
 						</select>
 					</div>
 					<div class="menu-row">
-						<input class="menu-key" :placeholder="language.createCommunityCity" maxlength="20" v-model="newCommunityCity"/>
-						<input class="menu-key" :placeholder="language.createCommunityName" maxlength="20" v-model="newCommunityName"/>
+						<input class="menu-key menu-input-key" :placeholder="language.createCommunityCity" maxlength="20" v-model="newCommunityCity"/>
+						<input class="menu-key menu-input-key" :placeholder="language.createCommunityName" maxlength="20" v-model="newCommunityName"/>
 						<a class="loginButton" href="_" v-on:click="createCommunity(); event.preventDefault();">{{language.createCommunityBtn}}</a>
+					</div>
+					<div class="menu-row">
+						<div class="loginButton">{{language.courtCommunity}}</div>
+					</div>
+					<div class="menu-row">
+						<select class="menu-key menu-select-key" id="courtCommunityName" v-model="courtCommunityName"></select>
+						<a class="loginButton" href="_" v-on:click="courtCommunity(); event.preventDefault();">{{language.courtCommunityBtn}}</a>
 					</div>
 					<communities-component  is="communities-component" v-for="item in communities" v-bind:item="item" v-bind:key="item.name"></history-component>
 				</div>
@@ -629,6 +636,7 @@
 					newCommunityRegion: "RU",
 					newCommunityName: undefined,
 					newCommunityCity: undefined, 
+					courtCommunityName: undefined,
 					userCredentials: {
 						publicKey: "",
 						privateKey: ""
@@ -894,17 +902,66 @@
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
 					},
+					fillCommunitiesList: function () {
+						var r = document.getElementById("courtCommunityName");
+						r.innerHTML = "";
+						for (var i = 0; i < settings.communities.length; i++) {
+							var opt = document.createElement('option');
+							opt.value = settings.communities[i].name;
+							opt.innerHTML = settings.communities[i].name + ' (' + settings.communities[i].region +')';
+							r.appendChild(opt);
+						}
+					},
 					refreshCommunities: function() {
-						fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev/communities')  
+						fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev', {
+							headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+							'Authorization': settings.token
+							},
+							method: "POST",
+							body: JSON.stringify({
+								action: 'userProfile',
+							})
+						}).then(  
+							function(response) { 
+								if (response.status == 401)
+									keyboardKeys.logOut(); 
+								if (response.status !== 200) {  
+									console.log('Looks like there was a problem. Status Code: ' + response.status);  
+									return;  
+								}
+								response.json().then(function(data) {  
+										var data2 = JSON.parse(data)
+										settings.communities = keyboardKeys.communities = data2.Communities.map(e => { return { name: e.Name, region: e.Region, city: e.City, owner: e.Owner } });
+										var userCommunities = data2.OwnedCommunities.map(e=>{return { name: e.Name, owner: keyboardKeys.userName, status: 'Owner'}});
+										if(data2.Courts)
+											data2.Courts.forEach(e => {
+												userCommunities.push({name: e.Name, status: 'Not approved'});
+											}); 
+										if(data2.JoinedCommunities)
+											data2.JoinedCommunities.forEach(e => {
+												userCommunities.push({name: e.Name, status: 'Not approved'});
+											});
+										settings.userCommunities = keyboardKeys.userCommunities = userCommunities;
+										keyboardKeys.fillCommunitiesList();
+										settings.store();
+									});  
+							}  
+						)  
+						.catch(function(err) {  
+							console.log('Fetch Error :-S', err);  
+						});
+			/*			fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev/communities')  
 							.then(  
 								function(response) {  
 									if (response.status !== 200) {  
 										console.log('Looks like there was a problem. Status Code: ' + response.status);  
 										return;  
 									}
-									// Examine the text in the response  
 									response.json().then(function(data) {  
 										settings.communities = keyboardKeys.communities = data.Items.map(e => { return { name: e.Name, region: e.Region, city: e.City, owner: e.Owner } });
+										keyboardKeys.fillCommunitiesList();
 										settings.store();
 									});  
 								}  
@@ -912,13 +969,14 @@
 							.catch(function(err) {  
 								console.log('Fetch Error :-S', err);  
 							});
+							*/
 					},
 					logOut: function() {
 						settings.token = undefined;
 						window.location.replace('/DartsForge/');
 					},
 					createCommunity: function() {
-						fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev/communities', {
+						fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev', {
 							headers: {
 							'Accept': 'application/json',
 							'Content-Type': 'application/json',

@@ -33,7 +33,10 @@ var languages = {
         createCommunity: "Create community:",
         createCommunityBtn: "Create",
         createCommunityCity: "City",
-        createCommunityName: "Community Name"
+        createCommunityName: "Community Name",
+        courtCommunity: "Court the community",
+        selectCommunityName: "Select community",
+        courtCommunityBtn: "Court",
     },
     "ru": {
         flag: "flag-RU",
@@ -69,7 +72,11 @@ var languages = {
         createCommunity: "Создать сообщество:",
         createCommunityBtn: "Создать",
         createCommunityCity: "Город",
-        createCommunityName: "Название"
+        createCommunityName: "Название",
+        courtCommunity: "Вступить в сообщество",
+        selectCommunityName: "Выберите сообщество",
+        courtCommunityBtn: "Вступить",
+
     }
 
 };
