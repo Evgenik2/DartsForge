@@ -187,3 +187,13 @@
     color: white;
     border-width: 0;
 }
+.courted-community {
+    flex: 1;
+    display: flex;
+    background: #666666;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.2vmax;
+    padding: 0.5vmax;
+}

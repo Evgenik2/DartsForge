@@ -25,6 +25,26 @@ function parseJwt () {
     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(window.atob(base64));
 };
+async function DartsApi(request) {
+    try {
+        var response = await fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev', {
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': settings.token
+            },
+            method: "POST",
+            body: JSON.stringify(request)
+        });
+        if (response.status == 401)
+            keyboardKeys.logOut(); 
+        if (response.status !== 200)  
+            throw 'Looks like there was a problem. ' + JSON.stringify(response);
+        return JSON.parse(await response.json());  
+    } catch(e) {  
+        console.log('Darts Api Error: ', e);  
+    }
+}
 var settings = {
     userName: "",
     token: "",
@@ -61,7 +81,10 @@ var settings = {
                 keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
                 keyboardKeys.userName = settings.userName;
                 keyboardKeys.communities = settings.communities = r.communities;
-				keyboardKeys.fillCommunitiesList();
+                if(keyboardKeys.communities)
+                    keyboardKeys.fillCommunitiesList();
+                else
+                    keyboardKeys.requestCommunitiesList();
                 updateAll();
             }
         });

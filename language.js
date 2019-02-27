@@ -37,6 +37,10 @@ var languages = {
         courtCommunity: "Court the community",
         selectCommunityName: "Select community",
         courtCommunityBtn: "Court",
+        ownedCommunities: "Your communities",
+        joinedCommunities: "Joined communities",
+        courtedCommunities: "Waiting agreement"
+
     },
     "ru": {
         flag: "flag-RU",
@@ -76,7 +80,9 @@ var languages = {
         courtCommunity: "Вступить в сообщество",
         selectCommunityName: "Выберите сообщество",
         courtCommunityBtn: "Вступить",
-
+        ownedCommunities: "Ваши сообщества",
+        joinedCommunities: "Одобренные сообщества",
+        courtedCommunities: "Ожидают одобрения"
     }
 
 };

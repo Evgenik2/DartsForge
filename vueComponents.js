@@ -68,7 +68,22 @@ Vue.component("stats-component", {
 Vue.component("communities-component", {
     template: `
         <div class="menu-row"> 
-            <div class="stat-head">{{item.name}} (Region: {{item.region}} City: {{item.city}} Owner: {{item.owner}})</div>
+            <div class="stat-head" v-on:click="selectCommunity">{{item}}</div>
+        </div>
+    `,
+    props: {
+        item: Object
+    },
+    methods: {
+        selectCommunity: function (event) {
+          keyboardKeys.selectCommunity(this.item);
+        }
+      },
+});
+Vue.component("communities-component-courted", {
+    template: `
+        <div class="menu-row"> 
+            <div class="courted-community">{{item.CommunityName}}</div>
         </div>
     `,
     props: {

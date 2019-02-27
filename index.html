@@ -108,17 +108,28 @@
 				<div class="history-container">
 					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
 					<div class="menu-row">
-						<div class="loginButton" >{{language.communities}} </div>
-						<a class="loginButton" href="_" v-on:click="refreshCommunities(); event.preventDefault();">{{language.refresh}}</a>
+						<div class="loginButton" >{{language.ownedCommunities}} </div>
 					</div>
+					<communities-component  is="communities-component" v-for="item in communitiesList" v-bind:item="item" v-bind:key="item.name"></communities-component>
+					<div class="menu-row">
+						<div class="loginButton" >{{language.courtedCommunities}} </div>
+					</div>
+					<communities-component  is="communities-component-courted" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component>
+					
 					<div class="menu-row">
 						<div class="loginButton">{{language.createCommunity}}</div>
+					</div>
+					<div class="menu-row">
 						<select class="menu-key menu-select-key" id="newCommunityRegion" v-model="newCommunityRegion">
 						</select>
 					</div>
 					<div class="menu-row">
 						<input class="menu-key menu-input-key" :placeholder="language.createCommunityCity" maxlength="20" v-model="newCommunityCity"/>
+					</div>
+					<div class="menu-row">
 						<input class="menu-key menu-input-key" :placeholder="language.createCommunityName" maxlength="20" v-model="newCommunityName"/>
+					</div>
+					<div class="menu-row">
 						<a class="loginButton" href="_" v-on:click="createCommunity(); event.preventDefault();">{{language.createCommunityBtn}}</a>
 					</div>
 					<div class="menu-row">
@@ -126,9 +137,11 @@
 					</div>
 					<div class="menu-row">
 						<select class="menu-key menu-select-key" id="courtCommunityName" v-model="courtCommunityName"></select>
+						<a class="loginButton" href="_" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</a>
+					</div>
+					<div class="menu-row">
 						<a class="loginButton" href="_" v-on:click="courtCommunity(); event.preventDefault();">{{language.courtCommunityBtn}}</a>
 					</div>
-					<communities-component  is="communities-component" v-for="item in communities" v-bind:item="item" v-bind:key="item.name"></history-component>
 				</div>
 			</div> 
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
@@ -307,7 +320,7 @@
 				</div>
 			</div>
 		</div>
-		<script defer>
+		<script defer async>
 			var keyboardKeys;
 			var banner;
 
@@ -637,10 +650,9 @@
 					newCommunityName: undefined,
 					newCommunityCity: undefined, 
 					courtCommunityName: undefined,
-					userCredentials: {
-						publicKey: "",
-						privateKey: ""
-					},
+					profile: {},
+					communitiesList: [],
+					waitingAgreement: [],
 					language: languages[settings.language],
 					languages: languages,
 					languageName: settings.language,
@@ -902,106 +914,43 @@
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
 					},
-					fillCommunitiesList: function () {
+					requestCommunitiesList: async function() {
+						settings.communities = keyboardKeys.communities = await DartsApi({ action: 'getCommunities' });
+						settings.store();
+						this.fillCommunitiesList();
+					},
+					fillCommunitiesList: async function () {
 						var r = document.getElementById("courtCommunityName");
+						if(!r) return;
 						r.innerHTML = "";
 						for (var i = 0; i < settings.communities.length; i++) {
 							var opt = document.createElement('option');
-							opt.value = settings.communities[i].name;
-							opt.innerHTML = settings.communities[i].name + ' (' + settings.communities[i].region +')';
+							opt.value = settings.communities[i].Name;
+							opt.innerHTML = settings.communities[i].Name + ' (' + settings.communities[i].Region +')';
 							r.appendChild(opt);
 						}
 					},
-					refreshCommunities: function() {
-						fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev', {
-							headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
-							'Authorization': settings.token
-							},
-							method: "POST",
-							body: JSON.stringify({
-								action: 'userProfile',
-							})
-						}).then(  
-							function(response) { 
-								if (response.status == 401)
-									keyboardKeys.logOut(); 
-								if (response.status !== 200) {  
-									console.log('Looks like there was a problem. Status Code: ' + response.status);  
-									return;  
-								}
-								response.json().then(function(data) {  
-										var data2 = JSON.parse(data)
-										settings.communities = keyboardKeys.communities = data2.Communities.map(e => { return { name: e.Name, region: e.Region, city: e.City, owner: e.Owner } });
-										var userCommunities = data2.OwnedCommunities.map(e=>{return { name: e.Name, owner: keyboardKeys.userName, status: 'Owner'}});
-										if(data2.Courts)
-											data2.Courts.forEach(e => {
-												userCommunities.push({name: e.Name, status: 'Not approved'});
-											}); 
-										if(data2.JoinedCommunities)
-											data2.JoinedCommunities.forEach(e => {
-												userCommunities.push({name: e.Name, status: 'Not approved'});
-											});
-										settings.userCommunities = keyboardKeys.userCommunities = userCommunities;
-										keyboardKeys.fillCommunitiesList();
-										settings.store();
-									});  
-							}  
-						)  
-						.catch(function(err) {  
-							console.log('Fetch Error :-S', err);  
-						});
-			/*			fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev/communities')  
-							.then(  
-								function(response) {  
-									if (response.status !== 200) {  
-										console.log('Looks like there was a problem. Status Code: ' + response.status);  
-										return;  
-									}
-									response.json().then(function(data) {  
-										settings.communities = keyboardKeys.communities = data.Items.map(e => { return { name: e.Name, region: e.Region, city: e.City, owner: e.Owner } });
-										keyboardKeys.fillCommunitiesList();
-										settings.store();
-									});  
-								}  
-							)  
-							.catch(function(err) {  
-								console.log('Fetch Error :-S', err);  
-							});
-							*/
+					refreshProfle: async function() {
+						this.profile = await DartsApi({ action: 'userProfile' });
+						this.communitiesList = this.profile.OwnedCommunities.concat(this.profile.JoinedCommunities);
+						this.waitingAgreement = this.profile.Courts;
 					},
 					logOut: function() {
 						settings.token = undefined;
 						window.location.replace('/DartsForge/');
 					},
-					createCommunity: function() {
-						fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev', {
-							headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
-							'Authorization': settings.token
-							},
-							method: "POST",
-							body: JSON.stringify({
+					createCommunity: async function() {
+						await DartsApi({
 								action: 'newCommunity',
 								region: this.newCommunityRegion, 
 								city: this.newCommunityCity, 
 								name: this.newCommunityName
-							})
-						}).then(  
-							function(response) { 
-								if (response.status == 401)
-									keyboardKeys.logOut(); 
-								if (response.status !== 200) {  
-									console.log('Looks like there was a problem. Status Code: ' + response.status);  
-									return;  
-								}
-							}  
-						)  
-						.catch(function(err) {  
-							console.log('Fetch Error :-S', err);  
-						});
+							});
+						await keyboardKeys.refreshProfle();
+					},
+					selectCommunity: function(c) {
+						this.community = c;
+						this.currentView = 0;
 					}
 				}
 			});
@@ -1051,6 +1000,8 @@
 				opt.value = flags[i][0];
     			r.appendChild(opt);
 			}
+			if(settings.token) 
+    			keyboardKeys.refreshProfle();
 		</script>
 	</body>
 </html>
