@@ -92,11 +92,6 @@
 		</section>
 		<div id="app" class="app">
 			<div id="caption" class="caption">
-<!--				<div>User name:</div>
-				<input id="username"/>
-				<div>Password:</div>
-				<input id="password"/>
-				<a class="loginButton" href="https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=http://localhost:8887/DartsForge/">Log In | Sign In</a>-->
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" href="_" v-on:click="logIn(); event.preventDefault();">{{language.menuLoginSignin}}</a>
 				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" >{{userName}}</div>
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community != undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
@@ -149,6 +144,25 @@
 					</div>	
 				</div>
 			</div>
+			<div id="changeCommunity" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 7 }">
+				<div class="dialog">
+					<div class="menu-row">
+						<div class="dialog-caption">{{language.changeCommunity}}</div>
+						<div class="dialog-close" v-on:click="currentView = 4"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+					</div>
+					<div class="dialog-content">
+						<div class="menu-row">
+							<select class="menu-key menu-select-key" id="changeCommunityName" v-bind="community"></select>
+						</div>
+						<div class="menu-row">
+							<div id="changeCommunityError" class="dialog-error"></div>
+						</div>
+						<div class="menu-row">
+							<a class="loginButton" href="_" v-on:click="selectCommunity(); event.preventDefault();">{{language.changeCommunityBtn}}</a>
+						</div>
+					</div>	
+				</div>
+			</div>
 			<div id="communities" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 4 }">
 				<div class="history-container">
 					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
@@ -156,17 +170,14 @@
 					<div class="menu-row">
 						<a class="loginButton" href="_" v-on:click="currentView = 5; event.preventDefault();">{{language.createCommunity}} </a>
 						<a class="loginButton" href="_" v-on:click="currentView = 6; event.preventDefault();">{{language.courtCommunity}} </a>
+						<a class="loginButton" href="_" v-on:click="currentView = 7; event.preventDefault();">{{language.changeCommunity}} </a>
 					</div>
 	
 
 					<div class="menu-row">
-						<div class="loginButton" >{{language.ownedCommunities}} </div>
+						<div class="loginButton" >{{language.communitiesNews}} </div>
 					</div>
-					<communities-component  is="communities-component" v-for="item in communitiesList" v-bind:item="item" v-bind:key="item.name"></communities-component>
-					<div class="menu-row">
-						<div class="loginButton" >{{language.courtedCommunities}} </div>
-					</div>
-					<communities-component  is="communities-component-courted" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component>
+					<communities-component-waitingAgreement  is="communities-component-waitingAgreement" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component>
 
 					<div class="menu-row">
 						<div class="loginButton" >{{language.ownedCommunities}} </div>
@@ -965,6 +976,15 @@
 						this.communitiesList = this.profile.OwnedCommunities.concat(this.profile.JoinedCommunities);
 						this.waitingAgreement = this.profile.Courts;
 						this.waitingJoining = this.profile.Joins;
+						var r = document.getElementById("changeCommunityName");
+						if(!r) return;
+						r.innerHTML = "";
+						for (var i = 0; i < this.communitiesList.length; i++) {
+							var opt = document.createElement('option');
+							opt.value = this.communitiesList[i].Name;
+							opt.innerHTML = this.communitiesList[i];
+							r.appendChild(opt);
+						}
 					},
 					createCommunity: async function() {
 						var res = await DartsApi({
@@ -982,10 +1002,18 @@
 							currentView = 4;
 						}
 					},
-					selectCommunity: function(c) {
-						this.community = settings.community = c;
+					selectCommunity: function() {
+						var r = document.getElementById("changeCommunityName");
+						this.community = settings.community = r.options[r.selectedIndex].text;
 						settings.store();
-						this.currentView = 0;
+						this.currentView = 4;
+					},
+					rejectCourt: async function(item) {
+						var res = await DartsApi({
+								action: 'rejectCourt',
+								name: item.CommunityName
+							});
+						await keyboardKeys.refreshProfle();
 					},
 					courtCommunity: async function() {
 						var res = await DartsApi({
@@ -997,8 +1025,8 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = language.communityCreated;
-							currentView = 4;
+							err.innerHTML = this.language.communityCreated;
+							this.currentView = 4;
 						}
 					},
 					logIn: function() {

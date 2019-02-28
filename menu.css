@@ -242,3 +242,17 @@
 .dialog-error {
     color: red;
 }
+.community-message {
+    display: flex;
+    flex-direction: column;
+    padding: 1vmax;
+    border-color: #666666;
+    border-radius: 2vmax;
+    border: 0.3vmax;
+    background: #dddddd;
+}
+.event-button {
+    display: flex;
+    align-self: flex-end;
+    margin: 10px;
+}

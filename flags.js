@@ -5,7 +5,6 @@
 	Набор распостраняется на условиях лицензии CC-BY-SA
 */
 var flags = [
-	['ABKHAZIA', 'Abkhazia', 'Абхазия', null, null],
 	['AD', 'Andorra', 'Андорра', 'AND', '20'],
 	['AE', 'United Arab Emirates', 'Объединённые Арабские Эмираты', 'ARE', '784'],
 	['AF', 'Afghanistan', 'Афганистан', 'AFG', '4'],
@@ -129,7 +128,6 @@ var flags = [
 	['KI', 'Kiribati', 'Кирибати', 'KIR', '296'],
 	['KM', 'Comoros', 'Коморы', 'COM', '174'],
 	['KN', 'Saint Kitts and Nevis', 'Сент-Китс и Невис', 'KNA', '659'],
-	['KOSOVO', 'Kosovo', 'Косово', null, null],
 	['KP', 'North Korea', 'Северная Корея', 'PRK', '408'],
 	['KR', 'South Korea', 'Южная Корея', 'KOR', '410'],
 	['KW', 'Kuwait', 'Кувейт', 'KWT', '414'],
@@ -175,7 +173,6 @@ var flags = [
 	['NF', 'Norfolk Island', 'Остров Норфолк', 'NFK', '574'],
 	['NG', 'Nigeria', 'Нигерия', 'NGA', '566'],
 	['NI', 'Nicaragua', 'Никарагуа', 'NIC', '558'],
-	['NKR', 'Nagorno-Karabakh Republic', 'Нагорно-Карабахская Республика', null, null],
 	['NL', 'Netherlands', 'Нидерланды', 'NLD', '528'],
 	['NO', 'Norway', 'Норвегия', 'NOR', '578'],
 	['NP', 'Nepal', 'Непал', 'NPL', '524'],
@@ -217,7 +214,6 @@ var flags = [
 	['SM', 'San Marino', 'Сан-Марино', 'SMR', '674'],
 	['SN', 'Senegal', 'Сенегал', 'SEN', '686'],
 	['SO', 'Somalia', 'Сомали', 'SOM', '706'],
-	['SOUTH-OSSETIA', 'South Ossetia', 'Южная Осетия', null, null],
 	['SR', 'Suriname', 'Суринам', 'SUR', '740'],
 	['SS', 'South Sudan', 'Южный Судан', 'SSD', '728'],
 	['ST', 'Sao Tome and Principe', 'Сан-Томе и Принсипи', 'STP', '678'],

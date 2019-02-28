@@ -34,14 +34,17 @@ var languages = {
         createCommunityBtn: "Create",
         createCommunityCity: "City",
         createCommunityName: "Community Name",
+        changeCommunity: "Change community",
         courtCommunity: "Court the community",
         selectCommunityName: "Select community",
         courtCommunityBtn: "Court",
         ownedCommunities: "Your communities",
         joinedCommunities: "Joined communities",
         courtedCommunities: "Waiting agreement",
-        communityCreated: "Community created!"
-
+        communityCreated: "Community created!",
+        changeCommunityBtn: "Change",
+        communitiesNews: "Events",
+        reject: "Reject"
     },
     "ru": {
         flag: "flag-RU",
@@ -78,13 +81,18 @@ var languages = {
         createCommunityBtn: "Создать",
         createCommunityCity: "Город",
         createCommunityName: "Название",
+        changeCommunity: "Сменить сообщество",
         courtCommunity: "Вступить в сообщество",
         selectCommunityName: "Выберите сообщество",
         courtCommunityBtn: "Вступить",
         ownedCommunities: "Ваши сообщества",
         joinedCommunities: "Одобренные сообщества",
         courtedCommunities: "Ожидают одобрения",
-        communityCreated: "Сообщество создано!"
+        communityCreated: "Сообщество создано!",
+        changeCommunityBtn: "Сменить",
+        communitiesNews: "События",
+        reject: "Отозвать"
+
     }
 
 };
