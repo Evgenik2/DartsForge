@@ -30,7 +30,7 @@ var languages = {
         menuInCommunity: " at ",
         communities: "Communities: ",
         refresh: "Refresh",
-        createCommunity: "Create community:",
+        createCommunity: "Create community",
         createCommunityBtn: "Create",
         createCommunityCity: "City",
         createCommunityName: "Community Name",
@@ -39,7 +39,8 @@ var languages = {
         courtCommunityBtn: "Court",
         ownedCommunities: "Your communities",
         joinedCommunities: "Joined communities",
-        courtedCommunities: "Waiting agreement"
+        courtedCommunities: "Waiting agreement",
+        communityCreated: "Community created!"
 
     },
     "ru": {
@@ -73,7 +74,7 @@ var languages = {
         menuInCommunity: " в ",
         communities: "Сообщества: ",
         refresh: "Обновить",
-        createCommunity: "Создать сообщество:",
+        createCommunity: "Создать сообщество",
         createCommunityBtn: "Создать",
         createCommunityCity: "Город",
         createCommunityName: "Название",
@@ -82,7 +83,8 @@ var languages = {
         courtCommunityBtn: "Вступить",
         ownedCommunities: "Ваши сообщества",
         joinedCommunities: "Одобренные сообщества",
-        courtedCommunities: "Ожидают одобрения"
+        courtedCommunities: "Ожидают одобрения",
+        communityCreated: "Сообщество создано!"
     }
 
 };

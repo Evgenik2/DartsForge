@@ -21,13 +21,40 @@ var userProfile = async function(userName) {
                                       OwnedCommunities: userData.Item.OwnedCommunities ? userData.Item.OwnedCommunities.values : [], 
                                       JoinedCommunities: userData.Item.JoinedCommunities ? userData.Item.JoinedCommunities.values : [], 
                                       RefereeCommunities: userData.Item.RefereeCommunities ? userData.Item.RefereeCommunities.values : [] };
+    let c = {};
+       try { 
+    let index = 0;
+    userItem.OwnedCommunities.forEach(function(value) {
+        index++;
+        let ck = ":titlevalue"+index;
+        c[ck.toString()] = value;
+    });
+    userItem.RefereeCommunities.forEach(function(value) {
+        index++;
+        let ck = ":titlevalue"+index;
+        c[ck.toString()] = value;
+    });
+    }catch(e) {
+        throw "aaa" + e;
+    }
+    let keys = Object.keys(c).toString();
+    c[':userName'] = userName;
     let invitesData = await documentClient.scan({ 
-        FilterExpression: "UserName = :userName", 
-        ExpressionAttributeValues : { ':userName' : userName }, 
+        FilterExpression: "UserName = :userName or CommunityName in (" + keys + ")", 
+        ExpressionAttributeValues : c, 
         TableName : process.env.InvitesTableName }).promise();
-    if(invitesData.Items)
-        userItem.Courts = invitesData.Items;
+    if(invitesData.Items) {
+        userItem.Courts = invitesData.Items.filter(e => e.UserName == userName);
+        userItem.Joins =  invitesData.Items.filter(e => e.UserName != userName);
+    }
     return userItem;
+};
+var updateProfile = async function(item) {
+    item.Courts = undefined;
+    item.OwnedCommunities = item.OwnedCommunities.length>0 ? documentClient.createSet(item.OwnedCommunities) : undefined;
+    item.JoinedCommunities = item.JoinedCommunities.length>0 ? documentClient.createSet(item.JoinedCommunities) : undefined;
+    item.RefereeCommunities = item.RefereeCommunities.length>0 ? documentClient.createSet(item.RefereeCommunities) : undefined;
+  	await documentClient.put({ Item : item, TableName : process.env.UsersTableName }).promise();
 };
 var getCommunities = async function() {
     return (await documentClient.scan({ TableName : process.env.CommunitiesTableName }).promise()).Items;
@@ -37,7 +64,7 @@ var courtCommunity = async function(userName, communityName) {
     let p = await userProfile(userName);
     if(p.OwnedCommunities.includes(communityName)) throw "User "+ userName +" own the community " + communityName;
     if(p.JoinedCommunities.includes(communityName)) throw "User "+ userName +" joined the community " + communityName;
-    if(p.Courts.includes(communityName)) throw "User "+ userName +" courted the community " + communityName;
+    if(p.Courts.find(c=>c.CommunityName == communityName)) throw "User "+ userName +" already courted the community " + communityName;
     if(p.OwnedCommunities.length + p.JoinedCommunities.length + p.Courts.length > 32) throw "User "+ userName +" exceeded 32 communities limit. Contact us if you ned more.";
     await documentClient.put({ Item : { CommunityName : communityName, UserName : userName }, TableName : process.env.InvitesTableName }).promise();
     return { message: "Community " + communityName +" courted by " + userName };
@@ -54,14 +81,16 @@ var getCourties = async function(userName, communityName) {
 };
 var newCommunity = async function(userName, communityName, regionName, cityName) {
   	if(!communityName) throw 'Community name is not defined';
-  	if(!cityName) throw { error: 'City is not defined' };
+  	if(communityName.length > 20) throw 'Community name should be less than 20 characters';
+  	if(!cityName) throw 'City is not defined';
+   	if(cityName.length > 20) throw 'City name should be less than 20 characters';
   	if(!flags.includes(regionName)) throw 'Region is undefined or is not in list of acceptable regions "' + regionName + '"';
     var communityData = await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise();
-  	if(!communityData.Item) throw "The community exists";
-  	let p = userProfile(userName);
+  	if(communityData.Item) throw "The community '" + communityName + "' already exists";
+  	let p = await userProfile(userName);
   	if(p.OwnedCommunities.length > 0) throw 'User already owns the community ' + p.OwnedCommunities[0];
     p.OwnedCommunities.push(communityName);
-  	await documentClient.put({ Item : p, TableName : process.env.UsersTableName }).promise();
+    await updateProfile(p);
   	await documentClient.put({ Item : { "Name" : communityName, "Region" : regionName, "City" : cityName, "Owner" : userName }, TableName : process.env.CommunitiesTableName }).promise();
     return { message: "Community created" };
 };
@@ -84,9 +113,10 @@ var joinCommunity = async function(userName, communityName, courtName) {
     if(courtP.OwnedCommunities.includes(communityName) || courtP.RefereeCommunities.includes(communityName))
         throw "User " + courtName + " already owns or joined the community " + communityName;
     courtP.JoinedCommunities.push(communityName);
-  	await documentClient.put({ Item : courtP, TableName : process.env.UsersTableName }).promise();
+    await updateProfile(courtP);
     return { message: "Ok" };
 };
+
 exports.newCommunity = async function(event, context) {
     try {
     	let action = event['body-json'].action;

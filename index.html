@@ -42,6 +42,7 @@
 				document.querySelector('#banner').style.display = 'flex';
 			});
 		</script>
+		<script src="amazon-cognito-auth.min.js"></script>
 		<script src="vue.min.js"></script>
 		<script src="swipe.js"></script>
 		<script src="endings.js"></script>
@@ -86,9 +87,7 @@
 				</div>
 			</div>
 			<div id="banner-close" class="banner-close">
-				<svg viewbox="0 0 40 40">
-					<path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" />
-				</svg>
+				<svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg>
 			</div>
 		</section>
 		<div id="app" class="app">
@@ -98,15 +97,68 @@
 				<div>Password:</div>
 				<input id="password"/>
 				<a class="loginButton" href="https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=http://localhost:8887/DartsForge/">Log In | Sign In</a>-->
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" v-bind:href="logInUrl">{{language.menuLoginSignin}}</a>
-				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }">{{userName}}</div>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined && community != undefined }" > {{language.menuInCommunity}} {{community}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" v-bind:href="logOutUrl">{{language.menuLogout}}</a> 
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" href="_" v-on:click="logIn(); event.preventDefault();">{{language.menuLoginSignin}}</a>
+				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" >{{userName}}</div>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community != undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();"> {{language.menuInCommunity}} {{community}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</a> 
+			</div>
+			<div id="createCommunity" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 5 }">
+				<div class="dialog">
+					<div class="menu-row">
+						<div class="dialog-caption">{{language.createCommunity}}</div>
+						<div class="dialog-close" v-on:click="currentView = 4"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+					</div>
+					<div class="dialog-content">
+						<div class="menu-row">
+							<select class="menu-key menu-select-key" id="newCommunityRegion" v-model="newCommunityRegion">
+							</select>
+						</div>
+						<div class="menu-row">
+							<input class="menu-key menu-input-key" :placeholder="language.createCommunityCity" maxlength="20" v-model="newCommunityCity"/>
+						</div>
+						<div class="menu-row">
+							<input class="menu-key menu-input-key" :placeholder="language.createCommunityName" maxlength="20" v-model="newCommunityName"/>
+						</div>
+						<div class="menu-row">
+							<div id="createCommunityError" class="dialog-error"></div>
+						</div>
+						<div class="menu-row">
+							<a class="loginButton" href="_" v-on:click="createCommunity(); event.preventDefault();">{{language.createCommunityBtn}}</a>
+						</div>
+					</div>	
+				</div>
+			</div>
+			<div id="courtCommunity" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 6 }">
+				<div class="dialog">
+					<div class="menu-row">
+						<div class="dialog-caption">{{language.courtCommunity}}</div>
+						<div class="dialog-close" v-on:click="currentView = 4"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+					</div>
+					<div class="dialog-content">
+						<div class="menu-row">
+							<select class="menu-key menu-select-key" id="courtCommunityName" v-model="courtCommunityName"></select>
+						</div>
+						<div class="menu-row">
+							<div id="courtCommunityError" class="dialog-error"></div>
+						</div>
+						<div class="menu-row">
+							<a class="loginButton" href="_" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</a>
+							<a class="loginButton" href="_" v-on:click="courtCommunity(); event.preventDefault();">{{language.courtCommunityBtn}}</a>
+						</div>
+					</div>	
+				</div>
 			</div>
 			<div id="communities" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 4 }">
 				<div class="history-container">
 					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
+
+					<div class="menu-row">
+						<a class="loginButton" href="_" v-on:click="currentView = 5; event.preventDefault();">{{language.createCommunity}} </a>
+						<a class="loginButton" href="_" v-on:click="currentView = 6; event.preventDefault();">{{language.courtCommunity}} </a>
+					</div>
+	
+
 					<div class="menu-row">
 						<div class="loginButton" >{{language.ownedCommunities}} </div>
 					</div>
@@ -115,33 +167,12 @@
 						<div class="loginButton" >{{language.courtedCommunities}} </div>
 					</div>
 					<communities-component  is="communities-component-courted" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component>
-					
+
 					<div class="menu-row">
-						<div class="loginButton">{{language.createCommunity}}</div>
+						<div class="loginButton" >{{language.ownedCommunities}} </div>
 					</div>
-					<div class="menu-row">
-						<select class="menu-key menu-select-key" id="newCommunityRegion" v-model="newCommunityRegion">
-						</select>
-					</div>
-					<div class="menu-row">
-						<input class="menu-key menu-input-key" :placeholder="language.createCommunityCity" maxlength="20" v-model="newCommunityCity"/>
-					</div>
-					<div class="menu-row">
-						<input class="menu-key menu-input-key" :placeholder="language.createCommunityName" maxlength="20" v-model="newCommunityName"/>
-					</div>
-					<div class="menu-row">
-						<a class="loginButton" href="_" v-on:click="createCommunity(); event.preventDefault();">{{language.createCommunityBtn}}</a>
-					</div>
-					<div class="menu-row">
-						<div class="loginButton">{{language.courtCommunity}}</div>
-					</div>
-					<div class="menu-row">
-						<select class="menu-key menu-select-key" id="courtCommunityName" v-model="courtCommunityName"></select>
-						<a class="loginButton" href="_" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</a>
-					</div>
-					<div class="menu-row">
-						<a class="loginButton" href="_" v-on:click="courtCommunity(); event.preventDefault();">{{language.courtCommunityBtn}}</a>
-					</div>
+					<communities-component  is="communities-component" v-for="item in waitingJoining" v-bind:item="item" v-bind:key="item.name"></communities-component>
+	
 				</div>
 			</div> 
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
@@ -641,8 +672,6 @@
 			keyboardKeys = new Vue({
 				el: "#app",
 				data: {				
-					logInUrl: "https://dartsforge.auth.us-east-2.amazoncognito.com/login?response_type=token&client_id=2l9l4t5o41uenmn9sg0ohre60d&redirect_uri=" + hostUrl + "/DartsForge/",
-					logOutUrl: "https://dartsforge.auth.us-east-2.amazoncognito.com/logout?client_id=2l9l4t5o41uenmn9sg0ohre60d&logout_uri=" + hostUrl + "/DartsForge/",	
 					userName: "",
 					communities: [],
 					community: "",
@@ -653,6 +682,7 @@
 					profile: {},
 					communitiesList: [],
 					waitingAgreement: [],
+					waitingJoining: [],
 					language: languages[settings.language],
 					languages: languages,
 					languageName: settings.language,
@@ -931,26 +961,54 @@
 						}
 					},
 					refreshProfle: async function() {
-						this.profile = await DartsApi({ action: 'userProfile' });
+						this.profile = await DartsApiProfile();
 						this.communitiesList = this.profile.OwnedCommunities.concat(this.profile.JoinedCommunities);
 						this.waitingAgreement = this.profile.Courts;
-					},
-					logOut: function() {
-						settings.token = undefined;
-						window.location.replace('/DartsForge/');
+						this.waitingJoining = this.profile.Joins;
 					},
 					createCommunity: async function() {
-						await DartsApi({
+						var res = await DartsApi({
 								action: 'newCommunity',
 								region: this.newCommunityRegion, 
 								city: this.newCommunityCity, 
 								name: this.newCommunityName
 							});
-						await keyboardKeys.refreshProfle();
+						var err = document.getElementById("createCommunityError");
+						if(res.error) {
+							err.innerHTML = res.error;
+						} else {
+							await keyboardKeys.refreshProfle();
+							err.innerHTML = language.communityCreated;
+							currentView = 4;
+						}
 					},
 					selectCommunity: function(c) {
-						this.community = c;
+						this.community = settings.community = c;
+						settings.store();
 						this.currentView = 0;
+					},
+					courtCommunity: async function() {
+						var res = await DartsApi({
+								action: 'courtCommunity',
+								name: this.courtCommunityName
+							});
+						var err = document.getElementById("courtCommunityError");
+						if(res.error) {
+							err.innerHTML = res.error;
+						} else {
+							await keyboardKeys.refreshProfle();
+							err.innerHTML = language.communityCreated;
+							currentView = 4;
+						}
+					},
+					logIn: function() {
+						auth.getSession();
+					},
+					logOut: function() {
+						settings.userName = undefined;
+						settings.community = undefined;
+						auth.signOut();
+						window.location.replace('/DartsForge/');
 					}
 				}
 			});
@@ -1000,7 +1058,7 @@
 				opt.value = flags[i][0];
     			r.appendChild(opt);
 			}
-			if(settings.token) 
+			if(settings.userName) 
     			keyboardKeys.refreshProfle();
 		</script>
 	</body>

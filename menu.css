@@ -180,7 +180,7 @@
 }
 .menu-select-key {
     color: white;
-    max-width: 50%;
+    width: 100%;
     border-width: 0;
 }
 .menu-input-key {
@@ -196,4 +196,49 @@
     align-items: center;
     margin-bottom: 0.2vmax;
     padding: 0.5vmax;
+}
+.dialog-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+.dialog {
+    display: flex;
+    flex-direction: column;
+    padding: 1vmax;
+    border-color: #666666;
+    border-radius: 2vmax;
+    border: 0.3vmax;
+    background: #dddddd;
+    margin: 3vmax;
+    max-width: 500px;
+}
+.dialog-close {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 100%;
+    margin: 15px;
+    background-image: url('data:image/svg+xml;utf8,<svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg>');
+}
+.dialog-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-left: 3vmax;
+    margin-right: 3vmax;
+    margin-bottom: 3vmax;
+}
+.dialog-caption {
+    display: flex;
+    font-size: 2.5vmax;
+    margin-left:30px;
+    flex: 1;
+    align-self: center;
+    text-align: center;
+}
+.dialog-error {
+    color: red;
 }

@@ -32,6 +32,7 @@ self.addEventListener('install', e => {
               root + 'flags.js',
               root + 'flags.css',
               root + 'flags.png',
+              root + 'amazon-cognito-auth.min.js'
             ]);
         })
     );
