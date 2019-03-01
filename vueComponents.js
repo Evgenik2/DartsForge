@@ -84,9 +84,8 @@ Vue.component("communities-component-waitingAgreement", {
     template: `
         <div class="menu-row"> 
             <div class="community-message">
-                <div>{{item}}</div>
-				<a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">Reject</a>
-
+                <div>{{item.language.courtMessage1}}{{item.CommunityName}}{{item.language.courtMessage2}}</div>
+				<a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</a>
             </div>
         </div>
     `,
@@ -97,6 +96,31 @@ Vue.component("communities-component-waitingAgreement", {
     methods: {
         reject: function (event) {
             keyboardKeys.rejectCourt(this.item);
+        }
+    },
+});
+Vue.component("communities-component-waitingJoining", {
+    template: `
+        <div class="menu-row"> 
+            <div class="community-message">
+                <div>{{item.UserName}}{{item.language.joinMessage1}}{{item.CommunityName}}{{item.language.joinMessage2}}</div>
+                <div class="message-row"> 
+                    <a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</a>
+				    <a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.apply}}</a>
+                </div>
+            </div>
+        </div>
+    `,
+    props: {
+        item: Object,
+        language: languages[settings.language]
+    },
+    methods: {
+        reject: function (event) {
+            keyboardKeys.rejectJoin(this.item);
+        },        
+        accept: function (event) {
+            keyboardKeys.acceptJoin(this.item);
         }
     },
 });

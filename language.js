@@ -44,7 +44,12 @@ var languages = {
         communityCreated: "Community created!",
         changeCommunityBtn: "Change",
         communitiesNews: "Events",
-        reject: "Reject"
+        reject: "Reject",
+        apply: "Apply",
+        courtMessage1: "You courted the ",
+        courtMessage2: " but the application is not approoved yet",
+        joinMessage1: " wants to join to the ",
+        joinMessage2: ". You can apply or reject the application"
     },
     "ru": {
         flag: "flag-RU",
@@ -91,7 +96,12 @@ var languages = {
         communityCreated: "Сообщество создано!",
         changeCommunityBtn: "Сменить",
         communitiesNews: "События",
-        reject: "Отозвать"
+        reject: "Отозвать",
+        apply: "Принять",
+        courtMessage1: "Вы желаете присоединиться к ",
+        courtMessage2: " но ваша заявка еще не одобрена",
+        joinMessage1: " желает присоединиться к сообществу ",
+        joinMessage2: ". Вы можете одобрить или отклонить заявку"
 
     }
 

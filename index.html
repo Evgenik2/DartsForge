@@ -177,13 +177,10 @@
 					<div class="menu-row">
 						<div class="loginButton" >{{language.communitiesNews}} </div>
 					</div>
-					<communities-component-waitingAgreement  is="communities-component-waitingAgreement" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component>
+					<communities-component-waitingAgreement  is="communities-component-waitingAgreement" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingAgreement>
+					<communities-component-waitingJoining  is="communities-component-waitingJoining" v-for="item in waitingJoining" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingJoining>
 
-					<div class="menu-row">
-						<div class="loginButton" >{{language.ownedCommunities}} </div>
-					</div>
-					<communities-component  is="communities-component" v-for="item in waitingJoining" v-bind:item="item" v-bind:key="item.name"></communities-component>
-	
+					
 				</div>
 			</div> 
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
@@ -974,8 +971,8 @@
 					refreshProfle: async function() {
 						this.profile = await DartsApiProfile();
 						this.communitiesList = this.profile.OwnedCommunities.concat(this.profile.JoinedCommunities);
-						this.waitingAgreement = this.profile.Courts;
-						this.waitingJoining = this.profile.Joins;
+						this.waitingAgreement = this.profile.Courts.map(e=>{ e.language = keyboardKeys.language; return e; });
+						this.waitingJoining = this.profile.Joins.map(e=>{ e.language = keyboardKeys.language; return e; });
 						var r = document.getElementById("changeCommunityName");
 						if(!r) return;
 						r.innerHTML = "";
@@ -1012,6 +1009,22 @@
 						var res = await DartsApi({
 								action: 'rejectCourt',
 								name: item.CommunityName
+							});
+						await keyboardKeys.refreshProfle();
+					},
+					rejectJoin: async function(item) {
+						var res = await DartsApi({
+								action: 'rejectCourt',
+								name: item.CommunityName,
+								courtName: item.UserName
+							});
+						await keyboardKeys.refreshProfle();
+					},
+					acceptJoin: async function(item) {
+						var res = await DartsApi({
+								action: 'joinCommunity',
+								name: item.CommunityName,
+								courtName: item.UserName
 							});
 						await keyboardKeys.refreshProfle();
 					},

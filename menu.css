@@ -250,9 +250,21 @@
     border-radius: 2vmax;
     border: 0.3vmax;
     background: #dddddd;
+    margin: 2vmax;
 }
 .event-button {
     display: flex;
     align-self: flex-end;
     margin: 10px;
+}
+.message-row {
+    display: flex;
+    margin-bottom: 0.5vmax;
+    flex-direction: row;
+    align-items: flex-end;
+    align-self: stretch;
+    color: #666666;
+    text-align: center;
+    justify-content: flex-end;
+    font-size: 2vmax;
 }
