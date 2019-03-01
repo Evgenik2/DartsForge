@@ -106,7 +106,7 @@ Vue.component("communities-component-waitingJoining", {
                 <div>{{item.UserName}}{{item.language.joinMessage1}}{{item.CommunityName}}{{item.language.joinMessage2}}</div>
                 <div class="message-row"> 
                     <a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</a>
-				    <a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.apply}}</a>
+				    <a class="event-button" href="_" v-on:click="accept(); event.preventDefault();">{{item.language.apply}}</a>
                 </div>
             </div>
         </div>
