@@ -80,6 +80,22 @@ Vue.component("communities-component", {
         }
       },
 });
+Vue.component("communities-component-communityRating", {
+    template: `
+        <div class="menu-row"> 
+            <div class="community-rating">
+                <div>{{item.Rating}} {{item.UserName}}</div>
+            </div>
+        </div>
+    `,
+    props: {
+        item: Object,
+        language: languages[settings.language]
+    },
+    methods: {
+
+    },
+});
 Vue.component("communities-component-waitingAgreement", {
     template: `
         <div class="menu-row"> 

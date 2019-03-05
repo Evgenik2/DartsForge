@@ -92,11 +92,41 @@
 		</section>
 		<div id="app" class="app">
 			<div id="caption" class="caption">
+				<a class="loginButton" href="_" v-on:click="currentView = 9; event.preventDefault();">{{language.menuSettings}}</a>
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" href="_" v-on:click="logIn(); event.preventDefault();">{{language.menuLoginSignin}}</a>
 				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" >{{userName}}</div>
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community != undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();"> {{language.menuInCommunity}} {{community}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="updateCommunityData(); currentView = 8; event.preventDefault();"> {{community}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();"> {{language.menuChangeCommunity}}</a>
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</a> 
+			</div>
+			<div id="manageCommunity" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 8 }">
+				<div class="history-container">
+					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
+					<div class="menu-row">
+					</div>
+					<div class="menu-row">
+						<div class="loginButton" >{{language.communityRating}} </div>
+					</div>
+					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingAgreement>
+						
+				</div>
+			</div>
+			<div id="settings" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 9 }">
+				<div class="dialog">
+					<div class="menu-row">
+						<div class="dialog-caption">{{language.menuSettings	}}</div>
+						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+					</div>
+					<div class="dialog-content">
+						<div class="menu-row">
+							<div class="menu-key" v-on:click="changeEnding()">{{endings}}</div>
+						</div>
+						<div class="menu-row">
+							<div class="menu-key" v-on:click="changeLanguage()"><i :class="[language.flag]"></i> {{language.language}}</div>
+						</div>
+					</div>	
+				</div>
 			</div>
 			<div id="createCommunity" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 5 }">
 				<div class="dialog">
@@ -221,8 +251,6 @@
 								</div>
 								<div class="menu-row menu-entering-collapsed">
 									<div class="menu-maidenFirst" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
-									<div class="menu-inc-key" v-on:click="changeEnding()">{{endings}}</div>
-									<div class="menu-inc-key" v-on:click="changeLanguage()"><i :class="[language.flag]"></i> {{language.language}}</div>
 								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label></div>
@@ -362,7 +390,15 @@
 		<script defer async>
 			var keyboardKeys;
 			var banner;
-
+			function deleteAllCookies() {
+				var cookies = document.cookie.split(";");
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = cookies[i];
+					var eqPos = cookie.indexOf("=");
+					var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+					document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+				}
+			}
 			function validateThrow(value, left) {
 				if(value < 0 || value > 180)
 					return false;
@@ -683,6 +719,9 @@
 					userName: "",
 					communities: [],
 					community: "",
+					communityData: {
+						CommunityRating: []
+					},
 					newCommunityRegion: "RU",
 					newCommunityName: undefined,
 					newCommunityCity: undefined, 
@@ -967,12 +1006,16 @@
 							opt.innerHTML = settings.communities[i].Name + ' (' + settings.communities[i].Region +')';
 							r.appendChild(opt);
 						}
+						this.courtCommunityName = r.options[r.selectedIndex].value;
 					},
 					refreshProfle: async function() {
 						this.profile = await DartsApiProfile();
+						await this.updateCommunityData();
 						this.communitiesList = this.profile.OwnedCommunities.concat(this.profile.JoinedCommunities);
-						this.waitingAgreement = this.profile.Courts.map(e=>{ e.language = keyboardKeys.language; return e; });
-						this.waitingJoining = this.profile.Joins.map(e=>{ e.language = keyboardKeys.language; return e; });
+						if(this.profile.Courts)
+							this.waitingAgreement = this.profile.Courts.map(e=>{ e.language = keyboardKeys.language; return e; });
+						if(this.profile.Joins)
+							this.waitingJoining = this.profile.Joins.map(e=>{ e.language = keyboardKeys.language; return e; });
 						var r = document.getElementById("changeCommunityName");
 						if(!r) return;
 						r.innerHTML = "";
@@ -995,15 +1038,23 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = language.communityCreated;
+							err.innerHTML = this.language.communityCreated;
 							currentView = 4;
 						}
 					},
-					selectCommunity: function() {
+					selectCommunity: async function() {
 						var r = document.getElementById("changeCommunityName");
-						this.community = settings.community = r.options[r.selectedIndex].text;
+						this.community = settings.community = r.selectedIndex >= 0 ? r.options[r.selectedIndex].value : undefined;
+						await this.updateCommunityData();
 						settings.store();
 						this.currentView = 4;
+					},
+					updateCommunityData: async function() {
+						if(this.community)
+							settings.communityData = this.communityData = await DartsApi({
+									action: 'getCommunity',
+									name: this.community
+								});
 					},
 					rejectCourt: async function(item) {
 						var res = await DartsApi({
@@ -1038,7 +1089,7 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = this.language.communityCreated;
+							err.innerHTML = this.language.communityCourted;
 							this.currentView = 4;
 						}
 					},

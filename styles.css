@@ -16,8 +16,7 @@ html, body {
 .caption {
     display: flex;
     flex-direction: row;
-    height: 50px;
-    padding: 10px;
+    flex-flow: wrap;
     justify-content: flex-end;
 }
 .loginButton {

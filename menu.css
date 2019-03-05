@@ -268,3 +268,13 @@
     justify-content: flex-end;
     font-size: 2vmax;
 }
+.community-rating {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 1vmax;
+    border-color: #666666;
+    border-radius: 2vmax;
+    border: 0.3vmax;
+    background: #dddddd;
+}

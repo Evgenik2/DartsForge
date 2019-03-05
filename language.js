@@ -49,7 +49,13 @@ var languages = {
         courtMessage1: "You courted the ",
         courtMessage2: " but the application is not approoved yet",
         joinMessage1: " wants to join to the ",
-        joinMessage2: ". You can apply or reject the application"
+        joinMessage2: ". You can apply or reject the application",
+        menuChangeCommunity: "change",
+        menuSettings: "Settings",
+        menuSelectEnding: "Endings",
+        menuSelectLanguage: "Language",
+        communityRating: "Rating",
+        communityCourted: "You courted the community. Wait approovement please."
     },
     "ru": {
         flag: "flag-RU",
@@ -101,7 +107,13 @@ var languages = {
         courtMessage1: "Вы желаете присоединиться к ",
         courtMessage2: " но ваша заявка еще не одобрена",
         joinMessage1: " желает присоединиться к сообществу ",
-        joinMessage2: ". Вы можете одобрить или отклонить заявку"
+        joinMessage2: ". Вы можете одобрить или отклонить заявку",
+        menuChangeCommunity: "изменить",
+        menuSettings: "Настройки",
+        menuSelectEnding: "Окончания",
+        menuSelectLanguage: "Язык",
+        communityRating: "Рейтинг",
+        communityCourted: "Ваша заявка принята. Ждите одобрения."
 
     }
 
