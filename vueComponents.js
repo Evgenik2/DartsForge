@@ -84,7 +84,10 @@ Vue.component("communities-component-communityRating", {
     template: `
         <div class="menu-row"> 
             <div class="community-rating">
-                <div>{{item.Rating}} {{item.UserName}}</div>
+                <div class="community-rating-rating">{{item.Rating}}</div>
+                <div class="community-rating-userName">{{item.UserName}}</div>
+                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': !item.changeable }" href="_" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</a>
+                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</a>   
             </div>
         </div>
     `,
@@ -93,7 +96,12 @@ Vue.component("communities-component-communityRating", {
         language: languages[settings.language]
     },
     methods: {
-
+        changeStatus: async function(item) {
+            if(item.changeable) {
+                await DartsApi({ action: 'changePlayerStatus', name: keyboardKeys.community, playerName: item.UserName, status: item.IsReferee ? "Player" : "Referee"});
+                await keyboardKeys.updateCommunityData();
+            }
+        }
     },
 });
 Vue.component("communities-component-waitingAgreement", {

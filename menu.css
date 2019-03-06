@@ -271,10 +271,33 @@
 .community-rating {
     display: flex;
     flex: 1;
-    flex-direction: column;
+    flex-direction: row;
     padding: 1vmax;
     border-color: #666666;
-    border-radius: 2vmax;
+    border-radius: 0.2vmax;
     border: 0.3vmax;
     background: #dddddd;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: 1000px;
+}
+.community-rating-userName {
+    display: flex;
+    flex: 1;
+    color: #111111;
+    justify-content: center;
+}
+.community-rating-rating {
+    display: flex;
+    color: #111111;
+    justify-content: center;
+    min-width: 20%;
+}
+.community-rating-status {
+    display: flex;
+    justify-content: center;
+    min-width: 20%; 
+}
+.community-rating-status-disabled {
+    color: #111111;
 }

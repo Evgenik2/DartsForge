@@ -39,6 +39,15 @@ async function DartsApiProfile() {
         profile.Courts = [];
     return profile;
 }
+async function CommunityData(communityName) {
+    let community = await DartsApi({
+        action: 'getCommunity',
+        name: communityName
+    });
+    if(!community.Referees)
+        community.Referees = [];
+    return community;
+}
 var settings = {
     userName: "",
     newSetLength: 1,

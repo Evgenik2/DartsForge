@@ -1006,7 +1006,8 @@
 							opt.innerHTML = settings.communities[i].Name + ' (' + settings.communities[i].Region +')';
 							r.appendChild(opt);
 						}
-						this.courtCommunityName = r.options[r.selectedIndex].value;
+						if(r.selectedIndex >= 0)
+							this.courtCommunityName = r.options[r.selectedIndex].value;
 					},
 					refreshProfle: async function() {
 						this.profile = await DartsApiProfile();
@@ -1021,7 +1022,7 @@
 						r.innerHTML = "";
 						for (var i = 0; i < this.communitiesList.length; i++) {
 							var opt = document.createElement('option');
-							opt.value = this.communitiesList[i].Name;
+							opt.value = this.communitiesList[i];
 							opt.innerHTML = this.communitiesList[i];
 							r.appendChild(opt);
 						}
@@ -1051,10 +1052,14 @@
 					},
 					updateCommunityData: async function() {
 						if(this.community)
-							settings.communityData = this.communityData = await DartsApi({
-									action: 'getCommunity',
-									name: this.community
-								});
+							settings.communityData = this.communityData = await CommunityData(this.community);
+							this.communityData.Rating = this.communityData.Rating.map(e=>{
+								e.Status = e.IsOwner ? this.language.userOwner 
+										 : e.IsReferee ? this.language.userReferee
+										 : this.language.userPlayer;
+								e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
+								return e;
+							});
 					},
 					rejectCourt: async function(item) {
 						var res = await DartsApi({

@@ -55,7 +55,10 @@ var languages = {
         menuSelectEnding: "Endings",
         menuSelectLanguage: "Language",
         communityRating: "Rating",
-        communityCourted: "You courted the community. Wait approovement please."
+        communityCourted: "You courted the community. Wait approovement please.",
+        userOwner: "Owner",
+        userReferee: "Referee",
+        userPlayer: "Player"
     },
     "ru": {
         flag: "flag-RU",
@@ -113,7 +116,10 @@ var languages = {
         menuSelectEnding: "Окончания",
         menuSelectLanguage: "Язык",
         communityRating: "Рейтинг",
-        communityCourted: "Ваша заявка принята. Ждите одобрения."
+        communityCourted: "Ваша заявка принята. Ждите одобрения.",
+        userOwner: "Основатель",
+        userReferee: "Судья",
+        userPlayer: "Игрок"
 
     }
 
