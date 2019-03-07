@@ -1051,7 +1051,7 @@
 						this.currentView = 4;
 					},
 					updateCommunityData: async function() {
-						if(this.community)
+						if(this.community) {
 							settings.communityData = this.communityData = await CommunityData(this.community);
 							this.communityData.Rating = this.communityData.Rating.map(e=>{
 								e.Status = e.IsOwner ? this.language.userOwner 
@@ -1060,6 +1060,7 @@
 								e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
 								return e;
 							});
+						}
 					},
 					rejectCourt: async function(item) {
 						var res = await DartsApi({
