@@ -93,12 +93,12 @@
 		<div id="app" class="app">
 			<div id="caption" class="caption">
 				<a class="loginButton" href="_" v-on:click="currentView = 9; event.preventDefault();">{{language.menuSettings}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName != undefined }" href="_" v-on:click="logIn(); event.preventDefault();">{{language.menuLoginSignin}}</a>
-				<div class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" >{{userName}}</div>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community != undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="updateCommunityData(); currentView = 8; event.preventDefault();"> {{community}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined || community == undefined }" href="_" v-on:click="currentView = 4; event.preventDefault();"> {{language.menuChangeCommunity}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName == undefined }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</a> 
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName }" href="_" v-on:click="logIn(); event.preventDefault();">{{language.menuLoginSignin}}</a>
+				<div class="loginButton" v-bind:class="{ 'menu-collapsed': !userName }" >{{userName}}</div>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName || community }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName || !community }" href="_" v-on:click="updateCommunityData(); currentView = 8; event.preventDefault();"> {{community}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName || !community }" href="_" v-on:click="currentView = 4; event.preventDefault();"> {{language.menuChangeCommunity}}</a>
+				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</a> 
 			</div>
 			<div id="manageCommunity" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 8 }">
 				<div class="history-container">
@@ -442,7 +442,7 @@
 					},
 					restoreLastState: function () {
 						getLastRecord("CurrentGame", function(v) {
-							if(v == undefined) {
+							if(!v) {
 								game.game = [ 
 									[//set
 										{//leg
@@ -600,7 +600,7 @@
 						keyboardKeys.scrollToView();
 					},
 					nextThrow: function(value) {
-						if(this.lastLeg == undefined || this.lastLeg.next == 0) return;
+						if(!this.lastLeg || this.lastLeg.next == 0) return;
 						var t = this.lastLeg.throws;
 						var s = this.game[this.game.length - 1];
 						if(t[t.length-1].next == 1)
@@ -645,7 +645,7 @@
 					availableCloses: function() {
 						if(this.lastLeg.next == 0) return 99;
 						var left = this.actualLeft();
-						if(minDartClose[left] != undefined)
+						if(!minDartClose[left])
 							return minDartClose[left];
 						return 99;
 					},
@@ -720,9 +720,9 @@
 			keyboardKeys = new Vue({
 				el: "#app",
 				data: {				
-					userName: "",
+					userName: undefined,
 					communities: [],
-					community: "",
+					community: undefined,
 					communityData: {
 						CommunityRating: []
 					},
@@ -1062,13 +1062,18 @@
 					updateCommunityData: async function() {
 						if(this.community) {
 							settings.communityData = this.communityData = await CommunityData(this.community);
-							this.communityData.Rating = this.communityData.Rating.map(e=>{
-								e.Status = e.IsOwner ? this.language.userOwner 
-										 : e.IsReferee ? this.language.userReferee
-										 : this.language.userPlayer;
-								e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
-								return e;
-							});
+							if(settings.communityData.error) {
+								this.community = undefined;
+								return;
+							}
+							if(this.communityData.Rating)
+								this.communityData.Rating = this.communityData.Rating.map(e=>{
+									e.Status = e.IsOwner ? this.language.userOwner 
+											: e.IsReferee ? this.language.userReferee
+											: this.language.userPlayer;
+									e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
+									return e;
+								});
 						}
 					},
 					rejectCourt: async function(item) {
