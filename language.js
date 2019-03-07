@@ -58,7 +58,8 @@ var languages = {
         communityCourted: "You courted the community. Wait approovement please.",
         userOwner: "Owner",
         userReferee: "Referee",
-        userPlayer: "Player"
+        userPlayer: "Player",
+        menuMarkerView: "Marker"
     },
     "ru": {
         flag: "flag-RU",
@@ -119,7 +120,8 @@ var languages = {
         communityCourted: "Ваша заявка принята. Ждите одобрения.",
         userOwner: "Основатель",
         userReferee: "Судья",
-        userPlayer: "Игрок"
+        userPlayer: "Игрок",
+        menuMarkerView: "Табло"
 
     }
 

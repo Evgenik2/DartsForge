@@ -477,3 +477,17 @@ body::-webkit-scrollbar {
       height: 3vmax;
       padding: 1vmax;
 }
+.marker-view {
+    display: flex;
+    height: 70%;
+    align-content: center;
+}
+.marker-view-score {
+    display: flex;
+    flex: 1;
+    color: black;
+    justify-content: center;
+    font-size: 15vmax;
+    font-weight: bold;
+    align-self: center;
+}

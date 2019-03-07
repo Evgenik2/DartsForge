@@ -246,7 +246,7 @@
 						<div id="keyboard-menu" class="keyboard-menu" v-bind:class="{ 'menu-collapsed': !menuShown }">
 							<div class="menu-empty"></div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-key" v-on:click="showProfile()">{{language.menuProfile}}</div>
+									<div class="menu-key" v-on:click="changeMarkerView();" v-bind:class="{ 'menu-game-length-checked': markerView }">{{language.menuMarkerView}}</div>
 									<div class="menu-key" v-on:click="showHistory()">{{language.menuHistory}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
@@ -363,6 +363,10 @@
 										</div>
 									</div>
 									<div class="scoring-player" v-on:click="next">{{legs[legN].player2}}</div>
+								</div>
+								<div id="scoring-left" class="marker-view" v-bind:class="{ 'element-collapsed': !markerView }">
+									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legN].next == 1 }">{{legs[legN].left1}}</div>
+									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legN].next == 2 }">{{legs[legN].left2}}</div>
 								</div>
 								<div id="scoring-throws">
 									<div id="scoring-throws-group">
@@ -730,6 +734,7 @@
 					communitiesList: [],
 					waitingAgreement: [],
 					waitingJoining: [],
+					markerView: true,
 					language: languages[settings.language],
 					languages: languages,
 					languageName: settings.language,
@@ -850,6 +855,10 @@
 						settings.endings = this.endings = k[i];
 						settings.store();
 						game.updateAll();
+					},
+					changeMarkerView: function() {
+						this.markerView = settings.markerView = !this.markerView;
+						settings.store();
 					},
 					changeLanguage : function() {
 						let k = Object.keys(languages);

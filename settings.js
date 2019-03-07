@@ -82,6 +82,7 @@ var settings = {
                 keyboardKeys.userName = settings.userName;
                 keyboardKeys.communities = settings.communities = r.communities;
                 keyboardKeys.community = settings.community = r.community;
+                keyboardKeys.markerView = settings.markerView = r.markerView;
                 if(keyboardKeys.community && r.communityData && r.communityData.Rating)
                     keyboardKeys.communityData = settings.communityData = r.communityData;
                 if(keyboardKeys.communities)
