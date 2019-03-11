@@ -43,6 +43,7 @@
 			});
 		</script>
 		<script src="amazon-cognito-auth.min.js"></script>
+		<script src="fittext.js"></script>
 		<script src="vue.min.js"></script>
 		<script src="swipe.js"></script>
 		<script src="endings.js"></script>
@@ -104,21 +105,56 @@
 				<div class="history-container">
 					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
 					<div class="menu-row">
+						<a class="loginButton" href="_" v-on:click="currentView = 10; event.preventDefault();">{{language.menuCommunityEvents}}</a> 
+
 					</div>
 					<div class="menu-row">
 						<div class="loginButton" >{{language.communityRating}} </div>
 					</div>
-					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingAgreement>
+					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-communityRating>
 						
 				</div>
+			</div>
+			<div class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 10 }">
+				<div class="dialog">
+					<div class="menu-row">
+						<div class="dialog-caption">{{language.menuCommunityEvents}}</div>
+						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+					</div>
+					<div class="menu-row">
+						<a class="loginButton" href="_" v-on:click="currentView = 11; event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
+					</div>
+					<communities-component-communityEvents  is="communities-component-communityEvents" v-for="item in communityData.Events" v-bind:item="item" v-bind:key="item.name"></communities-component-communityEvents>
+					
+				</div>					
+			</div>
+			<div class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 11 }">
+				<div class="dialog">
+					<div class="menu-row">
+						<div class="dialog-caption">{{language.menuCommunityEventsNew}}</div>
+						<div class="dialog-close" v-on:click="currentView = 10"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+					</div>
+					<div class="menu-row">
+						<input class="menu-key menu-input-key" :placeholder="language.createCommunityEvent" maxlength="20" v-model="newCommunityEvent"/>
+					</div>
+					<div class="menu-row">
+						<div id="createCommunityEventError" class="dialog-error"></div>
+					</div>
+					<div class="menu-row">
+						<a class="loginButton" href="_" v-on:click="createCommunityEvent(); event.preventDefault();">{{language.createCommunityEventBtn}}</a>
+					</div>
+				</div>					
 			</div>
 			<div id="settings" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 9 }">
 				<div class="dialog">
 					<div class="menu-row">
-						<div class="dialog-caption">{{language.menuSettings	}}</div>
+						<div class="dialog-caption">{{language.menuSettings}}</div>
 						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
+						<div class="menu-row">
+							<div class="menu-key-checkable" v-on:click="changeMarkerView();" v-bind:class="{ 'menu-game-length-checked': markerView }">{{language.menuMarkerView}}</div>
+						</div>
 						<div class="menu-row">
 							<div class="menu-key" v-on:click="changeEnding()">{{endings}}</div>
 						</div>
@@ -246,11 +282,10 @@
 						<div id="keyboard-menu" class="keyboard-menu" v-bind:class="{ 'menu-collapsed': !menuShown }">
 							<div class="menu-empty"></div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-key" v-on:click="changeMarkerView();" v-bind:class="{ 'menu-game-length-checked': markerView }">{{language.menuMarkerView}}</div>
 									<div class="menu-key" v-on:click="showHistory()">{{language.menuHistory}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-maidenFirst" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
+									<div class="menu-key-checkable" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
 								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label></div>
@@ -348,7 +383,11 @@
 				<div id="scoring" class="scoring">
 					<div id="game-component">
 							<div id="scoring-data" class="scoring-data"> <!-- v-swipe="swipeLeg"-->
-								<div class="scoring-head">
+								<div id="scoring-left" class="marker-view" v-bind:class="{ 'element-collapsed': !markerView }">
+									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 1 }">{{legs[legs.length - 1].left1}}</div>
+										<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 2 }">{{legs[legs.length - 1].left2}}</div>
+									</div>
+									<div class="scoring-head">
 									<div class="scoring-player" v-on:click="prev">{{legs[legN].player1}}</div>
 									<div class="scoring-leg" v-bind:class="{ 'element-collapsed': showSeparator }">
 											{{language.leg}} {{legs[legN].leg + 1}}
@@ -363,10 +402,6 @@
 										</div>
 									</div>
 									<div class="scoring-player" v-on:click="next">{{legs[legN].player2}}</div>
-								</div>
-								<div id="scoring-left" class="marker-view" v-bind:class="{ 'element-collapsed': !markerView }">
-									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legN].next == 1 }">{{legs[legN].left1}}</div>
-									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legN].next == 2 }">{{legs[legN].left2}}</div>
 								</div>
 								<div id="scoring-throws">
 									<div id="scoring-throws-group">
@@ -645,7 +680,7 @@
 					availableCloses: function() {
 						if(this.lastLeg.next == 0) return 99;
 						var left = this.actualLeft();
-						if(!minDartClose[left])
+						if(minDartClose[left])
 							return minDartClose[left];
 						return 99;
 					},
@@ -729,6 +764,7 @@
 					newCommunityRegion: "RU",
 					newCommunityName: undefined,
 					newCommunityCity: undefined, 
+					newCommunityEvent: undefined,
 					courtCommunityName: undefined,
 					profile: {},
 					communitiesList: [],
@@ -1052,6 +1088,21 @@
 							currentView = 4;
 						}
 					},
+					createCommunityEvent: async function() {
+						var res = await DartsApi({
+								action: 'newCommunityEvent',
+								eventName: this.newCommunityEvent, 
+								name: this.community
+							});
+						var err = document.getElementById("createCommunityEventError");
+						if(res.error) {
+							err.innerHTML = res.error;
+						} else {
+							await this.updateCommunityData();
+							err.innerHTML = this.language.communityEventCreated;
+							this.currentView = 10;
+						}
+					},
 					selectCommunity: async function() {
 						var r = document.getElementById("changeCommunityName");
 						this.community = settings.community = r.selectedIndex >= 0 ? r.options[r.selectedIndex].value : undefined;
@@ -1072,6 +1123,13 @@
 											: e.IsReferee ? this.language.userReferee
 											: this.language.userPlayer;
 									e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
+									return e;
+								});
+							if(this.communityData.Events)
+								this.communityData.Events = this.communityData.Events.map(e=>{
+									e.Status = e.Active ? this.language.activeEvent 
+											: this.language.inactiveEvent;
+									e.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
 									return e;
 								});
 						}
@@ -1171,7 +1229,8 @@
     			r.appendChild(opt);
 			}
 			if(settings.userName) 
-    			keyboardKeys.refreshProfle();
+				keyboardKeys.refreshProfle();
+			window.fitText(document.getElementsByClassName("marker-view-score"), 0.2);
 		</script>
 	</body>
 </html>

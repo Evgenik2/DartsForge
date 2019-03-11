@@ -104,6 +104,30 @@ Vue.component("communities-component-communityRating", {
         }
     },
 });
+Vue.component("communities-component-communityEvents", {
+    template: `
+        <div class="menu-row"> 
+            <div class="community-rating">
+                <div class="community-rating-rating">{{item.EventName}}</div>
+                <div class="community-rating-userName"></div>
+                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': !item.changeable }" href="_" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</a>
+                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</a>   
+            </div>
+        </div>
+    `,
+    props: {
+        item: Object,
+        language: languages[settings.language]
+    },
+    methods: {
+        changeStatus: async function(item) {
+            if(item.changeable) {
+                await DartsApi({ action: 'activateCommunityEvent', name: keyboardKeys.community, eventName: item.EventName, active: item.Active ? false : true});
+                await keyboardKeys.updateCommunityData();
+            }
+        }
+    },
+});
 Vue.component("communities-component-waitingAgreement", {
     template: `
         <div class="menu-row"> 

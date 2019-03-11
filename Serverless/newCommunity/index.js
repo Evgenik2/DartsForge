@@ -65,10 +65,9 @@ var getCommunities = async function() {
 };
 var communityData = async function(communityName) {
     let community = (await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise()).Item; 
-    if(!community.Referees)
-        community.Referees = [];
+    community.Referees = community.Referees ? community.Referees.values : [];
     return community;
-}
+};
 var getCommunity = async function(communityName) {
     if(!communityName) throw 'Community name is not defined';
     let community = await communityData(communityName);
@@ -78,12 +77,55 @@ var getCommunity = async function(communityName) {
         TableName : process.env.CommunityRatingTableName }).promise();
     if(communityRating.Items)
         community.Rating = communityRating.Items.map(e=> {e.IsReferee = community.Referees.includes(e.UserName); e.IsOwner = community.Owner == e.UserName; return e; }).sort((a, b) => a.Rating - b.Rating);
+    let communityEvents = await documentClient.query({ 
+        KeyConditionExpression: "CommunityName = :communityName",
+        ExpressionAttributeValues: { ":communityName": communityName }, 
+        TableName : process.env.GameEventsTableName }).promise();
+    if(communityEvents.Items)
+        community.Events = communityEvents.Items;
     return community;
+};
+var changePlayerStatus = async function(userName, communityName, playerName, status) {
+    if(!communityName) throw 'Community name is not defined';
+    let community = await getCommunity(communityName);
+    if(community.Owner != userName) throw 'Only owner can change player status';
+    if(status == "Referee" && !community.Referees.includes(playerName))
+        community.Referees.push(playerName);
+    if(status == "Player")
+        community.Referees = community.Referees.filter(v => v != playerName);
+    community.Rating = undefined;
+    community.Events = undefined;
+    community.Referees = community.Referees.length>0 ? documentClient.createSet(community.Referees) : undefined;
+    await documentClient.put({ Item : community, TableName : process.env.CommunitiesTableName }).promise();
+};
+var newCommunityEvent = async function(userName, communityName, eventName) {
+    if(!communityName) throw 'Community name is not defined';
+    var cd = await getCommunity(communityName);
+  	if(!cd) throw "The community '" + communityName + "' doesn't exists";
+  	if(!cd.Referees.includes(userName) && cd.Owner != userName)
+  	    throw "User can't change the community '" + communityName;
+  	if(!eventName) throw 'Event name is not defined';
+  	if(eventName.length > 20) throw 'Event name should be less than 20 characters';
+  	if(cd.Events.find(e=>e.EventName == eventName)) throw 'Event already exists';
+    await documentClient.put({ Item : { CommunityName : communityName, EventName : eventName, Active : true }, TableName : process.env.GameEventsTableName }).promise();
+    return { message: "Community " + communityName +" event " + eventName + " created by " + userName };
+};
+var activateCommunityEvent = async function(userName, communityName, eventName, active) {
+    if(!communityName) throw 'Community name is not defined';
+    var cd = await getCommunity(communityName);
+  	if(!cd) throw "The community '" + communityName + "' doesn't exists";
+  	if(!cd.Referees.includes(userName) && cd.Owner != userName)
+  	    throw "User can't change the community '" + communityName;
+  	if(!eventName) throw 'Event name is not defined';
+  	if(eventName.length > 20) throw 'Event name should be less than 20 characters';
+    if(!cd.Events.find(e=>e.EventName == eventName)) throw "Event doesn't exists";
+  	await documentClient.put({ Item : { CommunityName : communityName, EventName : eventName, Active : active }, TableName : process.env.GameEventsTableName }).promise();
+    return { message: "Community " + communityName +" event " + eventName + " activated by " + userName };
 };
 var courtCommunity = async function(userName, communityName) {
     if(!communityName) throw 'Community name is not defined';
-    var communityData = await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise();
-  	if(!communityData.Item) throw "The community '" + communityName + "' doesn't exists";
+    var cd = await communityData(communityName);
+  	if(!cd) throw "The community '" + communityName + "' doesn't exists";
     let p = await userProfile(userName);
     if(p.OwnedCommunities.includes(communityName)) throw "User "+ userName +" own the community " + communityName;
     if(p.JoinedCommunities.includes(communityName)) throw "User "+ userName +" joined the community " + communityName;
@@ -184,6 +226,12 @@ exports.newCommunity = async function(event, context) {
       	        return JSON.stringify(await rejectJoin(userName, communityName, event['body-json'].courtName));
       	    case 'rejectCourt':
       	        return JSON.stringify(await rejectCourt(userName, communityName));
+      	    case 'changePlayerStatus':
+      	        return JSON.stringify(await changePlayerStatus(userName, communityName, event['body-json'].playerName, event['body-json'].status));       
+            case 'newCommunityEvent':
+                return JSON.stringify(await newCommunityEvent(userName, communityName, event['body-json'].eventName));
+            case 'activateCommunityEvent':
+                return JSON.stringify(await activateCommunityEvent(userName, communityName, event['body-json'].eventName, event['body-json'].active));
             default:
       	        return JSON.stringify({ action: action, message: 'Command not recognized' });
   		}

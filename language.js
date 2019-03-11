@@ -59,7 +59,14 @@ var languages = {
         userOwner: "Owner",
         userReferee: "Referee",
         userPlayer: "Player",
-        menuMarkerView: "Marker"
+        menuMarkerView: "Marker",
+        menuCommunityEvents: "Events",
+        createCommunityEvent: "Event name",
+        createCommunityEventBtn: "Create",
+        menuCommunityEventsNew: "Create new event",
+        communityEventCreated: "Event created",
+        activeEvent: "Active",
+        inactiveEvent: "Finished"
     },
     "ru": {
         flag: "flag-RU",
@@ -121,7 +128,14 @@ var languages = {
         userOwner: "Основатель",
         userReferee: "Судья",
         userPlayer: "Игрок",
-        menuMarkerView: "Табло"
+        menuMarkerView: "Табло",
+        menuCommunityEvents: "События",
+        createCommunityEvent: "Название события",
+        createCommunityEventBtn: "Создать",
+        menuCommunityEventsNew: "Создать событие",
+        communityEventCreated: "Событие создано",
+        activeEvent: "Активно",
+        inactiveEvent: "Завершенный"
 
     }
 

@@ -71,11 +71,9 @@
     justify-content: center;
     align-items: center;
     border: 0.3vmax solid #888888;
-    height: 2vmax;
 }
-.menu-maidenFirst {
+.menu-key-checkable {
     flex: 1;
-    text-align: center;
     display: flex;
     padding: 0.8vmax 0 0.8vmax 0;
     background: #888888;
@@ -83,7 +81,6 @@
     font-size: 2vmax;
     justify-content: center;
     align-items: center;
-    border: 0.3vmax solid #888888;
     height: 2vmax;
 }
 .menu-game-length-checked {
@@ -214,6 +211,7 @@
     background: #dddddd;
     margin: 3vmax;
     max-width: 500px;
+    min-width: 250px;
 }
 .dialog-close {
     width: 30px;
@@ -229,7 +227,7 @@
     flex: 1;
     margin-left: 3vmax;
     margin-right: 3vmax;
-    margin-bottom: 3vmax;
+    margin-bottom: 1vmax;
 }
 .dialog-caption {
     display: flex;

@@ -490,4 +490,6 @@ body::-webkit-scrollbar {
     font-size: 15vmax;
     font-weight: bold;
     align-self: center;
+    width: 100px;
+    margin: 0.3vmax;
 }
