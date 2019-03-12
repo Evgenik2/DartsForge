@@ -22,7 +22,7 @@
 			window.addEventListener('beforeinstallprompt', event => {
 				event.preventDefault();
 				deferredPrompt = event;
-				document.querySelector('#installBanner').addEventListener('click', event => {
+				document.querySelector('#banner').addEventListener('click', event => {
 					deferredPrompt.prompt();
 					deferredPrompt.userChoice.then((choiceResult) => {
 						if (choiceResult.outcome === 'accepted') {
@@ -33,12 +33,12 @@
 						}
 						deferredPrompt = null;
 					});
+					deferredPrompt.preventDefault();
 				});
-				document.querySelector('#banner-close').addEventListener('click', event => {
-					document.querySelector('#banner').style.display = 'none';
-					event.preventDefault();
-				});
-				// Update UI notify the user they can add to home screen
+				//document.querySelector('#banner-close').addEventListener('click', event => {
+				//	document.querySelector('#banner').style.display = 'none';
+				//	event.preventDefault();
+				//});
 				document.querySelector('#banner').style.display = 'flex';
 			});
 			var module = {};
@@ -81,7 +81,7 @@
 		</style>
 	</head>
 	<body>
-		<section id="banner" class="banner">
+		<!--<section id="banner" class="banner">
 			<div id="installBanner" class="banner-install">
 				<img class="banner-img" src="android-chrome-192x192.png" alt="Install application banner"/>
 				<div class="banner-btn-group">
@@ -92,9 +92,11 @@
 			<div id="banner-close" class="banner-close">
 				<svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg>
 			</div>
-		</section>
+		</section>-->
 		<div id="app" class="app">
 			<div id="caption" class="caption">
+				<a class="bannerSmall" id="banner" href="_">{{language.bannerInstallSmall}}</a>
+
 				<a class="loginButton" href="_" v-on:click="currentView = 9; event.preventDefault();">{{language.menuSettings}}</a>
 				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName }" href="_" v-on:click="logIn(); event.preventDefault();">{{language.menuLoginSignin}}</a>
 				<div class="loginButton" v-bind:class="{ 'menu-collapsed': !userName }" >{{userName}}</div>
@@ -1018,12 +1020,13 @@
 								});
 
 							var r = document.getElementById("eventName");
-							for (var i = 0; i < this.communityData.Events.length; i++) {
-								var opt = document.createElement('option');
-								opt.innerHTML = this.communityData.Events[i].EventName;
-								opt.value = this.communityData.Events[i].EventName;
-								r.appendChild(opt);
-							}
+							for (var i = 0; i < this.communityData.Events.length; i++) 
+								if(this.communityData.Events[i].Active) {
+									var opt = document.createElement('option');
+									opt.innerHTML = this.communityData.Events[i].EventName;
+									opt.value = this.communityData.Events[i].EventName;
+									r.appendChild(opt);
+								}
 							var r = document.getElementById("player1");
 							for (var i = 0; i < this.communityData.Rating.length; i++) {
 								var opt = document.createElement('option');
