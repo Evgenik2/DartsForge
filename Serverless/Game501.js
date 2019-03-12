@@ -140,16 +140,18 @@ var Game501 = {
 				game.winner = game.player1;
 				stats["WonGames"].player1 = 1;
 				stats["LooseGames"].player2 = 1;
+				game.finished = true;
 			} else if(game.wonSets2 > Math.floor(game.setLength / 2)) {
 				game.winner = game.player2;
 				stats["WonGames"].player2 = 1;
 				stats["LooseGames"].player1 = 1;
-			} else {
+				game.finished = true;
+			} else if(game.wonSets1 + game.wonSets2 == game.setLength) {
 				game.winner = "draw";
 				stats["DrawGames"].player1 = 1;
 				stats["DrawGames"].player2 = 1;
+				game.finished = true;
 			}
-			game.finished = true;
 		}
 		return stats;
 	},

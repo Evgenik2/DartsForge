@@ -1,4 +1,5 @@
 var AWS = require('aws-sdk'),
+    Game501 = require('Game501'),
     flags = [ 'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AN', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 
                     'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 
                     'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 
@@ -219,7 +220,7 @@ var gameFinished = async function(userName, communityName, eventName, gameData) 
     if(!community) throw { error: 'Community is not found' };
     if(!community.Rating.find( r=>r.UserName == userName))
         throw 'User '+userName+' is not found in community ' + communityName;
-    if(!community.Events.find( r=>r.EventName == eventName))
+    if(!community.Events.find( r=>r.EventName == eventName && r.Active))
         throw 'Event '+eventName+' is not found in community ' + communityName;
     if(!community.Rating.find( r=>r.UserName == gameData.player1))
         throw 'User '+gameData.player1+' is not found in community ' + communityName;
@@ -227,7 +228,8 @@ var gameFinished = async function(userName, communityName, eventName, gameData) 
         throw 'User '+gameData.player2+' is not found in community ' + communityName;
     if(gameData.player1 == gameData.player2)
         throw 'Players should be different';
-    return { message: "Ok" };
+    let stats = Game501.Verify(gameData);
+    return { message: "Ok" + JSON.stringify(stats) };
 };
 
 exports.newCommunity = async function(event, context) {

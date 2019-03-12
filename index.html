@@ -310,16 +310,19 @@
 									<div class="menu-key-checkable" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
 								</div>
 								<div class="menu-row">
-									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuEventName}}</label></div>
-									<input class="menu-input" maxlength="20" v-model="eventName" id="eventName" name="eventName"/>
+									<div class="menu-text"><label for="eventName" class="menu-text-span">{{language.menuEventName}}</label></div>
+									<select class="menu-input" id="eventName" v-model="eventName">
+									</select>
 								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label></div>
-									<input class="menu-input" maxlength="20" v-model="game.player1" id="player1" name="player1"/>
+									<select class="menu-input" id="player1" v-model="game.player1">
+									</select>
 								</div>
 								<div class="menu-row">
-									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuSecondPlayer}}</label></div>
-									<input class="menu-input" maxlength="20" v-model="game.player2" id="player1" name="player1"/>
+									<div class="menu-text"><label for="player2" class="menu-text-span">{{language.menuSecondPlayer}}</label></div>
+									<select class="menu-input" id="player2" v-model="game.player2">
+									</select>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
 									<div class="menu-text"><div class="menu-text-span"></div>{{language.menuGame}}</span></div>
@@ -409,7 +412,7 @@
 				<div id="scoring" class="scoring">
 					<div id="game-component">
 							<div id="scoring-data" class="scoring-data"> <!-- v-swipe="swipeLeg"-->
-								<div id="scoring-left" class="marker-view" v-bind:class="{ 'element-collapsed': !markerView }">
+								<div id="scoring-left" class="marker-view" v-bind:class="{ 'element-collapsed': !markerView || game.finished }">
 									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 1 }">{{legs[legs.length - 1].left1}}</div>
 										<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 2 }">{{legs[legs.length - 1].left2}}</div>
 									</div>
@@ -1013,6 +1016,29 @@
 									e.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
 									return e;
 								});
+
+							var r = document.getElementById("eventName");
+							for (var i = 0; i < this.communityData.Events.length; i++) {
+								var opt = document.createElement('option');
+								opt.innerHTML = this.communityData.Events[i].EventName;
+								opt.value = this.communityData.Events[i].EventName;
+								r.appendChild(opt);
+							}
+							var r = document.getElementById("player1");
+							for (var i = 0; i < this.communityData.Rating.length; i++) {
+								var opt = document.createElement('option');
+								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + this.communityData.Rating[i].Rating + ')';
+								opt.value = this.communityData.Rating[i].UserName;
+								r.appendChild(opt);
+							}
+							var r = document.getElementById("player2");
+							for (var i = 0; i < this.communityData.Rating.length; i++) {
+								var opt = document.createElement('option');
+								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + this.communityData.Rating[i].Rating + ')';
+								opt.value = this.communityData.Rating[i].UserName;
+								r.appendChild(opt);
+							}
+
 						}
 					},
 					rejectCourt: async function(item) {
@@ -1067,8 +1093,8 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = this.language.communityCourted;
-							this.currentView = 1;
+							err.innerHTML = "Ok";						
+							this.showHistory();
 						}
 					},
 					logIn: function() {
