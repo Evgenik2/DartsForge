@@ -33,7 +33,8 @@ self.addEventListener('install', e => {
               root + 'flags.css',
               root + 'flags.png',
               root + 'fittext.js',
-              root + 'amazon-cognito-auth.min.js'
+              root + 'amazon-cognito-auth.min.js',
+              root + 'Serverless/Game501.js'
             ]);
         })
     );
