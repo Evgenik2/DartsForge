@@ -276,6 +276,26 @@
 					</div>
 				</div>
 			</div>
+			<div id="publishGame" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 12 }">
+				<div class="dialog">
+					<div class="menu-row">
+						<div class="dialog-caption">{{language.publishGame}}</div>
+						<div class="dialog-close" v-on:click="keyboardDelete(); currentView = 0;"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+					</div>
+					<div class="dialog-content">
+						<div class="menu-row">
+							<div class="community-rating-userName">{{language.publishWin}} {{game.winner}}</div>
+						</div>
+						<div class="menu-row">
+							<div id="publishGameError" class="dialog-error"></div>
+						</div>
+						<div class="menu-row">
+							<a class="loginButton" href="_" v-on:click="publishGame(); event.preventDefault();">{{language.publishGameBtn}}</a>
+							<a class="loginButton" href="_" v-on:click="keyboardDelete(); currentView = 0; event.preventDefault();">{{language.publishGameUndoBtn}}</a>
+						</div>
+					</div>	
+				</div>
+			</div>
 			<div id="dartsGame" class="dartsGame" v-bind:class="{ 'menu-collapsed': currentView != 0 }">
 				<div id="keyboard">
 					<div id="keyboard-keys">
@@ -286,6 +306,10 @@
 								</div>
 								<div class="menu-row menu-entering-collapsed">
 									<div class="menu-key-checkable" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
+								</div>
+								<div class="menu-row">
+									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuEventName}}</label></div>
+									<input class="menu-input" maxlength="20" v-model="eventName" id="eventName" name="eventName"/>
 								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label></div>
@@ -455,6 +479,7 @@
 					eventName: undefined,
 					player1: undefined,
 					player2: undefined,
+					winner: undefined,
 					setLength: 1,
 					legLength: 3,
 					gameLength: 501,
@@ -646,13 +671,19 @@
 							s[s.length - 1].secondThrows.push(value);
 						this.step++;
 					},
-					newLeg: function() {
+					newLeg: async function() {
 						if(this.lastLeg.next != 0) return;
 						game.updateAll();
 						var s = this.game[this.game.length - 1];
 						if(s.wonLegs1 >  Math.floor(this.legLength / 2) || s.wonLegs2 >  Math.floor(this.legLength / 2) || s.length >= this.legLength) {
 							if(this.game.length >= this.setLength || this.wonSets1 > Math.floor(this.setLength / 2) || this.wonSets2 > Math.floor(this.setLength / 2))  {
+								if(this.wonSets1 > Math.floor(this.setLength / 2))
+									game.winner = game.player1;
+								else if(this.wonSets2 > Math.floor(this.setLength / 2))
+									game.winner = game.player2;
+								else game.winner = "draw";
 								setRecord("History", this.timeStamp, JSON.stringify(this));
+								keyboardKeys.publishGameDialog();
 								return;
 							}
 							this.game.push([]);
@@ -760,6 +791,7 @@
 					userName: undefined,
 					communities: [],
 					community: undefined,
+					eventName: undefined,
 					communityData: {
 						CommunityRating: []
 					},
@@ -1171,6 +1203,25 @@
 							await keyboardKeys.refreshProfle();
 							err.innerHTML = this.language.communityCourted;
 							this.currentView = 4;
+						}
+					},
+					publishGameDialog: async function() {
+						this.currentView = 12;
+					},
+					publishGame: async function() {
+						var res = await DartsApi({
+								action: 'gameFinished',
+								name: this.community,
+								eventName: this.eventName,
+								gameData: JSON.stringify(game)
+							});
+						var err = document.getElementById("publishGameError");
+						if(res.error) {
+							err.innerHTML = res.error;
+						} else {
+							await keyboardKeys.refreshProfle();
+							err.innerHTML = this.language.communityCourted;
+							this.currentView = 0;
 						}
 					},
 					logIn: function() {

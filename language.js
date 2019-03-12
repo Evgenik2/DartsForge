@@ -3,6 +3,7 @@ var languages = {
         flag: "flag-GB",
         language: "English",
         menuNoStartSwap: "Maiden first",
+        menuEventName: "Event name",
         menuFirstPlayer: "First player: ",
         menuSecondPlayer: "Second player: ",
         menuGame: "Game: ",
@@ -66,12 +67,17 @@ var languages = {
         menuCommunityEventsNew: "Create new event",
         communityEventCreated: "Event created",
         activeEvent: "Active",
-        inactiveEvent: "Finished"
+        inactiveEvent: "Finished",
+        publishGame: "Publish game",
+        publishWin: "The game is done. Won ",
+        publishGameBtn: "Publish",
+        publishGameUndoBtn: "Undo"
     },
     "ru": {
         flag: "flag-RU",
         language: "Русский",
         menuNoStartSwap: "Maiden first",
+        menuEventName: "Событие",
         menuFirstPlayer: "Первый игрок: ",
         menuSecondPlayer: "Второй игрок: ",
         menuGame: "Игра: ",
@@ -135,7 +141,12 @@ var languages = {
         menuCommunityEventsNew: "Создать событие",
         communityEventCreated: "Событие создано",
         activeEvent: "Активно",
-        inactiveEvent: "Завершенный"
+        inactiveEvent: "Завершенный",
+        publishGame: "Опубликовать результаты",
+        publishWin: "Игра завершена. Победитель ",
+        publishGameBtn: "Опубликовать",
+        publishGameUndoBtn: "Отменить"
+
 
     }
 

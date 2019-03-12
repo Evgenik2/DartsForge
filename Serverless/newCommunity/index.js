@@ -1,15 +1,15 @@
 var AWS = require('aws-sdk'),
-    flags = [ 'ABKHAZIA', 'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AN', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 
+    flags = [ 'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AN', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 
                     'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 
                     'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 
                     'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES-CE', 'ES-ML', 'ES', 'ET', 'EU', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR', 
                     'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY', 'HK', 
                     'HM', 'HN', 'HR', 'HT', 'HU', 'IC', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP', 
-                    'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KOSOVO',  'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 
+                    'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 
                     'LT', 'LU', 'LV', 'LY', 'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 
                     'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NKR', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ',
                     'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 
-                    'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SOUTH-OSSETIA', 'SR', 'SS', 
+                    'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 
                     'ST', 'SV', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 
                     'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW'],
     documentClient = new AWS.DynamoDB.DocumentClient(); 
@@ -104,10 +104,19 @@ var newCommunityEvent = async function(userName, communityName, eventName) {
   	if(!cd) throw "The community '" + communityName + "' doesn't exists";
   	if(!cd.Referees.includes(userName) && cd.Owner != userName)
   	    throw "User can't change the community '" + communityName;
+
   	if(!eventName) throw 'Event name is not defined';
   	if(eventName.length > 20) throw 'Event name should be less than 20 characters';
   	if(cd.Events.find(e=>e.EventName == eventName)) throw 'Event already exists';
-    await documentClient.put({ Item : { CommunityName : communityName, EventName : eventName, Active : true }, TableName : process.env.GameEventsTableName }).promise();
+  	let ct = new Date(Date.now());
+  	if(cd.Events) {
+  	    let cnt = cd.Events.reduce((a, e) => {
+  	            let cct = new Date(e.CreationDate);
+  	            return a + (cct.getFullYear() == ct.getFullYear() && cct.getMonth() == ct.getMonth() && cct.getDay() == ct.getDay() ? 1 : 0);
+  	        }, 0);
+  	    if(cnt > 3) throw "You can't create more than 4 events in a day";
+  	}
+    await documentClient.put({ Item : { CommunityName : communityName, CreationDate: ct.toISOString(), EventName : eventName, Active : true }, TableName : process.env.GameEventsTableName }).promise();
     return { message: "Community " + communityName +" event " + eventName + " created by " + userName };
 };
 var activateCommunityEvent = async function(userName, communityName, eventName, active) {
@@ -118,8 +127,9 @@ var activateCommunityEvent = async function(userName, communityName, eventName, 
   	    throw "User can't change the community '" + communityName;
   	if(!eventName) throw 'Event name is not defined';
   	if(eventName.length > 20) throw 'Event name should be less than 20 characters';
-    if(!cd.Events.find(e=>e.EventName == eventName)) throw "Event doesn't exists";
-  	await documentClient.put({ Item : { CommunityName : communityName, EventName : eventName, Active : active }, TableName : process.env.GameEventsTableName }).promise();
+  	let ev = cd.Events.find(e=>e.EventName == eventName);
+    if(!ev) throw "Event doesn't exists";
+  	await documentClient.put({ Item : { CommunityName : communityName, CreationDate : ev.CreationDate, EventName : eventName, Active : active }, TableName : process.env.GameEventsTableName }).promise();
     return { message: "Community " + communityName +" event " + eventName + " activated by " + userName };
 };
 var courtCommunity = async function(userName, communityName) {
@@ -131,7 +141,7 @@ var courtCommunity = async function(userName, communityName) {
     if(p.JoinedCommunities.includes(communityName)) throw "User "+ userName +" joined the community " + communityName;
     if(p.Courts.find(c=>c.CommunityName == communityName)) throw "User "+ userName +" already courted the community " + communityName;
     if(p.OwnedCommunities.length + p.JoinedCommunities.length + p.Courts.length > 32) throw "User "+ userName +" exceeded 32 communities limit. Contact us if you ned more.";
-    await documentClient.put({ Item : { CommunityName : communityName, UserName : userName }, TableName : process.env.InvitesTableName }).promise();
+    await documentClient.put({ Item : { CommunityName : communityName, UserName : userName, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 }, TableName : process.env.InvitesTableName }).promise();
     return { message: "Community " + communityName +" courted by " + userName };
 };
 var getCourties = async function(userName, communityName) {
@@ -178,7 +188,7 @@ var newCommunity = async function(userName, communityName, regionName, cityName)
     return { message: "Community created" };
 };
 var joinCommunity = async function(userName, communityName, courtName) {
-    if(!communityName) throw { error: 'Community name is not defined' };
+    if(!communityName) throw 'Community name is not defined';
     let p = await userProfile(userName);
     if(!p.OwnedCommunities.includes(communityName) && !p.RefereeCommunities.includes(communityName))
         throw "User " + userName + " doesn't own or referee the community " + communityName;
@@ -197,8 +207,27 @@ var joinCommunity = async function(userName, communityName, courtName) {
     courtP.JoinedCommunities.push(communityName);
     await updateProfile(courtP);
     await documentClient.put({ Item : { "CommunityName" : communityName, "UserName" : courtName, "Rating" : 1600 }, TableName : process.env.CommunityRatingTableName }).promise();
-    return { message: "Ok"+ JSON.stringify(courtP) };
-
+    return { message: "Ok" };
+};
+var gameFinished = async function(userName, communityName, eventName, gameData) {
+    if(!communityName) throw 'Community name is not defined';
+    if(!eventName) throw 'Event name is not defined';
+    if(!gameData.player1) throw 'First player name is not defined';
+    if(!gameData.player2) throw 'Second player name is not defined';
+    if(!gameData) throw 'Game data is not defined';
+    let community = await getCommunity(communityName);
+    if(!community) throw { error: 'Community is not found' };
+    if(!community.Rating.find( r=>r.UserName == userName))
+        throw 'User '+userName+' is not found in community ' + communityName;
+    if(!community.Events.find( r=>r.EventName == eventName))
+        throw 'Event '+eventName+' is not found in community ' + communityName;
+    if(!community.Rating.find( r=>r.UserName == gameData.player1))
+        throw 'User '+gameData.player1+' is not found in community ' + communityName;
+    if(!community.Rating.find( r=>r.UserName == gameData.player2))
+        throw 'User '+gameData.player2+' is not found in community ' + communityName;
+    if(gameData.player1 == gameData.player2)
+        throw 'Players should be different';
+    return { message: "Ok" };
 };
 
 exports.newCommunity = async function(event, context) {
@@ -232,6 +261,8 @@ exports.newCommunity = async function(event, context) {
                 return JSON.stringify(await newCommunityEvent(userName, communityName, event['body-json'].eventName));
             case 'activateCommunityEvent':
                 return JSON.stringify(await activateCommunityEvent(userName, communityName, event['body-json'].eventName, event['body-json'].active));
+            case 'gameFinished':
+                return JSON.stringify(await gameFinished(userName, communityName, event['body-json'].eventName, JSON.parse(event['body-json'].gameData)));
             default:
       	        return JSON.stringify({ action: action, message: 'Command not recognized' });
   		}
