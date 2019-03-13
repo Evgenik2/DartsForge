@@ -1014,11 +1014,13 @@
 								}).sort((a, b) => b.Rating < a.Rating ? -1 : 1);
 							if(this.communityData.Events)
 								this.communityData.Events = this.communityData.Events.map(e=>{
+									let d = new Date(e.CreationDate)
+									e.Date = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
 									e.Status = e.Active ? this.language.activeEvent 
 											: this.language.inactiveEvent;
 									e.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
 									return e;
-								});
+								}).sort((a, b) => b.Date < a.Date ? -1 : 1);
 
 							var r = document.getElementById("eventName");
 							for (var i = 0; i < this.communityData.Events.length; i++) 

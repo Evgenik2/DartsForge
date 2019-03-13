@@ -290,6 +290,7 @@
     color: #111111;
     justify-content: center;
     min-width: 20%;
+    margin-right: 10px;
 }
 .community-rating-status {
     display: flex;

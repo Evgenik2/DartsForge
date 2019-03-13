@@ -108,6 +108,7 @@ Vue.component("communities-component-communityEvents", {
     template: `
         <div class="menu-row"> 
             <div class="community-rating">
+                <div class="community-rating-rating">{{item.Date}}</div>
                 <div class="community-rating-rating">{{item.EventName}}</div>
                 <div class="community-rating-userName"></div>
                 <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': !item.changeable }" href="_" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</a>

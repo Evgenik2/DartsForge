@@ -143,7 +143,7 @@ var languages = {
         menuCommunityEventsNew: "Создать событие",
         communityEventCreated: "Событие создано",
         activeEvent: "Активно",
-        inactiveEvent: "Завершенный",
+        inactiveEvent: "Завершено",
         publishGame: "Опубликовать результаты",
         publishWin: "Игра завершена. Победитель ",
         publishGameBtn: "Опубликовать",
