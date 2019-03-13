@@ -1005,6 +1005,7 @@
 							}
 							if(this.communityData.Rating)
 								this.communityData.Rating = this.communityData.Rating.map(e=>{
+									e.Rating = Math.round(e.Rating),
 									e.Status = e.IsOwner ? this.language.userOwner 
 											: e.IsReferee ? this.language.userReferee
 											: this.language.userPlayer;
@@ -1030,14 +1031,14 @@
 							var r = document.getElementById("player1");
 							for (var i = 0; i < this.communityData.Rating.length; i++) {
 								var opt = document.createElement('option');
-								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + this.communityData.Rating[i].Rating + ')';
+								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
 								opt.value = this.communityData.Rating[i].UserName;
 								r.appendChild(opt);
 							}
 							var r = document.getElementById("player2");
 							for (var i = 0; i < this.communityData.Rating.length; i++) {
 								var opt = document.createElement('option');
-								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + this.communityData.Rating[i].Rating + ')';
+								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
 								opt.value = this.communityData.Rating[i].UserName;
 								r.appendChild(opt);
 							}
@@ -1088,6 +1089,7 @@
 						var res = await DartsApi({
 								action: 'gameFinished',
 								name: this.community,
+								region: this.communityData.Region,
 								eventName: this.eventName,
 								gameData: JSON.stringify(game)
 							});

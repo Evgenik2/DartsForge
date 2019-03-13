@@ -184,7 +184,7 @@ var newCommunity = async function(userName, communityName, regionName, cityName)
   	if(p.OwnedCommunities.length > 0) throw 'User already owns the community ' + p.OwnedCommunities[0];
     p.OwnedCommunities.push(communityName);
     await updateProfile(p);
-  	await documentClient.put({ Item : { "Name" : communityName, "Region" : regionName, "City" : cityName, "Owner" : userName }, TableName : process.env.CommunitiesTableName }).promise();
+  	await documentClient.put({ Item : { "Name" : communityName, "Region" : regionName, "City" : cityName, "Owner" : userName, "Created": new Date() }, TableName : process.env.CommunitiesTableName }).promise();
     await documentClient.put({ Item : { "CommunityName" : communityName, "UserName" : userName, "Rating" : 1600 }, TableName : process.env.CommunityRatingTableName }).promise();
     return { message: "Community created" };
 };
@@ -210,7 +210,154 @@ var joinCommunity = async function(userName, communityName, courtName) {
     await documentClient.put({ Item : { "CommunityName" : communityName, "UserName" : courtName, "Rating" : 1600 }, TableName : process.env.CommunityRatingTableName }).promise();
     return { message: "Ok" };
 };
-var gameFinished = async function(userName, communityName, eventName, gameData) {
+var mergeStats = function(player, baseStats, stats) {
+    if(!baseStats.t60) baseStats.t60 = 0;
+    baseStats.t60 += stats["60+"][player];
+    
+    if(!baseStats.t100) baseStats.t100 = 0;
+    baseStats.t100 += stats["100+"][player];
+    
+    if(!baseStats.t140) baseStats.t140 = 0;
+    baseStats.t140 += stats["140+"][player];
+    
+    if(!baseStats.t180) baseStats.t180 = 0;
+    baseStats.t180 += stats["180"][player];
+   
+    if(!baseStats.HC) baseStats.HC = 0;
+    baseStats.HC = Math.max(baseStats.HC, stats["HC"][player]);
+    
+    if(!baseStats.BestLeg || baseStats.BestLeg < 9) baseStats.BestLeg = 10000;
+    if(stats.Best[player] > 8) baseStats.BestLeg = Math.min(baseStats.BestLeg, stats.Best[player]);
+    if(baseStats.BestLeg > 9999) baseStats.BestLeg = 0;
+    
+    if(!baseStats.LWAT) baseStats.LWAT = 0;
+    baseStats.LWAT += stats["LWAT"][player];
+    
+    if(!baseStats.WonLegs) baseStats.WonLegs = 0;
+    baseStats.WonLegs += stats["WonLegs"][player];
+    
+    if(!baseStats.WonSets) baseStats.WonSets = 0;
+    baseStats.WonSets += stats["WonSets"][player];
+    
+    if(!baseStats.WonGames) baseStats.WonGames = 0;
+    baseStats.WonGames += stats["WonGames"][player];
+    
+    if(!baseStats.LooseGames) baseStats.LooseGames = 0;
+    baseStats.LooseGames += stats["LooseGames"][player];
+    
+    if(!baseStats.DrawGames) baseStats.DrawGames = 0;
+    baseStats.DrawGames += stats["DrawGames"][player];  
+    
+    if(!baseStats.DoubleThrows) baseStats.DoubleThrows = 0;
+    baseStats.DoubleThrows += stats["DoubleThrows"][player]; 
+    
+    if(!baseStats.DoubleSuccess) baseStats.DoubleSuccess = 0;
+    baseStats.DoubleSuccess += stats["DoubleSuccess"][player]; 
+    
+    if(!baseStats.ThrowCount) baseStats.ThrowCount = 0;
+    baseStats.ThrowCount += stats["ThrowCount"][player]; 
+    
+    if(!baseStats.ThrowTotal) baseStats.ThrowTotal = 0;
+    baseStats.ThrowTotal += stats["ThrowTotal"][player]; 
+};
+var updateCommunityRating = async function(communityName, gameData, stats, tableName) {
+    let fp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player1 }, TableName : tableName }).promise()).Item; 
+    if(!fp) fp = {"CommunityName" : communityName, "UserName" : gameData.player1, "Rating" : 1600};
+    let sp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player2 }, TableName : tableName }).promise()).Item; 
+    if(!sp) sp = {"CommunityName" : communityName, "UserName" : gameData.player2, "Rating" : 1600};
+    if(!fp.Rating) fp.Rating = 1600;
+    if(!sp.Rating) sp.Rating = 1600;
+    let fr = fp.Rating + 16 * (stats.WonGames.player1 + stats.DrawGames.player1 * 0.5 - 1.0 / (1.0 + Math.pow(10, (fp.Rating - sp.Rating) / 400.0)));
+    let sr = sp.Rating + 16 * (stats.WonGames.player2 + stats.DrawGames.player2 * 0.5 - 1.0 / (1.0 + Math.pow(10, (sp.Rating - fp.Rating) / 400.0)));
+    fp.Rating = fr;
+    sp.Rating = sr;
+    mergeStats("player1", fp, stats);
+    mergeStats("player2", sp, stats);
+    await documentClient.put({ Item : fp, TableName : tableName }).promise();
+    await documentClient.put({ Item : sp, TableName : tableName }).promise();
+    return "Ok";
+};
+var updateRegionRating = async function(region, gameData, stats, tableName) {
+    let fp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player1 }, TableName : tableName }).promise()).Item; 
+    if(!fp) fp = {"Region" : region, "UserName" : gameData.player1, "Rating" : 1600};
+    let sp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player2 }, TableName : tableName }).promise()).Item; 
+    if(!sp) sp = {"Region" : region, "UserName" : gameData.player2, "Rating" : 1600};
+    if(!fp.Rating) fp.Rating = 1600;
+    if(!sp.Rating) sp.Rating = 1600;
+    let fr = fp.Rating + 16 * (stats.WonGames.player1 + stats.DrawGames.player1 * 0.5 - 1.0 / (1.0 + Math.pow(10, (fp.Rating - sp.Rating) / 400.0)));
+    let sr = sp.Rating + 16 * (stats.WonGames.player2 + stats.DrawGames.player2 * 0.5 - 1.0 / (1.0 + Math.pow(10, (sp.Rating - fp.Rating) / 400.0)));
+    fp.Rating = fr;
+    sp.Rating = sr;
+    mergeStats("player1", fp, stats);
+    mergeStats("player2", sp, stats);
+    await documentClient.put({ Item : fp, TableName : tableName }).promise();
+    await documentClient.put({ Item : sp, TableName : tableName }).promise();
+    return "Ok";
+};
+var updateWorldRating = async function(gameData, stats, tableName) {
+    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1 }, TableName : tableName }).promise()).Item; 
+    if(!fp) fp = {"UserName" : gameData.player1, "Rating" : 1600};
+    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2 }, TableName : tableName }).promise()).Item; 
+    if(!sp) sp = {"UserName" : gameData.player2, "Rating" : 1600};
+    if(!fp.Rating) fp.Rating = 1600;
+    if(!sp.Rating) sp.Rating = 1600;
+    let fr = fp.Rating + 16 * (stats.WonGames.player1 + stats.DrawGames.player1 * 0.5 - 1.0 / (1.0 + Math.pow(10, (fp.Rating - sp.Rating) / 400.0)));
+    let sr = sp.Rating + 16 * (stats.WonGames.player2 + stats.DrawGames.player2 * 0.5 - 1.0 / (1.0 + Math.pow(10, (sp.Rating - fp.Rating) / 400.0)));
+    fp.Rating = fr;
+    sp.Rating = sr;
+    mergeStats("player1", fp, stats);
+    mergeStats("player2", sp, stats);
+    await documentClient.put({ Item : fp, TableName : tableName }).promise();
+    await documentClient.put({ Item : sp, TableName : tableName }).promise();
+    return "Ok";
+};
+var getWeekNumber = function(cd) {
+    var d = new Date(Date.UTC(cd.getFullYear(), cd.getMonth(), cd.getDate()));
+    var dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+};
+var updateWeeklyRating = async function(gameData, stats, tableName) {
+    var cd = new Date(gameData.timeStamp);
+    let week = cd.getFullYear() + '_' + getWeekNumber(cd);
+    try {    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1, "Week": week }, TableName : tableName }).promise()).Item; 
+    if(!fp) fp = {"UserName" : gameData.player1, "Week": week};
+    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2, "Week": week }, TableName : tableName }).promise()).Item; 
+    if(!sp) sp = {"UserName" : gameData.player2, "Week": week};
+    mergeStats("player1", fp, stats);
+    mergeStats("player2", sp, stats);
+    await documentClient.put({ Item : fp, TableName : tableName }).promise();
+    await documentClient.put({ Item : sp, TableName : tableName }).promise();
+    
+    } catch(e) {throw "aaa";}
+    return "Ok";
+};
+var storeGame = async function(userName, communityName, region, eventName, gameData, stats) {
+    await documentClient.put({ Item : { 
+        "CommunityEvent" : communityName + '_' + eventName, 
+        "RefereeTimestamp" :  gameData.timeStamp + '_' + userName,
+        "FirstPlayer" : gameData.player1,
+        "SecondPlayer" : gameData.player2,
+        "Opened": gameData.timeStamp,
+        "Published": new Date(),
+		"EventName": gameData.eventName,
+		"SetLength": gameData.setLength,
+		"LegLength": gameData.legLength,
+		"GameLength": gameData.gameLength,
+		"GameType": gameData.gameType,
+		"NoStartSwap": gameData.noStartSwap,
+		"Game": JSON.stringify(gameData.game)
+    },
+    ConditionExpression: 'attribute_not_exists(CommunityEvent) AND attribute_not_exists(RefereeTimestamp)',
+    TableName : process.env.GamesTableName }).promise();
+    await updateCommunityRating(communityName, gameData, stats, process.env.CommunityRatingTableName);
+    await updateRegionRating(region, gameData, stats, process.env.RegionRatingTableName);
+    await updateWorldRating(gameData, stats, process.env.WorldRatingTableName);
+    await updateWeeklyRating(gameData, stats, process.env.UserWeeklyRatingTableName);
+    return "Ok";
+};
+var gameFinished = async function(userName, communityName, region, eventName, gameData) {
     if(!communityName) throw 'Community name is not defined';
     if(!eventName) throw 'Event name is not defined';
     if(!gameData.player1) throw 'First player name is not defined';
@@ -229,7 +376,8 @@ var gameFinished = async function(userName, communityName, eventName, gameData) 
     if(gameData.player1 == gameData.player2)
         throw 'Players should be different';
     let stats = Game501.Verify(gameData);
-    return { message: "Ok" + JSON.stringify(stats) };
+    await storeGame(userName, communityName, region, eventName, gameData, stats);
+    return { message: "Ok" };
 };
 
 exports.newCommunity = async function(event, context) {
@@ -264,7 +412,7 @@ exports.newCommunity = async function(event, context) {
             case 'activateCommunityEvent':
                 return JSON.stringify(await activateCommunityEvent(userName, communityName, event['body-json'].eventName, event['body-json'].active));
             case 'gameFinished':
-                return JSON.stringify(await gameFinished(userName, communityName, event['body-json'].eventName, JSON.parse(event['body-json'].gameData)));
+                return JSON.stringify(await gameFinished(userName, communityName, event['body-json'].region, event['body-json'].eventName, JSON.parse(event['body-json'].gameData)));
             default:
       	        return JSON.stringify({ action: action, message: 'Command not recognized' });
   		}
