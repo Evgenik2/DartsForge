@@ -970,7 +970,7 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = this.language.communityCreated;
+							err.innerHTML = "";
 							currentView = 4;
 						}
 					},
@@ -985,7 +985,7 @@
 							err.innerHTML = res.error;
 						} else {
 							await this.updateCommunityData();
-							err.innerHTML = this.language.communityEventCreated;
+							err.innerHTML = "";
 							this.currentView = 10;
 						}
 					},
@@ -1011,7 +1011,7 @@
 											: this.language.userPlayer;
 									e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
 									return e;
-								});
+								}).sort((a, b) => b.Rating < a.Rating ? -1 : 1);
 							if(this.communityData.Events)
 								this.communityData.Events = this.communityData.Events.map(e=>{
 									e.Status = e.Active ? this.language.activeEvent 
@@ -1078,7 +1078,7 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = this.language.communityCourted;
+							err.innerHTML = "";
 							this.currentView = 4;
 						}
 					},
@@ -1098,7 +1098,7 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = "Ok";						
+							err.innerHTML = "";						
 							this.showHistory();
 						}
 					},
