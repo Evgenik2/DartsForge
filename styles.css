@@ -13,12 +13,7 @@ html, body {
     flex: 1;
     flex-direction: column;
 }
-.caption {
-    display: flex;
-    flex-direction: row;
-    flex-flow: wrap;
-    justify-content: flex-end;
-}
+
 .loginButton {
     display: flex;
     align-self: center;

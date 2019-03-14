@@ -95,28 +95,59 @@
 		</section>-->
 		<div id="app" class="app">
 			<div id="caption" class="caption">
-				<a class="bannerSmall" id="banner" href="_">{{language.bannerInstallSmall}}</a>
-
-				<a class="loginButton" href="_" v-on:click="currentView = 9; event.preventDefault();">{{language.menuSettings}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': userName }" href="_" v-on:click="logIn(); event.preventDefault();">{{language.menuLoginSignin}}</a>
-				<div class="loginButton" v-bind:class="{ 'menu-collapsed': !userName }" >{{userName}}</div>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName || community }" href="_" v-on:click="currentView = 4; event.preventDefault();">{{language.menuSelectCommunity}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName || !community }" href="_" v-on:click="updateCommunityData(); currentView = 8; event.preventDefault();"> {{community}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName || !community }" href="_" v-on:click="currentView = 4; event.preventDefault();"> {{language.menuChangeCommunity}}</a>
-				<a class="loginButton" v-bind:class="{ 'menu-collapsed': !userName }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</a> 
+				<div class="menucaption">
+					<div v-bind:class="{ 'menu-collapsed': currentView != 0 }">{{language.menuInGame}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 1 }">{{language.menuHistory}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 2 }">{{language.menuHistory}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 4 }">{{language.communitiesNews}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 5 }">{{language.createCommunity}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 6 }">{{language.courtCommunity}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 8 }">{{language.communityRating}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 10 }">{{language.menuCommunityEvents}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 11 }">{{language.menuCommunityEventsNew}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 12 }">{{language.publishGame}}</div>
+				</div>
+				<div class="menudropbtn menubuttonred bannerSmall" id="banner" href="_">⮟</div>
+				<div class="menudropbtn menubuttonred" v-bind:class="{ 'menu-collapsed': !userName || !community }" v-on:click="currentView = 4;">🔔</div>
+				<div class="dropdown">
+					<div class="menudropbtn" v-on:click="toggleMenuShow('settingsDropdown');">{{language.menuSettings}}⏷</div>
+					<div id="settingsDropdown" class="dropdown-content">
+						<a v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': markerView }">{{language.menuMarkerViewOn}}</a>
+						<a v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !markerView }">{{language.menuMarkerViewOff}}</a>
+						<a v-on:click="changeEnding(); event.preventDefault();">{{endings}}</a>
+						<a v-on:click="changeLanguage(); event.preventDefault();"><i :class="[language.flag]"></i> {{language.language}}</a>
+						<a v-on:click="showHistory()">{{language.menuHistory}}</a>
+					</div>
+				</div>
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || community }">
+					<div class="menudropbtn" v-on:click="toggleMenuShow('communityDropdown');">{{language.menuSelectCommunity}}⏷</div>
+					<div id="communityDropdown" class="dropdown-content">
+						<a href="_" v-on:click="currentView = 7; event.preventDefault();">{{language.changeCommunity}} </a>
+						<a href="_" v-on:click="currentView = 5; event.preventDefault();">{{language.createCommunity}} </a>
+						<a href="_" v-on:click="currentView = 6; event.preventDefault();">{{language.courtCommunity}} </a>
+					</div>
+				</div>
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || !community}">
+					<div class="menudropbtn" v-on:click="toggleMenuShow('communityDropdown2');">{{community}}⏷</div>
+					<div id="communityDropdown2" class="dropdown-content">
+						<a href="_" v-on:click="updateCommunityData(); currentView = 8; event.preventDefault();">{{language.communityRating}} </a>
+						<a href="_" v-on:click="currentView = 10; event.preventDefault();">{{language.menuCommunityEvents}}</a> 
+						<a href="_" v-on:click="currentView = 7; event.preventDefault();">{{language.changeCommunity}} </a>
+						<a href="_" v-on:click="currentView = 5; event.preventDefault();">{{language.createCommunity}} </a>
+						<a href="_" v-on:click="currentView = 6; event.preventDefault();">{{language.courtCommunity}} </a>
+					</div>
+				</div>
+				<div class="menudropbtn" v-bind:class="{ 'menu-collapsed': userName }" v-on:click="logIn();">{{language.menuLoginSignin}}</div>
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName }">
+					<div class="menudropbtn" v-on:click="toggleMenuShow('userDropdown');">{{userName}}⏷</div>
+					<div id="userDropdown" class="dropdown-content">
+						<a v-bind:class="{ 'menu-collapsed': !userName }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</a> 
+					</div>
+				</div>
 			</div>
 			<div id="manageCommunity" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 8 }">
 				<div class="history-container">
-					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
-					<div class="menu-row">
-						<a class="loginButton" href="_" v-on:click="currentView = 10; event.preventDefault();">{{language.menuCommunityEvents}}</a> 
-
-					</div>
-					<div class="menu-row">
-						<div class="loginButton" >{{language.communityRating}} </div>
-					</div>
-					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-communityRating>
-						
+					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-communityRating>		
 				</div>
 			</div>
 			<div class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 10 }">
@@ -148,25 +179,6 @@
 						<a class="loginButton" href="_" v-on:click="createCommunityEvent(); event.preventDefault();">{{language.createCommunityEventBtn}}</a>
 					</div>
 				</div>					
-			</div>
-			<div id="settings" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 9 }">
-				<div class="dialog">
-					<div class="menu-row">
-						<div class="dialog-caption">{{language.menuSettings}}</div>
-						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
-					</div>
-					<div class="dialog-content">
-						<div class="menu-row">
-							<div class="menu-key-checkable" v-on:click="changeMarkerView();" v-bind:class="{ 'menu-game-length-checked': markerView }">{{language.menuMarkerView}}</div>
-						</div>
-						<div class="menu-row">
-							<div class="menu-key" v-on:click="changeEnding()">{{endings}}</div>
-						</div>
-						<div class="menu-row">
-							<div class="menu-key" v-on:click="changeLanguage()"><i :class="[language.flag]"></i> {{language.language}}</div>
-						</div>
-					</div>	
-				</div>
 			</div>
 			<div id="createCommunity" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 5 }">
 				<div class="dialog">
@@ -235,34 +247,20 @@
 			</div>
 			<div id="communities" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 4 }">
 				<div class="history-container">
-					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
-
-					<div class="menu-row">
-						<a class="loginButton" href="_" v-on:click="currentView = 5; event.preventDefault();">{{language.createCommunity}} </a>
-						<a class="loginButton" href="_" v-on:click="currentView = 6; event.preventDefault();">{{language.courtCommunity}} </a>
-						<a class="loginButton" href="_" v-on:click="currentView = 7; event.preventDefault();">{{language.changeCommunity}} </a>
-					</div>
-	
-
-					<div class="menu-row">
-						<div class="loginButton" >{{language.communitiesNews}} </div>
-					</div>
 					<communities-component-waitingAgreement  is="communities-component-waitingAgreement" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingAgreement>
 					<communities-component-waitingJoining  is="communities-component-waitingJoining" v-for="item in waitingJoining" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingJoining>
-
-					
+				</div>
+				<div class="emptyMessage">
+					<div v-bind:class="{ 'menu-collapsed': waitingAgreement.length != 0 || waitingJoining.length != 0 }">{{language.noEvents}}</div>
 				</div>
 			</div> 
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
 				<div class="history-container">
-						<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
-						<div class="menu-row">
-						</div>
+
 				</div>
 			</div> 
 			<div id="history" class="history" v-bind:class="{ 'menu-collapsed': currentView != 1 }">
 				<div class="history-container">
-					<div class="menu-key" v-on:click="currentView = 0">{{language.menuMenu}}</div>
 					<div class="history-data">
 						{{language.historyTotal}} {{history.length}}
 						<history-component  is="history-component" v-for="item in history" v-bind:item="item" v-bind:key="item.timeStamp"></history-component>
@@ -271,7 +269,6 @@
 			</div>
 			<div id="historyGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 2 }">
 				<div class="history-container">
-					<div class="menu-key" v-on:click="currentView = 1">{{language.menuMenu}}</div>
 					<div class="history-data">
 						<history-component  is="history-component" v-for="item in historyItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
@@ -305,9 +302,6 @@
 					<div id="keyboard-keys">
 						<div id="keyboard-menu" class="keyboard-menu" v-bind:class="{ 'menu-collapsed': !menuShown }">
 							<div class="menu-empty"></div>
-								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-key" v-on:click="showHistory()">{{language.menuHistory}}</div>
-								</div>
 								<div class="menu-row menu-entering-collapsed">
 									<div class="menu-key-checkable" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
 								</div>
@@ -382,7 +376,7 @@
 							<div class="keyboard-row">
 								<div class="regular-key" id="keyC" v-on:click="showMenu"> M </div>
 								<div class="regular-key" id="key0" v-on:click="keyboardClick(0)"> 0 </div>
-								<div class="regular-key" id="keyD" v-on:click="keyboardDelete"> ↩ </div>
+								<div class="regular-key" id="keyD" v-on:click="keyboardDelete"> ↶ </div>
 							</div>
 						</div>
 						<div id="keyboard-score" class="keyboard-score" v-bind:class="{ 'element-collapsed': menuShown }">
@@ -1023,6 +1017,8 @@
 								}).sort((a, b) => b.Date < a.Date ? -1 : 1);
 
 							var r = document.getElementById("eventName");
+							for (i = r.options.length - 1; i >= 0 ; i--)
+								r.options[i] = null;
 							for (var i = 0; i < this.communityData.Events.length; i++) 
 								if(this.communityData.Events[i].Active) {
 									var opt = document.createElement('option');
@@ -1031,6 +1027,8 @@
 									r.appendChild(opt);
 								}
 							var r = document.getElementById("player1");
+							for (i = r.options.length - 1; i >= 0 ; i--)
+								r.options[i] = null;
 							for (var i = 0; i < this.communityData.Rating.length; i++) {
 								var opt = document.createElement('option');
 								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
@@ -1038,6 +1036,8 @@
 								r.appendChild(opt);
 							}
 							var r = document.getElementById("player2");
+							for (i = r.options.length - 1; i >= 0 ; i--)
+								r.options[i] = null;
 							for (var i = 0; i < this.communityData.Rating.length; i++) {
 								var opt = document.createElement('option');
 								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
@@ -1100,7 +1100,7 @@
 							err.innerHTML = res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = "";						
+							err.innerHTML = "";					
 							this.showHistory();
 						}
 					},
@@ -1196,6 +1196,23 @@
 			if(settings.userName) 
 				keyboardKeys.refreshProfle();
 			window.fitText(document.getElementsByClassName("marker-view-score"), 0.2);
+
+
+			function toggleMenuShow(element) {
+				closeAllMenus();
+				document.getElementById(element).classList.toggle("show");
+			}
+			window.onclick = function(event) {
+				if (!event.target.matches('.menudropbtn') && !event.target.matches("#settingsDropdown")) closeAllMenus();
+			}
+			function closeAllMenus() {
+				let dropdowns = document.getElementsByClassName("dropdown-content");
+					for (let i = 0; i < dropdowns.length; i++) {
+						let openDropdown = dropdowns[i];
+						if (openDropdown.classList.contains('show')) 
+							openDropdown.classList.remove('show');
+					}
+			}
 		</script>
 	</body>
 </html>

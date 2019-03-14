@@ -61,7 +61,8 @@ var languages = {
         userOwner: "Owner",
         userReferee: "Referee",
         userPlayer: "Player",
-        menuMarkerView: "Marker",
+        menuMarkerViewOn: "Marker on",
+        menuMarkerViewOff: "Marker off",
         menuCommunityEvents: "Events",
         createCommunityEvent: "Event name",
         createCommunityEventBtn: "Create",
@@ -72,7 +73,10 @@ var languages = {
         publishGame: "Publish game",
         publishWin: "The game is done. Won ",
         publishGameBtn: "Publish",
-        publishGameUndoBtn: "Undo"
+        publishGameUndoBtn: "Undo",
+        menuInGame: "Game",
+        noEvents: "Currently there is nothing for you"
+
     },
     "ru": {
         flag: "flag-RU",
@@ -136,7 +140,8 @@ var languages = {
         userOwner: "Основатель",
         userReferee: "Судья",
         userPlayer: "Игрок",
-        menuMarkerView: "Табло",
+        menuMarkerViewOn: "Табло включить",
+        menuMarkerViewOff: "Табло выключить",
         menuCommunityEvents: "События",
         createCommunityEvent: "Название события",
         createCommunityEventBtn: "Создать",
@@ -147,9 +152,9 @@ var languages = {
         publishGame: "Опубликовать результаты",
         publishWin: "Игра завершена. Победитель ",
         publishGameBtn: "Опубликовать",
-        publishGameUndoBtn: "Отменить"
-
-
+        publishGameUndoBtn: "Отменить",
+        menuInGame: "Игра",
+        noEvents: "На данный момент для вас ничего нет"
     }
 
 };
