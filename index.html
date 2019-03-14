@@ -109,16 +109,6 @@
 				</div>
 				<div class="menudropbtn menubuttonred bannerSmall" id="banner" href="_">⮟</div>
 				<div class="menudropbtn menubuttonred" v-bind:class="{ 'menu-collapsed': !userName || !community }" v-on:click="currentView = 4;">🔔</div>
-				<div class="dropdown">
-					<div class="menudropbtn" v-on:click="toggleMenuShow('settingsDropdown');">{{language.menuSettings}}⏷</div>
-					<div id="settingsDropdown" class="dropdown-content">
-						<a v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': markerView }">{{language.menuMarkerViewOn}}</a>
-						<a v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !markerView }">{{language.menuMarkerViewOff}}</a>
-						<a v-on:click="changeEnding(); event.preventDefault();">{{endings}}</a>
-						<a v-on:click="changeLanguage(); event.preventDefault();"><i :class="[language.flag]"></i> {{language.language}}</a>
-						<a v-on:click="showHistory()">{{language.menuHistory}}</a>
-					</div>
-				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || community }">
 					<div class="menudropbtn" v-on:click="toggleMenuShow('communityDropdown');">{{language.menuSelectCommunity}}⏷</div>
 					<div id="communityDropdown" class="dropdown-content">
@@ -141,6 +131,11 @@
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName }">
 					<div class="menudropbtn" v-on:click="toggleMenuShow('userDropdown');">{{userName}}⏷</div>
 					<div id="userDropdown" class="dropdown-content">
+						<a v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': markerView }">{{language.menuMarkerViewOn}}</a>
+						<a v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !markerView }">{{language.menuMarkerViewOff}}</a>
+						<a v-on:click="changeEnding(); event.preventDefault();">{{endings}}</a>
+						<a v-on:click="changeLanguage(); event.preventDefault();"><i :class="[language.flag]"></i> {{language.language}}</a>
+						<a v-on:click="showHistory()">{{language.menuHistory}}</a>
 						<a v-bind:class="{ 'menu-collapsed': !userName }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</a> 
 					</div>
 				</div>
