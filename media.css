@@ -12,6 +12,10 @@
         flex-direction: row;
         align-self: stretch;
     }
+    app {
+        max-width: 20cm;
+        max-height: 13cm;
+    }
 
 }
 @media all and (orientation:portrait) {

@@ -488,3 +488,9 @@ body::-webkit-scrollbar {
     width: 100px;
     margin: 0.3vmax;
 }
+.scrollable-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+}

@@ -106,7 +106,7 @@ Vue.component("communities-component-communityRating", {
 });
 Vue.component("communities-component-communityEvents", {
     template: `
-        <div class="menu-row"> 
+        <div class="events-row"> 
             <div class="community-rating">
                 <div class="community-rating-rating">{{item.Date}}</div>
                 <div class="community-rating-rating">{{item.EventName}}</div>
@@ -189,6 +189,17 @@ Vue.component("game-way-component", {
             <div class="stat-game-way-head">{{item.name}}</div>
             <div class="stat-game-way">{{item.player1}}</div>
             <div class="stat-game-way">{{item.player2}}</div>
+        </div>
+    `,
+    props: {
+        item: Object
+    }
+});
+Vue.component("profile-stats-component", {
+    template: `
+        <div class="stat-game-way-item"> 
+            <div class="stat-game-way-head">{{item.name}}</div>
+            <div class="stat-game-way">{{item.value}}</div>
         </div>
     `,
     props: {

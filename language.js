@@ -75,7 +75,13 @@ var languages = {
         publishGameBtn: "Publish",
         publishGameUndoBtn: "Undo",
         menuInGame: "Game",
-        noEvents: "Currently there is nothing for you"
+        noEvents: "Currently there is nothing for you",
+        highestClose: "Highest close: ",
+        t60: "60+",
+        t100: "100+",
+        t140: "140+",
+        t180: "180",
+        
 
     },
     "ru": {
@@ -154,7 +160,12 @@ var languages = {
         publishGameBtn: "Опубликовать",
         publishGameUndoBtn: "Отменить",
         menuInGame: "Игра",
-        noEvents: "На данный момент для вас ничего нет"
+        noEvents: "На данный момент для вас ничего нет",
+        highestClose: "Наибольшее закрытие: ",
+        t60: "60+",
+        t100: "100+",
+        t140: "140+",
+        t180: "180",
     }
 
 };

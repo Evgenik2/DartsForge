@@ -43,6 +43,7 @@
 			});
 			var module = {};
 		</script>
+		<script src="http://cdn3.devexpress.com/jslib/18.1.4/js/dx.all.js"></script>
 		<script src="amazon-cognito-auth.min.js"></script>
 		<script src="Serverless/Game501.js"></script>
 		<script src="fittext.js"></script>
@@ -109,6 +110,7 @@
 					<div v-bind:class="{ 'menu-collapsed': currentView != 0 }">{{language.menuInGame}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 1 }">{{language.menuHistory}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 2 }">{{language.menuHistory}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 3 }">{{language.menuProfile}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 4 }">{{language.communitiesNews}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 5 }">{{language.createCommunity}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 6 }">{{language.courtCommunity}}</div>
@@ -120,11 +122,13 @@
 
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || !community || (waitingAgreement.length == 0 && waitingJoining.length == 0) }">
 					<div class="menudropbtn"  v-on:click="toggleMenuShow('notificationDropdown');">
-						<svg class="menudropsvg menuelement" viewBox="0 0 210 210">
-							<path class="menudropsvgpath menuelement" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:30;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;" d="M 181.24214,159.0221 C 168.78658,179.98389 30.626303,178.25027 18.700637,156.98254 6.7749697,135.71481 77.35647,16.931313 101.7377,17.237246 c 24.38122,0.305933 91.96,120.823054 79.50444,141.784854 z"/>
+						<svg class="menudropsvg menuelement" viewBox="0 0 210 250">
+							<path class="menudropsvgpath menuelement" 
+							style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:30;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;" 
+							d="M 187.47095,223.0899 C 175.01539,244.05169 36.855117,242.31807 24.929451,221.05034 13.003783,199.78261 83.585284,80.99911 107.96651,81.305043 c 24.38122,0.305933 91.96,120.823057 79.50444,141.784857 z"/>
 						</svg>
 					</div>
-					<div id="notificationDropdown" class="dropdown-content-bell">
+					<div id="notificationDropdown" class="dropdown-content dropdown-content-bell">
 						<communities-component-waitingAgreement  is="communities-component-waitingAgreement" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingAgreement>
 						<communities-component-waitingJoining  is="communities-component-waitingJoining" v-for="item in waitingJoining" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingJoining>
 					</div>
@@ -167,6 +171,7 @@
 						</div>
 					</div>
 					<div id="userDropdown" class="dropdown-content">
+						<div class="dropdown-content-item" v-on:click="showProfile(); event.preventDefault();">{{language.menuProfile}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': markerView }">{{language.menuMarkerViewOn}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !markerView }">{{language.menuMarkerViewOff}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeEnding(); event.preventDefault();">{{endings}}</div>
@@ -188,10 +193,11 @@
 						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="menu-row">
-						<div class="dropdown-content-item" class="loginButton" href="_" v-on:click="currentView = 11; event.preventDefault();">{{language.menuCommunityEventsNew}}</div> 						
+						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="currentView = 11; event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
 					</div>
-					<communities-component-communityEvents  is="communities-component-communityEvents" v-for="item in communityData.Events" v-bind:item="item" v-bind:key="item.name"></communities-component-communityEvents>
-					
+					<div class="scrollable-content">
+						<communities-component-communityEvents  is="communities-component-communityEvents" v-for="item in communityData.Events" v-bind:item="item" v-bind:key="item.name"></communities-component-communityEvents>
+					</div>
 				</div>					
 			</div>
 			<div class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 11 }">
@@ -287,7 +293,17 @@
 			</div> 
 			<div id="profile" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 3 }">
 				<div class="history-container">
-
+					<div>World stats</div>
+					<div class="scoring-throws-group">
+						<profile-stats-component  is="profile-stats-component" v-for="item in userWorldStats" v-bind:item="item" v-bind:key="item.name"></profile-stats-component>
+					</div>
+					<div>{{community}}</div>
+					<div class="scoring-throws-group">
+						<profile-stats-component  is="profile-stats-component" v-for="item in userCommunityStats" v-bind:item="item" v-bind:key="item.name"></profile-stats-component>
+					</div>
+					<div class="scoring-throws-group">
+						<div id="chartContainer"></div>
+					</div>
 				</div>
 			</div> 
 			<div id="history" class="history" v-bind:class="{ 'menu-collapsed': currentView != 1 }">
@@ -487,7 +503,7 @@
 			var banner;
 			function deleteAllCookies() {
 				var cookies = document.cookie.split(";");
-				for (var i = 0; i < cookies.length; i++) {
+				for (let i = 0; i < cookies.length; i++) {
 					var cookie = cookies[i];
 					var eqPos = cookie.indexOf("=");
 					var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
@@ -677,6 +693,8 @@
 					newCommunityEvent: undefined,
 					courtCommunityName: undefined,
 					profile: {},
+					userCommunityStats: {},
+					userWorldStats: {},
 					communitiesList: [],
 					waitingAgreement: [],
 					waitingJoining: [],
@@ -795,7 +813,7 @@
 					},
 					changeEnding: function() {
 						let k = Object.keys(endings);
-						var i = k.indexOf(this.endings) + 1;
+						let i = k.indexOf(this.endings) + 1;
 						if(i >= k.length)
 							i = 0;
 						settings.endings = this.endings = k[i];
@@ -808,7 +826,7 @@
 					},
 					changeLanguage : function() {
 						let k = Object.keys(languages);
-						var i = k.indexOf(this.languageName) + 1;
+						let i = k.indexOf(this.languageName) + 1;
 						if(i >= k.length)
 							i = 0;
 						settings.language = this.languageName = k[i];
@@ -818,7 +836,6 @@
 					},
 					showProfile: function() {
 						this.currentView = 3;
-
 						this.changeView();
 					},
 					showHistory: function() {
@@ -859,12 +876,12 @@
 					menuKeyClick: function(value) {
 						gameLengths = [ 101, 301, 501, 701, 1001, 2001 ];
 						if(value == "gameMinus") {
-							var i = gameLengths.indexOf(this.newGameLength);
+							let i = gameLengths.indexOf(this.newGameLength);
 							if(i > 0)
 								settings.newGameLength = this.newGameLength = gameLengths[i - 1];
 						}
 						if(value == "gamePlus") {
-							var i = gameLengths.indexOf(this.newGameLength);
+							let i = gameLengths.indexOf(this.newGameLength);
 							if(i < gameLengths.length - 1)
 								settings.newGameLength = this.newGameLength = gameLengths[i + 1];
 						}
@@ -956,7 +973,9 @@
 						var r = document.getElementById("courtCommunityName");
 						if(!r) return;
 						r.innerHTML = "";
-						for (var i = 0; i < settings.communities.length; i++) {
+						for (i = r.options.length - 1; i >= 0 ; i--)
+							r.options[i] = null;
+						for (let i = 0; i < settings.communities.length; i++) {
 							var opt = document.createElement('option');
 							opt.value = settings.communities[i].Name;
 							opt.innerHTML = settings.communities[i].Name + ' (' + settings.communities[i].Region +')';
@@ -976,12 +995,28 @@
 						var r = document.getElementById("changeCommunityName");
 						if(!r) return;
 						r.innerHTML = "";
-						for (var i = 0; i < this.communitiesList.length; i++) {
+						for (i = r.options.length - 1; i >= 0 ; i--)
+							r.options[i] = null;
+						for (let i = 0; i < this.communitiesList.length; i++) {
 							var opt = document.createElement('option');
 							opt.value = this.communitiesList[i];
 							opt.innerHTML = this.communitiesList[i];
 							r.appendChild(opt);
 						}
+						let stats = this.profile.WorldRating;
+						this.userWorldStats = [
+							{name: "60+", value: stats.t60},
+							{name: "100+", value: stats.t100},
+							{name: "140+", value: stats.t140},
+							{name: "180+", value: stats.t180},	
+							{name: "HC", value: stats.HC},	
+							{name: "BestLeg", value: stats.BestLeg},	
+							{name: "LWAT", value: stats.LWAT},	
+							{name: "WonLegs", value: stats.WonLegs},	
+							{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
+							{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
+							{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}
+						];
 					},
 					createCommunity: async function() {
 						var res = await DartsApi({
@@ -1050,7 +1085,7 @@
 							var r = document.getElementById("eventName");
 							for (i = r.options.length - 1; i >= 0 ; i--)
 								r.options[i] = null;
-							for (var i = 0; i < this.communityData.Events.length; i++) 
+							for (let i = 0; i < this.communityData.Events.length; i++) 
 								if(this.communityData.Events[i].Active) {
 									var opt = document.createElement('option');
 									opt.innerHTML = this.communityData.Events[i].EventName;
@@ -1060,7 +1095,7 @@
 							var r = document.getElementById("player1");
 							for (i = r.options.length - 1; i >= 0 ; i--)
 								r.options[i] = null;
-							for (var i = 0; i < this.communityData.Rating.length; i++) {
+							for (let i = 0; i < this.communityData.Rating.length; i++) {
 								var opt = document.createElement('option');
 								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
 								opt.value = this.communityData.Rating[i].UserName;
@@ -1069,13 +1104,29 @@
 							var r = document.getElementById("player2");
 							for (i = r.options.length - 1; i >= 0 ; i--)
 								r.options[i] = null;
-							for (var i = 0; i < this.communityData.Rating.length; i++) {
+							for (let i = 0; i < this.communityData.Rating.length; i++) {
 								var opt = document.createElement('option');
 								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
 								opt.value = this.communityData.Rating[i].UserName;
 								r.appendChild(opt);
 							}
-
+							let stats = this.communityData.Rating.find(e=>e.UserName == this.userName);
+							let p =  this.communityData.Rating.findIndex(e=>e.UserName == this.userName) + 1;
+							this.userCommunityStats = [
+								{name: "#", value: p},
+								{name: "Rating", value: stats.Rating},
+								{name: "60+", value: stats.t60},
+								{name: "100+", value: stats.t100},
+								{name: "140+", value: stats.t140},
+								{name: "180+", value: stats.t180},	
+								{name: "HC", value: stats.HC},	
+								{name: "BestLeg", value: stats.BestLeg},	
+								{name: "LWAT", value: stats.LWAT},	
+								{name: "WonLegs", value: stats.WonLegs},
+								{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
+								{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
+								{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}	
+							];
 						}
 					},
 					rejectCourt: async function(item) {
@@ -1218,7 +1269,7 @@
 				keyLongPress = false;
 			};
 			var r = document.getElementById("newCommunityRegion");
-			for (var i = 0; i < flags.length; i++) {
+			for (let i = 0; i < flags.length; i++) {
 				var opt = document.createElement('option');
 			    opt.innerHTML = flags[i][1];
 				opt.value = flags[i][0];
