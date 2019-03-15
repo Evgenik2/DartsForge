@@ -132,9 +132,9 @@ Vue.component("communities-component-communityEvents", {
 Vue.component("communities-component-waitingAgreement", {
     template: `
         <div class="menu-row"> 
-            <div class="community-message">
-                <div>{{item.language.courtMessage1}}{{item.CommunityName}}{{item.language.courtMessage2}}</div>
-				<a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</a>
+            <div class="community-message menuelement">
+                <div class="menuelement">{{item.language.courtMessage1}}{{item.CommunityName}}{{item.language.courtMessage2}}</div>
+				<a class="event-button menuelement" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</a>
             </div>
         </div>
     `,

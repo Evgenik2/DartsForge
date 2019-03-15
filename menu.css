@@ -308,16 +308,31 @@
     padding: 16px 8px 16px 8px;
     background-color: #232f3c;
     justify-content: flex-end;
+    align-items: center
 }
 .menudropbtn {
     color: #f1e1c1;
-    padding: 0px 8px 0px 8px;
-    font-size: 16px;
+    stroke: #f1e1c1;
+    padding: 0px 1vmax 0px 1vmax;
+    font-size: 2.5vmax;
     border: none;
     cursor: pointer;
 }
 .menudropbtn:hover, .menudropbtn:focus {
     color: #ff8f00;
+    stroke: #ff8f00;
+}
+.menudropsvg {
+    width: 2.5vmax;
+    height: 2.5vmax;
+}
+.menudropsvgpath {
+    stroke: #f1e1c1;
+    border: none;
+    cursor: pointer;
+}
+.menudropsvgpath:hover, .menudropsvgpath:focus {
+    stroke: #ff8f00;
 }
 .dropdown {
     float: right;
@@ -333,27 +348,59 @@
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
 }
-.dropdown-content a {
+.dropdown-content-item {
     color: black;
     padding: 12px 16px;
     text-decoration: none;
     display: block;
+    cursor: pointer;
 }
-.dropdown-content a:hover {background-color: #ddd;}
+.dropdown-content-item:hover {background-color: #ddd;}
 .show {display:block;}
 .menubuttonred { 
-    font-size: 2vmax;
     color: #aa0000;
 }
 .menucaption {
     flex: 1;
     color: #f1e1c1;
-    padding: 0px 8px 0px 8px;
-    font-size: 16px;
+    padding: 0px 8px 0px 0px;
+    font-size: 3vmax;
     font-weight: bold;
     border: none;
+    flex-direction: row;
+    display: flex;
+    align-items: center;
 }
 .emptyMessage {
     flex: 1;
     align-content: center
+}
+.menubtnContent {
+    display: flex;
+    flex-direction: row;
+}
+.bannerSmall {
+    display: none;
+    align-items: center;
+}
+.menubannersvg {
+    width: 5vmax;
+    height: 5vmax;
+}
+.menubannerbtn {
+    color: #f1e1c1;
+    stroke: #f1e1c1;
+    border: none;
+    cursor: pointer;
+}
+.menubannerbtn:hover, .menubannerbtn:focus {
+    color: #ff8f00;
+    stroke: #ff8f00;
+}
+.menudroparrow {
+    font-size: 1.5vmax;
+    align-self: center;
+}
+.menuelement {
+    
 }
