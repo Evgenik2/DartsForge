@@ -198,8 +198,8 @@ Vue.component("game-way-component", {
 Vue.component("profile-stats-component", {
     template: `
         <div class="stat-game-way-item"> 
-            <div class="stat-game-way-head">{{item.name}}</div>
-            <div class="stat-game-way">{{item.value}}</div>
+            <div class="stat-game-way-head profile-stats-item">{{item.name}}</div>
+            <div class="stat-game-way profile-stats-item">{{item.value}}</div>
         </div>
     `,
     props: {

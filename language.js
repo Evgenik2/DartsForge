@@ -23,7 +23,7 @@ var languages = {
         bannerInstallSmall: "Install",
         bannerInstall: "Install Application",
         bannerDescription: "Add the Darts Forge application to your home screen",
-        menuProfile: "User profile",
+        menuProfile: "Profile",
         menuPublicKey: "Public key",
         menuPrivateKey: "Private key",
         menuLoginSignin: "Log In | Sign In",
@@ -81,7 +81,7 @@ var languages = {
         t100: "100+",
         t140: "140+",
         t180: "180",
-        
+        weeklyRating: "Your weekly stats"
 
     },
     "ru": {
@@ -108,7 +108,7 @@ var languages = {
         bannerInstallSmall: "Установить",
         bannerInstall: "Установить приложение",
         bannerDescription: "Добавить приложение Darts Forge на рабочий стол",
-        menuProfile: "Профиль пользователя",
+        menuProfile: "Профиль",
         menuPublicKey: "Публичный ключ",
         menuPrivateKey: "Секретный ключ",
         menuLoginSignin: "Войти",
@@ -166,6 +166,8 @@ var languages = {
         t100: "100+",
         t140: "140+",
         t180: "180",
+        weeklyRating: "Статистика по неделям"
+
     }
 
 };

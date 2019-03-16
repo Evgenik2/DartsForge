@@ -43,7 +43,7 @@
 			});
 			var module = {};
 		</script>
-		<script src="http://cdn3.devexpress.com/jslib/18.1.4/js/dx.all.js"></script>
+		<script src="Chart.min.js"></script>
 		<script src="amazon-cognito-auth.min.js"></script>
 		<script src="Serverless/Game501.js"></script>
 		<script src="fittext.js"></script>
@@ -95,7 +95,7 @@
 			</div>
 		</section>-->
 		<div id="app" class="app">
-			<div id="caption" class="caption">
+			<div id="caption" class="caption" v-bind:class="{ 'menu-collapsed': currentView == 0 && !menuShown }">
 				<div class="menucaption">
 					<div class="menubannerbtn bannerSmall" id="banner" href="_">
 						<svg class="menubannersvg" viewBox="0 0 210 297" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:10;">
@@ -186,21 +186,15 @@
 					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-communityRating>		
 				</div>
 			</div>
-			<div class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 10 }">
-				<div class="dialog">
-					<div class="menu-row">
-						<div class="dialog-caption">{{language.menuCommunityEvents}}</div>
-						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
-					</div>
+			<div id="communityEvents" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 10 }">
+				<div class="history-container">
 					<div class="menu-row">
 						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="currentView = 11; event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
 					</div>
-					<div class="scrollable-content">
-						<communities-component-communityEvents  is="communities-component-communityEvents" v-for="item in communityData.Events" v-bind:item="item" v-bind:key="item.name"></communities-component-communityEvents>
-					</div>
+					<communities-component-communityEvents  is="communities-component-communityEvents" v-for="item in communityData.Events" v-bind:item="item" v-bind:key="item.name"></communities-component-communityEvents>
 				</div>					
 			</div>
-			<div class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 11 }">
+			<div id="newCommunityEvent" class="dialog-place" v-bind:class="{ 'menu-collapsed': currentView != 11 }">
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.menuCommunityEventsNew}}</div>
@@ -221,7 +215,7 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.createCommunity}}</div>
-						<div class="dialog-close" v-on:click="currentView = 4"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
@@ -267,7 +261,7 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.changeCommunity}}</div>
-						<div class="dialog-close" v-on:click="currentView = 4"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
@@ -301,8 +295,9 @@
 					<div class="scoring-throws-group">
 						<profile-stats-component  is="profile-stats-component" v-for="item in userCommunityStats" v-bind:item="item" v-bind:key="item.name"></profile-stats-component>
 					</div>
+					<div>{{language.weeklyRating}}</div>
 					<div class="scoring-throws-group">
-						<div id="chartContainer"></div>
+						<canvas id="weeklyChart" class="weeklyChart"></canvas>
 					</div>
 				</div>
 			</div> 
@@ -1003,23 +998,44 @@
 							opt.innerHTML = this.communitiesList[i];
 							r.appendChild(opt);
 						}
-						if(this.communityData.Rating.findIndex(e=>e.UserName == this.userName))
+						if(!this.communityData.Rating.findIndex(e=>e.UserName == this.userName))
 							this.community = settings.community = null;
 						let stats = this.profile.WorldRating;
 						if(stats)
 							this.userWorldStats = [
+								{name: "W/D/L", value: stats.WonGames + "/" + stats.DrawGames + "/" + stats.LooseGames},	
 								{name: "60+", value: stats.t60},
 								{name: "100+", value: stats.t100},
 								{name: "140+", value: stats.t140},
 								{name: "180+", value: stats.t180},	
 								{name: "HC", value: stats.HC},	
-								{name: "BestLeg", value: stats.BestLeg},	
-								{name: "LWAT", value: stats.LWAT},	
-								{name: "WonLegs", value: stats.WonLegs},	
-								{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
+								{name: "BL", value: stats.BestLeg},	
+//								{name: "LWAT", value: stats.LWAT},	
+//								{name: "WL", value: stats.WonLegs},	
 								{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
 								{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}
 							];
+							var ctx = document.getElementById('weeklyChart').getContext('2d');
+							if(keyboardKeys.profile.WeeklyRating.length > 1)
+								var weeklyChart = new Chart(ctx, {
+									type: 'line',
+									data: {
+										labels: keyboardKeys.profile.WeeklyRating.map(e=> e.Week),
+										datasets: [{
+											label: "3 dart average",
+											data: keyboardKeys.profile.WeeklyRating.map(e=> Math.round(e.ThrowTotal / e.ThrowCount))
+										}]
+									},
+									options: {
+										scales: {
+											yAxes: [{
+												ticks: {
+													beginAtZero: true
+												}
+											}]
+										}
+									}
+								});
 					},
 					createCommunity: async function() {
 						var res = await DartsApi({
@@ -1078,7 +1094,7 @@
 							if(this.communityData.Events)
 								this.communityData.Events = this.communityData.Events.map(e=>{
 									let d = new Date(e.CreationDate)
-									e.Date = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+									e.Date = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
 									e.Status = e.Active ? this.language.activeEvent 
 											: this.language.inactiveEvent;
 									e.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
@@ -1119,15 +1135,15 @@
 								this.userCommunityStats = [
 									{name: "#", value: p},
 									{name: "Rating", value: stats.Rating},
+									{name: "W/D/L", value: stats.WonGames + "/" + stats.DrawGames + "/" + stats.LooseGames},	
 									{name: "60+", value: stats.t60},
 									{name: "100+", value: stats.t100},
 									{name: "140+", value: stats.t140},
 									{name: "180+", value: stats.t180},	
 									{name: "HC", value: stats.HC},	
-									{name: "BestLeg", value: stats.BestLeg},	
-									{name: "LWAT", value: stats.LWAT},	
-									{name: "WonLegs", value: stats.WonLegs},
-									{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
+									{name: "BL", value: stats.BestLeg},	
+//									{name: "LWAT", value: stats.LWAT},	
+//									{name: "WonLegs", value: stats.WonLegs},
 									{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
 									{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}	
 								];
