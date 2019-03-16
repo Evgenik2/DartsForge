@@ -1003,20 +1003,23 @@
 							opt.innerHTML = this.communitiesList[i];
 							r.appendChild(opt);
 						}
+						if(this.communityData.Rating.findIndex(e=>e.UserName == this.userName))
+							this.community = settings.community = null;
 						let stats = this.profile.WorldRating;
-						this.userWorldStats = [
-							{name: "60+", value: stats.t60},
-							{name: "100+", value: stats.t100},
-							{name: "140+", value: stats.t140},
-							{name: "180+", value: stats.t180},	
-							{name: "HC", value: stats.HC},	
-							{name: "BestLeg", value: stats.BestLeg},	
-							{name: "LWAT", value: stats.LWAT},	
-							{name: "WonLegs", value: stats.WonLegs},	
-							{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
-							{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
-							{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}
-						];
+						if(stats)
+							this.userWorldStats = [
+								{name: "60+", value: stats.t60},
+								{name: "100+", value: stats.t100},
+								{name: "140+", value: stats.t140},
+								{name: "180+", value: stats.t180},	
+								{name: "HC", value: stats.HC},	
+								{name: "BestLeg", value: stats.BestLeg},	
+								{name: "LWAT", value: stats.LWAT},	
+								{name: "WonLegs", value: stats.WonLegs},	
+								{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
+								{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
+								{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}
+							];
 					},
 					createCommunity: async function() {
 						var res = await DartsApi({
@@ -1060,7 +1063,7 @@
 						if(this.community) {
 							settings.communityData = this.communityData = await CommunityData(this.community);
 							if(settings.communityData.error) {
-								this.community = undefined;
+								this.community = settings.community = undefined;
 								return;
 							}
 							if(this.communityData.Rating)
@@ -1112,21 +1115,22 @@
 							}
 							let stats = this.communityData.Rating.find(e=>e.UserName == this.userName);
 							let p =  this.communityData.Rating.findIndex(e=>e.UserName == this.userName) + 1;
-							this.userCommunityStats = [
-								{name: "#", value: p},
-								{name: "Rating", value: stats.Rating},
-								{name: "60+", value: stats.t60},
-								{name: "100+", value: stats.t100},
-								{name: "140+", value: stats.t140},
-								{name: "180+", value: stats.t180},	
-								{name: "HC", value: stats.HC},	
-								{name: "BestLeg", value: stats.BestLeg},	
-								{name: "LWAT", value: stats.LWAT},	
-								{name: "WonLegs", value: stats.WonLegs},
-								{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
-								{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
-								{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}	
-							];
+							if(stats)
+								this.userCommunityStats = [
+									{name: "#", value: p},
+									{name: "Rating", value: stats.Rating},
+									{name: "60+", value: stats.t60},
+									{name: "100+", value: stats.t100},
+									{name: "140+", value: stats.t140},
+									{name: "180+", value: stats.t180},	
+									{name: "HC", value: stats.HC},	
+									{name: "BestLeg", value: stats.BestLeg},	
+									{name: "LWAT", value: stats.LWAT},	
+									{name: "WonLegs", value: stats.WonLegs},
+									{name: "W/L", value: stats.WonGames + "/" + stats.LooseGames},	
+									{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
+									{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}	
+								];
 						}
 					},
 					rejectCourt: async function(item) {
