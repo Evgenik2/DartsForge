@@ -290,6 +290,9 @@
     margin-right: 10px;
     max-width: 1000px;
 }
+.community-rating-header {
+    background: #888888;
+}
 .community-rating-userName {
     display: flex;
     flex: 1;
@@ -298,6 +301,21 @@
 }
 .community-rating-rating {
     display: flex;
+    color: #111111;
+    justify-content: center;
+    min-width: 20%;
+    margin-right: 10px;
+}
+.community-rating-event {
+    display: flex;
+    color: #111111;
+    justify-content: center;
+    min-width: 15%;
+    margin-right: 10px;
+}
+.community-rating-event-group {
+    display: flex;
+    flex-direction: column;
     color: #111111;
     justify-content: center;
     min-width: 20%;

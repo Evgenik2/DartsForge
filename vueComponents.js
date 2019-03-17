@@ -108,11 +108,23 @@ Vue.component("communities-component-communityEvents", {
     template: `
         <div class="events-row"> 
             <div class="community-rating">
-                <div class="community-rating-rating">{{item.Date}}</div>
-                <div class="community-rating-rating">{{item.EventName}}</div>
+                <div class="community-rating-event-group">
+                    <div class="community-rating-rating">{{item.Date}}</div>
+                </div>
+                <div class="community-rating-event-group">
+                    <div class="community-rating-event">{{item.EventName}}</div>
+                </div>
+                <div class="community-rating-event-group">
+                    <div class="community-rating-event">{{item.HC}}</div>
+                </div>
+                <div class="community-rating-event-group">
+                    <div class="community-rating-event">{{item.BestLeg}}</div>
+                </div>
                 <div class="community-rating-userName"></div>
-                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': !item.changeable }" href="_" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</a>
-                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</a>   
+                <div class="community-rating-event-group">
+                    <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': !item.changeable }" href="_" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</a>
+                    <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</a>   
+                </div>
             </div>
         </div>
     `,

@@ -81,7 +81,9 @@ var languages = {
         t100: "100+",
         t140: "140+",
         t180: "180",
-        weeklyRating: "Your weekly stats"
+        weeklyRating: "Your weekly stats",
+        opened: "Opened",
+        eventName: "Name"
 
     },
     "ru": {
@@ -166,8 +168,9 @@ var languages = {
         t100: "100+",
         t140: "140+",
         t180: "180",
-        weeklyRating: "Статистика по неделям"
-
+        weeklyRating: "Статистика по неделям",
+        opened: "Создано",
+        eventName: "Название"
     }
 
 };

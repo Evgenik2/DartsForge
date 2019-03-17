@@ -194,6 +194,25 @@
 					<div class="menu-row">
 						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="currentView = 11; event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
 					</div>
+					<div class="events-row"> 
+						<div class="community-rating community-rating-header">
+							<div class="community-rating-event-group">
+								<div class="community-rating-rating">{{language.opened}}</div>
+							</div>
+							<div class="community-rating-event-group">
+								<div class="community-rating-event">{{language.eventName}}</div>
+							</div>
+							<div class="community-rating-event-group">
+								<div class="community-rating-event">HC</div>
+							</div>
+							<div class="community-rating-event-group">
+								<div class="community-rating-event">BL</div>
+							</div>
+							<div class="community-rating-userName"></div>
+							<div class="community-rating-event-group">
+							</div>
+						</div>
+					</div>
 					<communities-component-communityEvents  is="communities-component-communityEvents" v-for="item in communityData.Events" v-bind:item="item" v-bind:key="item.name"></communities-component-communityEvents>
 				</div>					
 			</div>
