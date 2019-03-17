@@ -68,9 +68,10 @@ var settings = {
     },
     restore: function() {
         getRecord("Settings", "settings", function(data) {
-            if(!data)
+            if(!data) {
+                keyboardKeys.userName = settings.userName;
                 settings.store();
-            else {
+            } else {
                 var r = JSON.parse(data);
                 settings.endings = r.endings == undefined ? "Default" : r.endings;
                 settings.language = r.language == undefined ? "en" : r.language;

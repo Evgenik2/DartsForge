@@ -57,6 +57,9 @@
 		<script src="flags.js"></script>
 		<link href="media.css" rel="stylesheet" type="text/css" />
 		<script>
+			var userLang = navigator.language || navigator.userLanguage; 
+			if(userLang == "ru-RU")
+				settings.language = "ru";
 			function registerServiceWorker() {
 				var root = "/DartsForge/";
 				if ('serviceWorker' in navigator) {
@@ -291,8 +294,8 @@
 					<div class="scoring-throws-group">
 						<profile-stats-component  is="profile-stats-component" v-for="item in userWorldStats" v-bind:item="item" v-bind:key="item.name"></profile-stats-component>
 					</div>
-					<div>{{community}}</div>
-					<div class="scoring-throws-group">
+					<div v-bind:class="{ 'menu-collapsed': !userName || !community}">{{community}}</div>
+					<div class="scoring-throws-group" v-bind:class="{ 'menu-collapsed': !userName || !community}">
 						<profile-stats-component  is="profile-stats-component" v-for="item in userCommunityStats" v-bind:item="item" v-bind:key="item.name"></profile-stats-component>
 					</div>
 					<div>{{language.weeklyRating}}</div>
@@ -998,7 +1001,7 @@
 							opt.innerHTML = this.communitiesList[i];
 							r.appendChild(opt);
 						}
-						if(!this.communityData.Rating.findIndex(e=>e.UserName == this.userName))
+						if(!this.communityData.Rating || !this.communityData.Rating.findIndex(e=>e.UserName == this.userName))
 							this.community = settings.community = null;
 						let stats = this.profile.WorldRating;
 						if(stats)
