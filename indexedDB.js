@@ -17,22 +17,26 @@ function connectDB(tableName, f){
     }
 }
 function CreateObjectStore(storeName, f) {
-    var request = indexedDB.open(baseName);
-    request.onsuccess = function (e){
-        var database = e.target.result;
-        var version =  parseInt(database.version);
-        database.close();
-        var secondRequest = indexedDB.open(baseName, version + 1);
-        secondRequest.onerror = function() {};
-        secondRequest.onupgradeneeded = function (e) {
+    try {
+        var request = indexedDB.open(baseName);
+        request.onsuccess = function (e){
             var database = e.target.result;
-            if(!database.objectStoreNames.contains(storeName))
-                var objectStore = database.createObjectStore(storeName, { keyPath: "key" });
-        };
-        secondRequest.onsuccess = function (e) {
-            e.target.result.close();
-            f();
+            var version =  parseInt(database.version);
+            database.close();
+            var secondRequest = indexedDB.open(baseName, version + 1);
+            secondRequest.onerror = function() {};
+            secondRequest.onupgradeneeded = function (e) {
+                var database = e.target.result;
+                if(!database.objectStoreNames.contains(storeName))
+                    var objectStore = database.createObjectStore(storeName, { keyPath: "key" });
+            };
+            secondRequest.onsuccess = function (e) {
+                e.target.result.close();
+                f();
+            }
         }
+    }catch(e) {
+        keyboardKeys.currentView = -1;
     }
 }
 function getLastRecord(tableName, f){
