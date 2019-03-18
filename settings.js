@@ -57,8 +57,6 @@ var settings = {
     newNoStartSwap: false,
     endings: "Default",
     language: "en",
-    currentUserPrivateKey: "",
-    currentUserPublicKey: "",
     getEnding: function(value, defaultValue) { 
         var e = endings[this.endings]; 
         return e[value] ? e[value] : defaultValue;

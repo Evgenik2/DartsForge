@@ -87,21 +87,12 @@
 			.element-collapsed {
 				display: none;
 			}
+			.element-visible {
+				display: block;
+			}
 		</style>
 	</head>
 	<body>
-		<!--<section id="banner" class="banner">
-			<div id="installBanner" class="banner-install">
-				<img class="banner-img" src="android-chrome-192x192.png" alt="Install application banner"/>
-				<div class="banner-btn-group">
-					<div class="banner-btn">{{language.bannerInstall}}</div>
-					<div class="banner-btn">{{language.bannerDescription}}</div>
-				</div>
-			</div>
-			<div id="banner-close" class="banner-close">
-				<svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg>
-			</div>
-		</section>-->
 		<div id="app" class="app">
 			<div id="caption" class="caption" v-bind:class="{ 'menu-collapsed': currentView < 0 || currentView == 0 && !menuShown }">
 				<div class="menucaption">
@@ -115,6 +106,11 @@
 							<path d="M 46.715494,75.411456 H 170.73893"/>
 						</svg>
 					</div>
+					<div class="menubannerbtn bannerSmall element-visible" v-on:click="changeViewBack();" >
+						<svg class="menubannersvg" viewBox="0 0 210 297" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:30;">
+							<path d="m 148.16667,106.5 -66.523812,66.52381 67.279762,58.20833"/>
+						</svg>
+					</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 0 }">{{language.menuInGame}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 1 }">{{language.menuHistory}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 2 }">{{language.menuHistory}}</div>
@@ -122,6 +118,7 @@
 					<div v-bind:class="{ 'menu-collapsed': currentView != 4 }">{{language.communitiesNews}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 5 }">{{language.createCommunity}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 6 }">{{language.courtCommunity}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 7 }">{{language.changeCommunity}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 8 }">{{language.communityRating}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 10 }">{{language.menuCommunityEvents}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 11 }">{{language.menuCommunityEventsNew}}</div>
@@ -150,9 +147,9 @@
 						</div>
 					</div>
 					<div id="communityDropdown" class="dropdown-content">
-						<div class="dropdown-content-item" v-on:click="currentView = 7; event.preventDefault();">{{language.changeCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="currentView = 5; event.preventDefault();">{{language.createCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="currentView = 6; event.preventDefault();">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
 					</div>
 				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || !community}">
@@ -163,12 +160,12 @@
 						</div>
 					</div>
 					<div id="communityDropdown2" class="dropdown-content">
-						<div class="dropdown-content-item" v-on:click="currentView = 0; event.preventDefault();">{{language.menuInGame}}</div> 
-						<div class="dropdown-content-item" v-on:click="updateCommunityData(); currentView = 8; event.preventDefault();">{{language.communityRating}} </div>
-						<div class="dropdown-content-item" v-on:click="currentView = 10; event.preventDefault();">{{language.menuCommunityEvents}}</div> 
-						<div class="dropdown-content-item" v-on:click="currentView = 7; event.preventDefault();">{{language.changeCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="currentView = 5; event.preventDefault();">{{language.createCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="currentView = 6; event.preventDefault();">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="changeView(0); event.preventDefault();">{{language.menuInGame}}</div> 
+						<div class="dropdown-content-item" v-on:click="updateCommunityData(); changeView(8); event.preventDefault();">{{language.communityRating}} </div>
+						<div class="dropdown-content-item" v-on:click="changeView(10); event.preventDefault();">{{language.menuCommunityEvents}}</div> 
+						<div class="dropdown-content-item" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
 					</div>
 				</div>
 				<div class="menudropbtn" v-bind:class="{ 'menu-collapsed': userName }" v-on:click="logIn();">{{language.menuLoginSignin}}</div>
@@ -180,7 +177,7 @@
 						</div>
 					</div>
 					<div id="userDropdown" class="dropdown-content">
-						<div class="dropdown-content-item" v-on:click="showProfile(); event.preventDefault();">{{language.menuProfile}}</div>
+						<div class="dropdown-content-item" v-on:click="changeView(3); event.preventDefault();">{{language.menuProfile}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': markerView }">{{language.menuMarkerViewOn}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !markerView }">{{language.menuMarkerViewOff}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeEnding(); event.preventDefault();">{{endings}}</div>
@@ -244,7 +241,7 @@
 			<div id="communityEvents" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 10 }">
 				<div class="history-container">
 					<div class="menu-row">
-						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="currentView = 11; event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
+						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="changeView(11); event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
 					</div>
 					<div class="events-row"> 
 						<div class="community-rating community-rating-header	">
@@ -272,7 +269,7 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.menuCommunityEventsNew}}</div>
-						<div class="dialog-close" v-on:click="currentView = 10"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+						<div class="dialog-close" v-on:click="changeView(10)"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="menu-row">
 						<input class="menu-key menu-input-key" :placeholder="language.createCommunityEvent" maxlength="20" v-model="newCommunityEvent"/>
@@ -289,7 +286,7 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.createCommunity}}</div>
-						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+						<div class="dialog-close" v-on:click="changeView(0)"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
@@ -315,7 +312,7 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.courtCommunity}}</div>
-						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+						<div class="dialog-close" v-on:click="changeView(0)"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
@@ -335,7 +332,7 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.changeCommunity}}</div>
-						<div class="dialog-close" v-on:click="currentView = 0"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+						<div class="dialog-close" v-on:click="changeView(0)"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
@@ -397,7 +394,7 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.publishGame}}</div>
-						<div class="dialog-close" v-on:click="keyboardDelete(); currentView = 0;"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
+						<div class="dialog-close" v-on:click="keyboardDelete(); changeView(0);"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
@@ -408,7 +405,7 @@
 						</div>
 						<div class="menu-row">
 							<a class="loginButton" href="_" v-on:click="publishGame(); event.preventDefault();">{{language.publishGameBtn}}</a>
-							<a class="loginButton" href="_" v-on:click="keyboardDelete(); currentView = 0; event.preventDefault();">{{language.publishGameUndoBtn}}</a>
+							<a class="loginButton" href="_" v-on:click="keyboardDelete(); changeView(0); event.preventDefault();">{{language.publishGameUndoBtn}}</a>
 						</div>
 					</div>	
 				</div>
@@ -708,7 +705,7 @@
 						if(s.wonLegs1 >  Math.floor(this.legLength / 2) || s.wonLegs2 >  Math.floor(this.legLength / 2) || s.length >= this.legLength) {
 							if(game.finished) {
 								setRecord("History", this.timeStamp, JSON.stringify(this));
-								keyboardKeys.publishGameDialog();
+								keyboardKeys.changeView(12);
 								return;
 							}
 							this.game.push([]);
@@ -910,12 +907,7 @@
 						settings.store();
 						game.updateAll();
 					},
-					showProfile: function() {
-						this.currentView = 3;
-						this.changeView();
-					},
 					showEventHistory: async function(event) {
-						this.currentView = 13;
 						this.eventData = event;
 						this.eventName = event.EventName;
 						this.eventHistory = (await DartsApi({ action: "getEvent",
@@ -927,26 +919,25 @@
 									e.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];;
 									return e;
 								});
-						this.changeView();
+						this.changeView(13);
 					},
 					showEventHistoryItem: function(t) {
-						this.currentView = 14;
+						this.changeView(14);
 						var eventHistoryItem = this.eventHistory.find((i) => { return i.timeStamp == t});
 						this.eventHistoryItemLegs = eventHistoryItem.legs;
 						this.eventHistoryItemList = [eventHistoryItem];
 					},
 					showHistory: function() {
-						this.currentView = 1;
 						var to = new Date();
 						var from = new Date();
 						from.setDate(from.getDate() - 365);
 						getRecords("History", from, to, function(r) {
 							keyboardKeys.history = r.reverse();
 						});
-						this.changeView();
+						this.changeView(1);
 					},
 					showHistoryItem: function(t) {
-						this.currentView = 2;
+						this.changeView(2);
 						var historyItem = this.history.find((i) => { return i.timeStamp == t});
 						this.historyItemLegs = historyItem.legs;
 						this.historyItemList = [historyItem];
@@ -1056,10 +1047,33 @@
 						if(element)
 					    	element.scrollTop = element.scrollHeight;
 					},
-					changeView: function() {
+					getViewName() {
+						let name = "";
+						switch(this.currentView) {
+							case 0: return this.language.menuInGame;
+							case 1: return this.language.menuHistory;
+							case 2: return this.language.menuHistory;
+							case 3: return this.language.menuProfile;
+							case 4: return this.language.communitiesNews;
+							case 5: return this.language.createCommunity;
+							case 6: return this.language.courtCommunity;
+							case 8: return this.language.communityRating;
+							case 10: return this.language.menuCommunityEvents;
+							case 11: return this.language.menuCommunityEventsNew;
+							case 12: return this.language.publishGame;
+							case 13: return this.language.menuEvent;
+							case 14: return this.language.menuEventGame;
+						}
+					},
+					changeView: function(view) {
+						this.currentView = view;
 						var elm = document.getElementById("scoring-data");
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
+						window.history.pushState({currentView: this.currentView}, "DartsForge: " + this.getViewName());
+					},
+					changeViewBack: function() {
+						window.history.back();
 					},
 					requestCommunitiesList: async function() {
 						settings.communities = keyboardKeys.communities = await DartsApi({ action: 'getCommunities' });
@@ -1152,7 +1166,7 @@
 						} else {
 							await keyboardKeys.refreshProfle();
 							err.innerHTML = "";
-							currentView = 0;
+							this.changeView(0);
 						}
 					},
 					createCommunityEvent: async function() {
@@ -1167,7 +1181,7 @@
 						} else {
 							await this.updateCommunityData();
 							err.innerHTML = "";
-							this.currentView = 10;
+							this.changeView(10);
 						}
 					},
 					selectCommunity: async function() {
@@ -1175,7 +1189,7 @@
 						this.community = settings.community = r.selectedIndex >= 0 ? r.options[r.selectedIndex].value : undefined;
 						await this.updateCommunityData();
 						settings.store();
-						this.currentView = 0;
+						this.changeView(0);
 					},
 					updateCommunityData: async function() {
 						if(this.community) {
@@ -1285,11 +1299,8 @@
 						} else {
 							await keyboardKeys.refreshProfle();
 							err.innerHTML = "";
-							this.currentView = 0;
+							this.changeView(0);
 						}
-					},
-					publishGameDialog: async function() {
-						this.currentView = 12;
 					},
 					publishGame: async function() {
 						var res = await DartsApi({
@@ -1418,6 +1429,10 @@
 					}
 			}
 			keyboardKeys.currentView = currentView;
+			window.onpopstate = function(event) {
+				keyboardKeys.changeView(event.state ? event.state.currentView : 0);
+			};
+			keyboardKeys.changeView(0);
 		</script>
 	</body>
 </html>
