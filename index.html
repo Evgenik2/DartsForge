@@ -57,17 +57,24 @@
 		<script src="flags.js"></script>
 		<link href="media.css" rel="stylesheet" type="text/css" />
 		<script>
+			var currentView = 0;
 			var userLang = navigator.language || navigator.userLanguage; 
 			if(userLang == "ru-RU")
 				settings.language = "ru";
 			function registerServiceWorker() {
 				var root = "/DartsForge/";
 				if ('serviceWorker' in navigator) {
-					navigator.serviceWorker.register('sw.js', { scope: root }).then(() => {
-						console.log('Service Worker registered successfully.');
-					}).catch(error => {
-						console.log('Service Worker registration failed:', error);
-					});
+					try {
+						navigator.serviceWorker.register('sw.js', { scope: root }).then(() => {
+							console.log('Service Worker registered successfully.');
+						}).catch(error => {
+							console.log('Service Worker registration failed:', error);
+						});
+					}catch(e) {
+						currentView = -1; 
+						if(keyboardKeys)
+							keyboardKeys.currentView = -1;	
+					}
 				}
 			}
 			registerServiceWorker();
@@ -1412,6 +1419,7 @@
 							openDropdown.classList.remove('show');
 					}
 			}
+			keyboardKeys.currentView = currentView;
 		</script>
 	</body>
 </html>
