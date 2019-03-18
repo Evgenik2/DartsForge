@@ -147,8 +147,8 @@
 						</div>
 					</div>
 					<div id="communityDropdown" class="dropdown-content">
-						<div class="dropdown-content-item" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
+						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
+						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
 						<div class="dropdown-content-item" v-on:click="changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
 					</div>
 				</div>
@@ -163,8 +163,8 @@
 						<div class="dropdown-content-item" v-on:click="changeView(0); event.preventDefault();">{{language.menuInGame}}</div> 
 						<div class="dropdown-content-item" v-on:click="updateCommunityData(); changeView(8); event.preventDefault();">{{language.communityRating}} </div>
 						<div class="dropdown-content-item" v-on:click="changeView(10); event.preventDefault();">{{language.menuCommunityEvents}}</div> 
-						<div class="dropdown-content-item" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
+						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
+						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
 						<div class="dropdown-content-item" v-on:click="changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
 					</div>
 				</div>
@@ -420,7 +420,7 @@
 								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="eventName" class="menu-text-span">{{language.menuEventName}}</label></div>
-									<select class="menu-input" id="eventName" v-model="eventName">
+									<select class="menu-input" id="eventName" v-model="eventName" v-on:change="game.eventName = eventName">
 									</select>
 								</div>
 								<div class="menu-row">
@@ -635,6 +635,7 @@
 							game.finished = g.finished;
 							game.player1 = g.player1;
 							game.player2 = g.player2;
+							keyboardKeys.eventName = game.eventName = g.eventName;
 							game.setLength = g.setLength;
 							game.legLength = g.legLength;
 							game.gameLength = g.gameLength;
@@ -949,6 +950,7 @@
 						game.legLength = this.newLegLength;
 						game.gameLength = this.newGameLength;
 						game.noStartSwap = this.newNoStartSwap;
+						game.eventName = this.eventName;
 						game.game = [ 
 									[//set
 										{//leg
