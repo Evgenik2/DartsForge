@@ -107,7 +107,18 @@ var Game501 = {
 		stats["Best"][player] = fBst == 10000 ? 0 : fBst;
 		stats["LWAT"][player] = fLwat;
 	},
+	ConvertNames: function(game) {
+		if(game.Opened) { game.timeStamp = game.Opened; game.Opened = undefined; }
+		if(game.FirstPlayer) { game.player1 = game.FirstPlayer; game.FirstPlayer = undefined; }
+		if(game.SecondPlayer) { game.player2 = game.SecondPlayer; game.SecondPlayer = undefined; }
+		if(game.GameLength) { game.gameLength = game.GameLength; game.GameLength = undefined; }
+		if(game.SetLength) { game.setLength = game.SetLength; game.SetLength = undefined; }
+		if(game.LegLength) { game.legLength = game.LegLength; game.LegLength = undefined; }
+		if(game.NoStartSwap) { game.noStartSwap = game.NoStartSwap; game.NoStartSwap = undefined; }
+		if(game.Game) { game.game = JSON.parse(game.Game); game.Game = undefined; }
+	},
 	Verify: function(game) {
+		this.ConvertNames(game);
 		let stats = {
 			"60+": { name: "60+", player1: 0, player2: 0 },
 			"100+": { name: "100+", player1: 0, player2: 0 },

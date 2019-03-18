@@ -160,6 +160,9 @@
     flex-direction: column;
     align-self: stretch;
     padding: 1vmax;
+    color: #666666;
+    font-weight: 600;
+    font-size: 2vmax;
 }
 .history-item-container {
     display: flex;
@@ -321,6 +324,9 @@
     min-width: 20%;
     margin-right: 10px;
 }
+.community-rating-event-group-short {
+    min-width: 10%;
+}
 .community-rating-status {
     display: flex;
     justify-content: center;
@@ -447,4 +453,21 @@
     flex: 1;
     align-self: stretch;
     height: 50vh;
+}
+.stats-row {
+    display: flex;
+    flex-direction: row;
+    width:20vmax;
+}
+.stats-row-wide {
+    display: flex;
+    flex-direction: row;
+    width:30vmax;
+}
+
+.stats-row-header {
+    width:10vmax;
+}
+.stats-row-header-middle {
+    width:5vmax;
 }

@@ -12,6 +12,7 @@ var languages = {
         menuNewGame: "New Game",
         menuContinue: "Continue",
         menuHistory: "History",
+        historyTotal: "Total: ",
         menuMenu: "Close",
         histoyTotal: "Total: ",
         keyboardMenu: "M",
@@ -83,7 +84,9 @@ var languages = {
         t180: "180",
         weeklyRating: "Your weekly stats",
         opened: "Opened",
-        eventName: "Name"
+        eventName: "Name",
+        menuEventGame: "Community game",
+        menuEvent: "Community"
 
     },
     "ru": {
@@ -99,6 +102,7 @@ var languages = {
         menuNewGame: "Новая игра",
         menuContinue: "Продолжить",
         menuHistory: "История",
+        historyTotal: "Итого: ",
         menuMenu: "Закрыть",
         histoyTotal: "Всего: ",
         keyboardMenu: "М",
@@ -170,7 +174,9 @@ var languages = {
         t180: "180",
         weeklyRating: "Статистика по неделям",
         opened: "Создано",
-        eventName: "Название"
+        eventName: "Название",
+        menuEventGame: "История",
+        menuEvent: "Событие"
     }
 
 };

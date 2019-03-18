@@ -109,15 +109,15 @@ Vue.component("communities-component-communityEvents", {
         <div class="events-row"> 
             <div class="community-rating">
                 <div class="community-rating-event-group">
-                    <div class="community-rating-rating">{{item.Date}}</div>
+                    <a class="community-rating-rating" href="_" v-on:click="showEvent(); event.preventDefault();">{{item.Date}}</a>
                 </div>
                 <div class="community-rating-event-group">
-                    <div class="community-rating-event">{{item.EventName}}</div>
+                    <a class="community-rating-event" href="_" v-on:click="showEvent(); event.preventDefault();">{{item.EventName}}</a>
                 </div>
-                <div class="community-rating-event-group">
+                <div class="community-rating-event-group community-rating-event-group-short">
                     <div class="community-rating-event">{{item.HC}}</div>
                 </div>
-                <div class="community-rating-event-group">
+                <div class="community-rating-event-group community-rating-event-group-short">
                     <div class="community-rating-event">{{item.BestLeg}}</div>
                 </div>
                 <div class="community-rating-userName"></div>
@@ -133,11 +133,8 @@ Vue.component("communities-component-communityEvents", {
         language: languages[settings.language]
     },
     methods: {
-        changeStatus: async function(item) {
-            if(item.changeable) {
-                await DartsApi({ action: 'activateCommunityEvent', name: keyboardKeys.community, eventName: item.EventName, active: item.Active ? false : true});
-                await keyboardKeys.updateCommunityData();
-            }
+        showEvent: async function(item) {
+            keyboardKeys.showEventHistory(this.item);
         }
     },
 });
@@ -296,11 +293,15 @@ Vue.component("history-component", {
         </div>
     `,
     props: {
-        item: Object
+        item: Object,
+        kind: Object
     },
     methods: {
         showHistoryItem: function(timestamp) {
-            keyboardKeys.showHistoryItem(timestamp);
+            if(this.kind == "history")
+                keyboardKeys.showHistoryItem(timestamp);
+            else
+                keyboardKeys.showEventHistoryItem(timestamp);
         }
     }
 });

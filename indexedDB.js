@@ -6,10 +6,14 @@ function logerr(err){
     console.log(err);
 }
 function connectDB(tableName, f){
-    var request = indexedDB.open(baseName);
-    request.onerror = logerr;
-    request.onsuccess = function(){
-        f(request.result);
+    try {
+        var request = indexedDB.open(baseName);
+        request.onerror = logerr;
+        request.onsuccess = function(){
+            f(request.result);
+        }   
+    }catch(e) {
+        keyboardKeys.currentView = -1;
     }
 }
 function CreateObjectStore(storeName, f) {

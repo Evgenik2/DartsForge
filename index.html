@@ -98,7 +98,7 @@
 			</div>
 		</section>-->
 		<div id="app" class="app">
-			<div id="caption" class="caption" v-bind:class="{ 'menu-collapsed': currentView == 0 && !menuShown }">
+			<div id="caption" class="caption" v-bind:class="{ 'menu-collapsed': currentView < 0 || currentView == 0 && !menuShown }">
 				<div class="menucaption">
 					<div class="menubannerbtn bannerSmall" id="banner" href="_">
 						<svg class="menubannersvg" viewBox="0 0 210 297" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:10;">
@@ -121,8 +121,9 @@
 					<div v-bind:class="{ 'menu-collapsed': currentView != 10 }">{{language.menuCommunityEvents}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 11 }">{{language.menuCommunityEventsNew}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 12 }">{{language.publishGame}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 13 }">{{language.menuEvent}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 14 }">{{language.menuEventGame}}</div>
 				</div>
-
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || !community || (waitingAgreement.length == 0 && waitingJoining.length == 0) }">
 					<div class="menudropbtn"  v-on:click="toggleMenuShow('notificationDropdown');">
 						<svg class="menudropsvg menuelement" viewBox="0 0 210 250">
@@ -184,6 +185,52 @@
 					</div>
 				</div>
 			</div>
+			<div class="history" v-bind:class="{ 'menu-collapsed': currentView != -1 }">
+				<div>Turn off translator and reload the page. Отключите переводчик сайтов и перезагрузите страницу.</div>
+			</div>
+			<div id="event" class="history" v-bind:class="{ 'menu-collapsed': currentView != 13 }">
+				<div class="history-container">
+					<div class="events-row stats-row-wide">
+						<div class="stats-row-header">HC</div>
+						<div class="stats-row-header-middle">{{eventData.HC}}</div>
+						<div>{{eventData.HCPlayer}}</div>
+					</div>
+					<div class="events-row stats-row-wide">
+						<div class="stats-row-header">BL</div>
+						<div class="stats-row-header-middle">{{eventData.BestLeg}}</div>
+						<div>{{eventData.BestLegPlayer}}</div>
+					</div>
+					<div class="events-row stats-row-wide">
+						<div class="stats-row-header">{{language.historyTotal}}</div>
+						<div class="stats-row-header-middle">{{eventHistory.length}}</div>
+					</div>
+					<div class="history-data">
+						<history-component  is="history-component" v-for="item in eventHistory" kind="event" v-bind:item="item" v-bind:key="item.timeStamp"></history-component>
+					</div>
+				</div>
+			</div>
+			<div id="eventGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 14 }">
+				<div class="history-container">
+					<div class="history-data">
+						<div class="events-row stats-row">
+							<div class="stats-row-header">{{language.menuSets}}</div>
+							<div>{{eventHistoryItemList[0].setLength}}</div>
+						</div>
+						<div class="events-row stats-row">
+							<div class="stats-row-header">{{language.menuLegs}}</div>
+							<div>{{eventHistoryItemList[0].legLength}}</div>
+						</div>
+						<div class="events-row stats-row">
+							<div class="stats-row-header">{{language.menuGame}}</div>
+							<div>{{eventHistoryItemList[0].gameLength}}</div>
+						</div>
+						<history-component  is="history-component" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
+						</history-component>
+						<game-set-component is="game-set-component" v-for="item in eventHistoryItemLegs" v-bind:item="item" v-bind:key="item.leg">
+						</game-set-component>
+					</div>
+				</div>
+			</div>
 			<div id="manageCommunity" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 8 }">
 				<div class="history-container">
 					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-communityRating>		
@@ -195,17 +242,17 @@
 						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="currentView = 11; event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
 					</div>
 					<div class="events-row"> 
-						<div class="community-rating community-rating-header">
+						<div class="community-rating community-rating-header	">
 							<div class="community-rating-event-group">
 								<div class="community-rating-rating">{{language.opened}}</div>
 							</div>
 							<div class="community-rating-event-group">
 								<div class="community-rating-event">{{language.eventName}}</div>
 							</div>
-							<div class="community-rating-event-group">
+							<div class="community-rating-event-group community-rating-event-group-short">
 								<div class="community-rating-event">HC</div>
 							</div>
-							<div class="community-rating-event-group">
+							<div class="community-rating-event-group community-rating-event-group-short">
 								<div class="community-rating-event">BL</div>
 							</div>
 							<div class="community-rating-userName"></div>
@@ -327,7 +374,7 @@
 				<div class="history-container">
 					<div class="history-data">
 						{{language.historyTotal}} {{history.length}}
-						<history-component  is="history-component" v-for="item in history" v-bind:item="item" v-bind:key="item.timeStamp"></history-component>
+						<history-component  is="history-component" v-for="item in history" kind="history" v-bind:item="item" v-bind:key="item.timeStamp"></history-component>
 					</div>
 				</div>
 			</div>
@@ -624,6 +671,9 @@
 						keyboardKeys.minimumDoubles = game.minimumDoubles();
 						keyboardKeys.disabledCloses = game.disabledCloses();
 						keyboardKeys.disabledDoubles = game.disabledDoubles();
+						keyboardKeys.closes = 0;
+						keyboardKeys.doubles = 0;
+
 						keyboardKeys.legN = keyboardKeys.legs.length - 1;
 						keyboardKeys.gameStat = { 
 							name: "Best of " + game.setLength + " sets of " + game.legLength + " legs", 
@@ -701,6 +751,7 @@
 					communities: [],
 					community: undefined,
 					eventName: undefined,
+					eventData: [],
 					communityData: {
 						CommunityRating: []
 					},
@@ -734,9 +785,12 @@
 					currentView: 0,
 					historyItemLegs: [],
 					historyItemList: [],
+					eventHistoryItemLegs: [],
+					eventHistoryItemList: [{stats:[]}],
 					stats: game.stats,
 					endings: "Default",
 					history: [],
+					eventHistory: [],
 					gameStat: { name: "Best of 1 sets of 5 legs", player1: "Player 1", player2: "Player 2" },
 					statsSetLeg: [
 						{ name: "Sets", player1: "0", player2: "0", width: 1 },
@@ -854,6 +908,27 @@
 					showProfile: function() {
 						this.currentView = 3;
 						this.changeView();
+					},
+					showEventHistory: async function(event) {
+						this.currentView = 13;
+						this.eventData = event;
+						this.eventName = event.EventName;
+						this.eventHistory = (await DartsApi({ action: "getEvent",
+								name: this.community,
+								eventName: this.eventName })).map(e=> {
+									Game501.ConvertNames(e);
+									let s = Game501.Verify(e);
+									e.legs = Game501.GetLegs(e);
+									e.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];;
+									return e;
+								});
+						this.changeView();
+					},
+					showEventHistoryItem: function(t) {
+						this.currentView = 14;
+						var eventHistoryItem = this.eventHistory.find((i) => { return i.timeStamp == t});
+						this.eventHistoryItemLegs = eventHistoryItem.legs;
+						this.eventHistoryItemList = [eventHistoryItem];
 					},
 					showHistory: function() {
 						this.currentView = 1;
