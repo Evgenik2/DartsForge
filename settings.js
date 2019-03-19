@@ -1,5 +1,6 @@
 async function DartsApi(request) {
     try {
+        keyboardKeys.wait = true;
         var token = await new Promise(function(resolve, reject) {
             auth.userhandler = {
                 onSuccess: function(result) {
@@ -27,6 +28,9 @@ async function DartsApi(request) {
         return JSON.parse(await response.json());  
     } catch(e) {  
         console.log('Darts Api Error: ', e);  
+    }
+    finally {
+        keyboardKeys.wait = false;
     }
 }
 async function DartsApiProfile() {
@@ -81,6 +85,7 @@ var settings = {
                 keyboardKeys.userName = settings.userName;
                 keyboardKeys.communities = settings.communities = r.communities;
                 keyboardKeys.community = settings.community = r.community;
+                keyboardKeys.eventName = settings.eventName = r.eventName;
                 keyboardKeys.markerView = settings.markerView = r.markerView;
                 if(keyboardKeys.community && r.communityData && r.communityData.Rating)
                     keyboardKeys.communityData = settings.communityData = r.communityData;

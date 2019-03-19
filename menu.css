@@ -359,8 +359,8 @@
     stroke: #ff8f00;
 }
 .menudropsvg {
-    width: 2.5vmax;
-    height: 2.5vmax;
+    width: 3vmax;
+    height: 3vmax;
 }
 .menudropsvgpath {
     stroke: #f1e1c1;
@@ -429,6 +429,10 @@
 .menubannersvg {
     width: 5vmax;
     height: 5vmax;
+}
+.menubannerbackbtn {
+    width: 3vmax;
+    height: 3vmax;
 }
 .menubannerbtn {
     color: #f1e1c1;
