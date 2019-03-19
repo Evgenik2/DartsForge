@@ -475,3 +475,7 @@
 .stats-row-header-middle {
     width:5vmax;
 }
+.menu-disabled {
+    background: #aaaaaa;
+    cursor: unset;
+}

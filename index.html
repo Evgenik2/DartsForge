@@ -169,7 +169,7 @@
 					<div id="communityDropdown" class="dropdown-content">
 						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
 						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="requestCommunitiesList(); changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
 					</div>
 				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || !community}">
@@ -185,7 +185,7 @@
 						<div class="dropdown-content-item" v-on:click="changeView(10); event.preventDefault();">{{language.menuCommunityEvents}}</div> 
 						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();">{{language.changeCommunity}} </div>
 						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();">{{language.createCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-on:click="requestCommunitiesList(); changeView(6); event.preventDefault();">{{language.courtCommunity}} </div>
 					</div>
 				</div>
 				<div class="menudropbtn" v-bind:class="{ 'menu-collapsed': userName }" v-on:click="logIn();">{{language.menuLoginSignin}}</div>
@@ -198,11 +198,11 @@
 					</div>
 					<div id="userDropdown" class="dropdown-content">
 						<div class="dropdown-content-item" v-on:click="changeView(3); event.preventDefault();">{{language.menuProfile}}</div>
-						<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': markerView }">{{language.menuMarkerViewOn}}</div>
-						<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !markerView }">{{language.menuMarkerViewOff}}</div>
+						<!--<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': markerView }">{{language.menuMarkerViewOn}}</div>
+						<div class="dropdown-content-item menuelement" v-on:click="changeMarkerView(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !markerView }">{{language.menuMarkerViewOff}}</div>-->
 						<div class="dropdown-content-item menuelement" v-on:click="changeEnding(); event.preventDefault();">{{endings}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeLanguage(); event.preventDefault();"><i :class="[language.flag]"></i> {{language.language}}</div>
-						<div class="dropdown-content-item" v-on:click="showHistory()">{{language.menuHistory}}</div>
+						<!--<div class="dropdown-content-item" v-on:click="showHistory()">{{language.menuHistory}}</div>-->
 						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !userName }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</div> 
 					</div>
 				</div>
@@ -342,7 +342,7 @@
 							<div id="courtCommunityError" class="dialog-error"></div>
 						</div>
 						<div class="menu-row">
-							<a class="loginButton" href="_" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</a>
+							<!--<a class="loginButton" href="_" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</a>-->
 							<a class="loginButton" href="_" v-on:click="courtCommunity(); event.preventDefault();">{{language.courtCommunityBtn}}</a>
 						</div>
 					</div>	
@@ -414,7 +414,6 @@
 				<div class="dialog">
 					<div class="menu-row">
 						<div class="dialog-caption">{{language.publishGame}}</div>
-						<div class="dialog-close" v-on:click="keyboardDelete(); changeView(0);"><svg viewbox="0 0 40 40"><path class="close-x" d="M 10,10 L 30,30 M 30,10 L 10,30" /></svg></div>
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
@@ -440,7 +439,7 @@
 								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="eventName" class="menu-text-span">{{language.menuEventName}}</label></div>
-									<select class="menu-input" id="eventName" v-model="eventName" v-on:change="game.eventName = eventName">
+									<select class="menu-input" id="eventName" v-model="game.eventName">
 									</select>
 								</div>
 								<div class="menu-row">
@@ -480,14 +479,14 @@
 									</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-key" v-on:click="newGame()">{{language.menuNewGame}}</div>
+									<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="newGame()">{{language.menuNewGame}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-										<div class="menu-key" v-on:click="menuShown = false">{{language.menuContinue}}</div>
+										<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="menuShown = !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2); game.eventName = eventName;">{{language.menuContinue}}</div>
 								</div>
-								<div class="menu-row menu-entering-collapsed">
+								<!--<div class="menu-row menu-entering-collapsed">
 									<div class="menu-text menu-text-ver">v.1.01</div>
-								</div>
+								</div>-->
 								<div class="menu-empty"></div>
 						</div>
 						<div id="keyboard-numbers" class="keyboard-numbers" v-bind:class="{ 'element-collapsed': menuShown }">
@@ -655,7 +654,7 @@
 							game.finished = g.finished;
 							game.player1 = g.player1;
 							game.player2 = g.player2;
-							keyboardKeys.eventName = game.eventName = g.eventName;
+							game.eventName = g.eventName;
 							game.setLength = g.setLength;
 							game.legLength = g.legLength;
 							game.gameLength = g.gameLength;
@@ -965,13 +964,14 @@
 						this.historyItemList = [historyItem];
 					},
 					newGame: function() {
+						if(!(game.player1 && game.player2 && game.eventName && game.player1 != game.player2))
+							return;
 						game.finished = false;
 						game.timeStamp = new Date();
 						game.setLength = this.newSetLength;
 						game.legLength = this.newLegLength;
 						game.gameLength = this.newGameLength;
 						game.noStartSwap = this.newNoStartSwap;
-						game.eventName = this.eventName;
 						game.game = [ 
 									[//set
 										{//leg
@@ -1095,7 +1095,8 @@
 						var elm = document.getElementById("scoring-data");
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
-						window.history.pushState({currentView: this.currentView}, "DartsForge: " + this.getViewName(), window.location.URL);
+						if(this.currentView != 12)
+							window.history.pushState({currentView: this.currentView}, "DartsForge: " + this.getViewName(), window.location.URL);
 					},
 					changeViewBack: function() {
 						window.history.back();
