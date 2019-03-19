@@ -443,12 +443,18 @@
 									</select>
 								</div>
 								<div class="menu-row">
-									<div class="menu-text"><label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label></div>
+									<div class="menu-text">
+										<label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label>
+										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▼</div>
+									</div>
 									<select class="menu-input" id="player1" v-model="game.player1">
 									</select>
 								</div>
 								<div class="menu-row">
-									<div class="menu-text"><label for="player2" class="menu-text-span">{{language.menuSecondPlayer}}</label></div>
+									<div class="menu-text">
+										<label for="player2" class="menu-text-span">{{language.menuSecondPlayer}}</label>
+										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▲</div>
+									</div>
 									<select class="menu-input" id="player2" v-model="game.player2">
 									</select>
 								</div>
@@ -482,7 +488,7 @@
 									<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="newGame()">{{language.menuNewGame}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-										<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="menuShown = !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2); game.eventName = eventName;">{{language.menuContinue}}</div>
+										<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="menuShown = !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);">{{language.menuContinue}}</div>
 								</div>
 								<!--<div class="menu-row menu-entering-collapsed">
 									<div class="menu-text menu-text-ver">v.1.01</div>

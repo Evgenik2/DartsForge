@@ -479,3 +479,14 @@
     background: #aaaaaa;
     cursor: unset;
 }
+.menu-btn {
+    display: flex;
+    flex:1;
+    justify-content: flex-end;
+    flex-direction: row;
+    align-items: center;
+    color: #ff8f00;
+    font-size: 2vmax;
+    font-weight: bold;
+    cursor: pointer;
+}
