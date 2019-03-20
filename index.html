@@ -434,9 +434,6 @@
 					<div id="keyboard-keys">
 						<div id="keyboard-menu" class="keyboard-menu" v-bind:class="{ 'menu-collapsed': !menuShown }">
 							<div class="menu-empty"></div>
-								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-key-checkable" v-bind:class="{ 'menu-game-length-checked': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">{{language.menuNoStartSwap}}</div>
-								</div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="eventName" class="menu-text-span">{{language.menuEventName}}</label></div>
 									<select class="menu-input" id="eventName" v-model="game.eventName">
@@ -445,6 +442,12 @@
 								<div class="menu-row">
 									<div class="menu-text">
 										<label for="player1" class="menu-text-span">{{language.menuFirstPlayer}}</label>
+										<div class="menu-btn menu-btn-off" v-bind:class="{ 'menu-btn-on': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">
+											<svg class="menubannerbackbtn" viewBox="0 0 210 297" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:30;">
+												<ellipse cx="102.80952" cy="82.309525" rx="59.542553" ry="55.006844"/>
+												<path d="m 160.2619,241.81546 -53.02061,1.12931 -53.020605,1.12932 25.532286,-46.48185 25.532279,-46.48185 27.48832,45.35253 z"/>
+											</svg>
+										</div>
 										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▼</div>
 									</div>
 									<select class="menu-input" id="player1" v-model="game.player1">
@@ -453,13 +456,19 @@
 								<div class="menu-row">
 									<div class="menu-text">
 										<label for="player2" class="menu-text-span">{{language.menuSecondPlayer}}</label>
+										<div class="menu-btn menu-btn-off" v-bind:class="{ 'menu-btn-on': newNoStartSwap }" v-on:click="menuKeyClick('noStartSwap')">
+											<svg class="menubannerbackbtn" viewBox="0 0 210 297" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:30;">
+												<ellipse cx="102.80952" cy="82.309525" rx="59.542553" ry="55.006844"/>
+												<path d="M 49.892848,181.33928 157.72267,179.5599 105.34874,273.83295 Z" transform="matrix(1.0455959,0,0,1.1323396,-1.7093954,-39.828201)"/>
+											</svg>
+										</div>
 										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▲</div>
 									</div>
 									<select class="menu-input" id="player2" v-model="game.player2">
 									</select>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-text"><div class="menu-text-span"></div>{{language.menuGame}}</span></div>
+									<div class="menu-text"><label class="menu-text-span">{{language.menuGame}}</label></div>
 									<div class="menu-options-row-group"> 
 										<div class="menu-options-row">
 											<div class="menu-inc-key" v-on:click="menuKeyClick('gameMinus')">-</div>
@@ -469,7 +478,7 @@
 									</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-text"><div class="menu-text-span"></div>{{language.menuSets}}</span></div>
+									<div class="menu-text"><label class="menu-text-span">{{language.menuSets}}</label></div>
 									<div class="menu-options-row">
 										<div class="menu-inc-key" v-on:click="menuKeyClick('setMinus')">-</div>
 										<div class="menu-number-key">{{newSetLength}}</div>
@@ -477,7 +486,7 @@
 									</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-text"><div class="menu-text-span"></div>{{language.menuLegs}}</span></div>
+									<div class="menu-text"><label class="menu-text-span">{{language.menuLegs}}</label></div>
 									<div class="menu-options-row">
 										<div class="menu-inc-key" v-on:click="menuKeyClick('legMinus')">-</div>
 										<div class="menu-number-key">{{newLegLength}}</div>
@@ -488,7 +497,7 @@
 									<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="newGame()">{{language.menuNewGame}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-										<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="menuShown = !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);">{{language.menuContinue}}</div>
+										<div class="menu-key" v-bind:class="{ 'menu-disabled': game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="menuShown = game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);">{{language.menuContinue}}</div>
 								</div>
 								<!--<div class="menu-row menu-entering-collapsed">
 									<div class="menu-text menu-text-ver">v.1.01</div>
@@ -991,7 +1000,7 @@
 						this.menuShown = false;
 					},
 					menuKeyClick: function(value) {
-						gameLengths = [ 101, 301, 501, 701, 1001, 2001 ];
+						gameLengths = [ 501, 701, 1001, 2001 ];
 						if(value == "gameMinus") {
 							let i = gameLengths.indexOf(this.newGameLength);
 							if(i > 0)
@@ -1101,6 +1110,7 @@
 						var elm = document.getElementById("scoring-data");
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
+						this.menuShown = true;
 						if(this.currentView != 12)
 							window.history.pushState({currentView: this.currentView}, "DartsForge: " + this.getViewName(), window.location.URL);
 					},
@@ -1151,16 +1161,18 @@
 						let stats = this.profile.WorldRating;
 						if(stats)
 							this.userWorldStats = [
-								{name: "W/D/L", value: stats.WonGames + "/" + stats.DrawGames + "/" + stats.LooseGames},	
-								{name: "60+", value: stats.t60},
-								{name: "100+", value: stats.t100},
-								{name: "140+", value: stats.t140},
-								{name: "180+", value: stats.t180},	
+//								{name: "#", value: p},
+								{name: "Rating", value: Math.round(stats.Rating)},
+//								{name: "W/D/L", value: stats.WonGames + "/" + stats.DrawGames + "/" + stats.LooseGames},	
+//								{name: "60+", value: stats.t60},
+//								{name: "100+", value: stats.t100},
+//								{name: "140+", value: stats.t140},
+								{name: "180", value: stats.t180},	
 								{name: "HC", value: stats.HC},	
 								{name: "BL", value: stats.BestLeg},	
 //								{name: "LWAT", value: stats.LWAT},	
 //								{name: "WL", value: stats.WonLegs},	
-								{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
+//								{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
 								{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}
 							];
 							var ctx = document.getElementById('weeklyChart').getContext('2d');
@@ -1171,11 +1183,33 @@
 										labels: keyboardKeys.profile.WeeklyRating.map(e=> e.Week),
 										datasets: [{
 											label: "3 dart average",
-											data: keyboardKeys.profile.WeeklyRating.map(e=> Math.round(e.ThrowTotal / e.ThrowCount))
+											data: keyboardKeys.profile.WeeklyRating.map(e=> Math.round(e.ThrowTotal / e.ThrowCount)),
+										},
+										{
+											label: "HC",
+											data: keyboardKeys.profile.WeeklyRating.map(e=> Math.round(e.HC)),
+											type: "bar",
+											borderColor: "#88cdff",
+											backgroundColor: "#ff8f00"
+										},
+										{
+											label: "Community rating",
+											data: keyboardKeys.profile.WeeklyRating.map(e=> Math.round(e.CommunityRating)),
+											borderColor: "#88cdff",
+											backgroundColor: "transparent"
 										}]
 									},
 									options: {
 										scales: {
+											xAxes: [{
+												barPercentage: 0.5,
+												barThickness: 16,
+												maxBarThickness: 32,
+												minBarLength: 2,
+												gridLines: {
+													offsetGridLines: true
+												}
+											}],
 											yAxes: [{
 												ticks: {
 													beginAtZero: true
@@ -1281,18 +1315,18 @@
 							let p =  this.communityData.Rating.findIndex(e=>e.UserName == this.userName) + 1;
 							if(stats)
 								this.userCommunityStats = [
-									{name: "#", value: p},
+//									{name: "#", value: p},
 									{name: "Rating", value: stats.Rating},
-									{name: "W/D/L", value: stats.WonGames + "/" + stats.DrawGames + "/" + stats.LooseGames},	
-									{name: "60+", value: stats.t60},
-									{name: "100+", value: stats.t100},
-									{name: "140+", value: stats.t140},
-									{name: "180+", value: stats.t180},	
+//									{name: "W/D/L", value: stats.WonGames + "/" + stats.DrawGames + "/" + stats.LooseGames},	
+//									{name: "60+", value: stats.t60},
+//									{name: "100+", value: stats.t100},
+//									{name: "140+", value: stats.t140},
+									{name: "180", value: stats.t180},	
 									{name: "HC", value: stats.HC},	
 									{name: "BL", value: stats.BestLeg},	
 //									{name: "LWAT", value: stats.LWAT},	
 //									{name: "WonLegs", value: stats.WonLegs},
-									{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
+//									{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
 									{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}	
 								];
 						}
@@ -1335,22 +1369,30 @@
 						}
 					},
 					publishGame: async function() {
-						if(this.wait)
+						if(this.wait || !game.finished)
 							return;
 						var res = await DartsApi({
 								action: 'gameFinished',
 								name: this.community,
 								region: this.communityData.Region,
-								eventName: this.eventName,
+								eventName: game.eventName,
 								gameData: JSON.stringify(game)
 							});
 						var err = document.getElementById("publishGameError");
 						if(res.error) {
 							err.innerHTML = res.error.message ? res.error.message : res.error;
 						} else {
+							game.game = [ [ {
+											firstThrows: [],
+											secondThrows: []
+										} ] ];
+							game.player1 = undefined;
+							game.player2 = undefined;
+							deleteAll("CurrentGame");
+							game.updateAll();
 							await keyboardKeys.refreshProfle();
 							err.innerHTML = "";					
-							this.showHistory();
+							this.showEventHistory(this.communityData.Events.find(e=>e.EventName == game.eventName));
 						}
 					},
 					logIn: function() {
@@ -1462,11 +1504,15 @@
 							openDropdown.classList.remove('show');
 					}
 			}
-			keyboardKeys.currentView = currentView;
 			window.onpopstate = function(event) {
 				keyboardKeys.currentView = event.state ? event.state.currentView : 0;
 			};
-			keyboardKeys.changeView(0);
+			if(currentView < 0)
+				keyboardKeys.currentView = currentView;
+			else {
+				if(window.history.state.currentView)
+					keyboardKeys.currentView = window.history.state.currentView;
+			}
 		</script>
 	</body>
 </html>

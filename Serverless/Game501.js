@@ -21,7 +21,7 @@ var Game501 = {
 				]
 			};
 		var set = game.game[legRes.set], leg = set[legRes.leg];
-		for(i = 0; i < Math.max(leg.firstThrows.length, leg.secondThrows.length); i++) {
+		for(let i = 0; i < Math.max(leg.firstThrows.length, leg.secondThrows.length); i++) {
 			legRes.throws.push({
 				throw1: i < leg.firstThrows.length ? leg.firstThrows[i] : "",
 				left1: "", 
@@ -30,11 +30,11 @@ var Game501 = {
 				throw: (i + 1) * 3	
 			});
 		}
-		for(i = 0; i < leg.firstThrows.length; i++) {
+		for(let i = 0; i < leg.firstThrows.length; i++) {
 			legRes.left1 -= leg.firstThrows[i] % 1000;
 			legRes.throws[i + 1].left1 = legRes.left1 == 0 ? "" : legRes.left1;
 		}
-		for(i = 0; i < leg.secondThrows.length; i++) {
+		for(let i = 0; i < leg.secondThrows.length; i++) {
 			legRes.left2 -= leg.secondThrows[i] % 1000;
 			legRes.throws[i + 1].left2 = legRes.left2 == 0 ? "" : legRes.left2;
 		}
@@ -68,7 +68,6 @@ var Game501 = {
 	VerifyPlayer: function(game, playerN, throws, stats) {
 		let fThrow = 0, fTotal = 0, fDbl = 0, fCl = 0, fBst = 10000, fLwat = 0, player = "player"+playerN;
 		for(let i = 0; i < game.game.length; i++) {
-			let wl = 0;
 			for(let j = 0; j < game.game[i].length; j++) {
 				let l = game.game[i][j];
 				let fc = 0;
@@ -90,7 +89,6 @@ var Game501 = {
 						if((playerN == 1) == !this.isFirstStart(game, i, j))
 							fLwat += 1;
 						stats["WonLegs"][player] += 1;
-						wl++;
 					}
 				});
 				if(fc > 0)
@@ -157,7 +155,7 @@ var Game501 = {
 				stats["WonGames"].player2 = 1;
 				stats["LooseGames"].player1 = 1;
 				game.finished = true;
-			} else if(game.wonSets1 + game.wonSets2 == game.setLength) {
+			} else if(game.wonSets1 + game.wonSets2 + game.drawSets == game.setLength) {
 				game.winner = "draw";
 				stats["DrawGames"].player1 = 1;
 				stats["DrawGames"].player2 = 1;
@@ -170,6 +168,7 @@ var Game501 = {
 		var res = [];
 		game.wonSets1 = 0;
 		game.wonSets2 = 0;
+		game.drawSets = 0;
 		for(var i = 0; i < game.game.length; i++) {
 			game.game[i].wonLegs1 = 0;
 			game.game[i].wonLegs2 = 0;
@@ -183,6 +182,8 @@ var Game501 = {
 				game.wonSets1 += 1;
 			if(game.game[i].wonLegs2 >  Math.floor(game.legLength / 2)) 
 				game.wonSets2 += 1;
+			if(game.game[i].wonLegs1 + game.game[i].wonLegs2 >= game.legLength)
+				game.drawSets += 1;
 		}
 		return res;
 	}

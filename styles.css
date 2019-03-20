@@ -351,6 +351,9 @@ body::-webkit-scrollbar {
     margin-bottom: 0.2vmax;
     padding: 0.5vmax;
 }
+.stat-game-way-winner {
+    color: #ff8f00;
+}
 .stat-game-way-item {
     display: flex;
     flex-direction: column;

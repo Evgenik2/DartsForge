@@ -232,12 +232,12 @@ Vue.component("game-leg-component", {
 Vue.component("history-component", {
     template: `
         <div class="history-item" v-on:click="showHistoryItem(item.timeStamp)"> 
-            <div class="history-timeStamp">{{item.startTime}}</div>
+            <!--<div class="history-timeStamp">{{item.startTime}}</div>-->
             <div class="scoring-row">
                 <div class="stat-game-way-player"> 
-                    <div class="stat-game-way-head"></div>
-                    <div class="stat-game-way-head">{{item.player1}}</div>
-                    <div class="stat-game-way-head">{{item.player2}}</div>
+                    <div class="stat-game-way-head">{{new Date(item.timeStamp).toLocaleString()}}</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-game-way-winner': item.winner==item.player1 }">{{item.player1}}</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-game-way-winner': item.winner==item.player2 }">{{item.player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
                     <div class="stat-game-way-head">Sets</div>
