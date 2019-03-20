@@ -213,16 +213,24 @@
 			<div id="event" class="history" v-bind:class="{ 'menu-collapsed': currentView != 13 }">
 				<div class="history-container">
 					<div class="events-row stats-row-wide">
+						<div class="stats-row-header">{{language.menuEvent}}</div>
+						<div class="stats-row-header-middle"></div>
+						<div>{{eventData.EventName}}</div>
+					</div>
+					<div class="events-row stats-row-wide">
+						<a class="loginButton" href="_" v-on:click="deleteEvent(); changeView(10); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventData.EventName || eventHistory.length != 0 || !eventData.changeable }">{{language.deleteEmptyEvent}}</a>
+					</div>						
+					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory.length == 0 }">
 						<div class="stats-row-header">HC</div>
 						<div class="stats-row-header-middle">{{eventData.HC}}</div>
 						<div>{{eventData.HCPlayer}}</div>
 					</div>
-					<div class="events-row stats-row-wide">
+					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory.length == 0 }">
 						<div class="stats-row-header">BL</div>
 						<div class="stats-row-header-middle">{{eventData.BestLeg}}</div>
 						<div>{{eventData.BestLegPlayer}}</div>
 					</div>
-					<div class="events-row stats-row-wide">
+					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory.length == 0 }">
 						<div class="stats-row-header">{{language.historyTotal}}</div>
 						<div class="stats-row-header-middle">{{eventHistory.length}}</div>
 					</div>
@@ -1156,7 +1164,7 @@
 							opt.innerHTML = this.communitiesList[i];
 							r.appendChild(opt);
 						}
-						if(!this.communityData.Rating || !this.communityData.Rating.findIndex(e=>e.UserName == this.userName))
+						if(!this.communityData.Rating || !this.communityData.Rating.find(e=>e.UserName == this.userName))
 							this.community = settings.community = null;
 						let stats = this.profile.WorldRating;
 						if(stats)
@@ -1403,7 +1411,15 @@
 						settings.community = undefined;
 						auth.signOut();
 						window.location.replace('/DartsForge/');
-					}
+					},
+					deleteEvent: async function() {
+						var res = await DartsApi({
+								action: 'deleteEvent',
+								name: this.community,
+								eventName: this.eventName
+							});
+						await keyboardKeys.refreshProfle();
+					},
 				}
 			});
 			banner = new Vue({

@@ -86,8 +86,8 @@ var languages = {
         opened: "Opened",
         eventName: "Name",
         menuEventGame: "Community game",
-        menuEvent: "Community"
-
+        menuEvent: "Community",
+        deleteEmptyEvent: "Delete empty event"
     },
     "ru": {
         flag: "flag-RU",
@@ -176,7 +176,8 @@ var languages = {
         opened: "Создано",
         eventName: "Название",
         menuEventGame: "История",
-        menuEvent: "Событие"
+        menuEvent: "Событие",
+        deleteEmptyEvent: "Удалить пустое событие"
     }
 
 };
