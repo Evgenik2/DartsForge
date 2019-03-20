@@ -52,10 +52,22 @@ var userProfile = async function(userName) {
         userItem.Courts = [];
     if(!userItem.Joins)
         userItem.Joins = [];
+    let worldRating = await documentClient.get({ 
+        Key: {"UserName": userName }, 
+        TableName : process.env.WorldRatingTableName }).promise();
+    userItem.WorldRating = worldRating.Item;
+    let wr = await documentClient.query({ 
+        KeyConditionExpression: "UserName = :userName",
+        ExpressionAttributeValues: { ":userName": userName }, 
+        TableName : process.env.UserWeeklyRatingTableName }).promise();
+    userItem.WeeklyRating = wr.Items;
     return userItem;
 };
 var updateProfile = async function(item) {
     item.Courts = undefined;
+    item.WorldRating = undefined;
+    item.WeeklyRating = undefined;
+    item.Joins = undefined;
     item.OwnedCommunities = item.OwnedCommunities.length>0 ? documentClient.createSet(item.OwnedCommunities) : undefined;
     item.JoinedCommunities = item.JoinedCommunities.length>0 ? documentClient.createSet(item.JoinedCommunities) : undefined;
     item.RefereeCommunities = item.RefereeCommunities.length>0 ? documentClient.createSet(item.RefereeCommunities) : undefined;
@@ -174,6 +186,7 @@ var rejectJoin = async function(userName, communityName, courtName) {
 };
 var newCommunity = async function(userName, communityName, regionName, cityName) {
   	if(!communityName) throw 'Community name is not defined';
+  	if(communityName.length < 3) throw 'Community name should be more than 3 characters';
   	if(communityName.length > 20) throw 'Community name should be less than 20 characters';
   	if(!cityName) throw 'City is not defined';
    	if(cityName.length > 20) throw 'City name should be less than 20 characters';
@@ -184,7 +197,7 @@ var newCommunity = async function(userName, communityName, regionName, cityName)
   	if(p.OwnedCommunities.length > 0) throw 'User already owns the community ' + p.OwnedCommunities[0];
     p.OwnedCommunities.push(communityName);
     await updateProfile(p);
-  	await documentClient.put({ Item : { "Name" : communityName, "Region" : regionName, "City" : cityName, "Owner" : userName, "Created": new Date() }, TableName : process.env.CommunitiesTableName }).promise();
+  	await documentClient.put({ Item : { "Name" : communityName, "Region" : regionName, "City" : cityName, "Owner" : userName, "Created": new Date().toISOString() }, TableName : process.env.CommunitiesTableName }).promise();
     await documentClient.put({ Item : { "CommunityName" : communityName, "UserName" : userName, "Rating" : 1600 }, TableName : process.env.CommunityRatingTableName }).promise();
     return { message: "Community created" };
 };
@@ -211,6 +224,7 @@ var joinCommunity = async function(userName, communityName, courtName) {
     return { message: "Ok" };
 };
 var mergeStats = function(player, baseStats, stats) {
+    baseStats.LastUpdate = new Date().toISOString();
     if(!baseStats.t60) baseStats.t60 = 0;
     baseStats.t60 += stats["60+"][player];
     
@@ -227,7 +241,7 @@ var mergeStats = function(player, baseStats, stats) {
     baseStats.HC = Math.max(baseStats.HC, stats["HC"][player]);
     
     if(!baseStats.BestLeg || baseStats.BestLeg < 9) baseStats.BestLeg = 10000;
-    if(stats.Best[player] > 8) baseStats.BestLeg = Math.min(baseStats.BestLeg, stats.Best[player]);
+    if(stats.Best[player] > 8 && stats["Best"][player] > 8) baseStats.BestLeg = Math.min(baseStats.BestLeg, stats["Best"][player]);
     if(baseStats.BestLeg > 9999) baseStats.BestLeg = 0;
     
     if(!baseStats.LWAT) baseStats.LWAT = 0;
@@ -260,56 +274,106 @@ var mergeStats = function(player, baseStats, stats) {
     if(!baseStats.ThrowTotal) baseStats.ThrowTotal = 0;
     baseStats.ThrowTotal += stats["ThrowTotal"][player]; 
 };
-var updateCommunityRating = async function(communityName, gameData, stats, tableName) {
-    let fp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player1 }, TableName : tableName }).promise()).Item; 
+var mergeGroupStats = function(baseStats, stats, gameData) {
+    baseStats.LastUpdate = new Date().toISOString();
+    if(!baseStats.t60) baseStats.t60 = 0;
+    baseStats.t60 += stats["60+"].player1 + stats["60+"].player2;
+
+    if(!baseStats.t100) baseStats.t100 = 0;
+    baseStats.t100 += stats["100+"].player1 + stats["100+"].player2;
+    if(!baseStats.t140) baseStats.t140 = 0;
+    baseStats.t140 += stats["140+"].player1 + stats["140+"].player2;
+    if(!baseStats.t180) baseStats.t180 = 0;
+    baseStats.t180 += stats["180"].player1 + stats["180"].player2;
+    if(!baseStats.HC) baseStats.HC = 0;
+    if(stats.HC.player1 > baseStats.HC) {
+        baseStats.HC = stats.HC.player1;
+        baseStats.HCPlayer = gameData.player1;
+    }
+    if(stats.HC.player2 > baseStats.HC) {
+        baseStats.HC = stats.HC.player2;
+        baseStats.HCPlayer = gameData.player2;
+    }
+    if(!baseStats.BestLeg || baseStats.BestLeg < 9) baseStats.BestLeg = 10000;
+    if(stats.Best.player1 > 8 && stats.Best.player1 < baseStats.BestLeg) {
+        baseStats.BestLeg = stats.Best.player1;
+        baseStats.BestLegPlayer = gameData.player1;
+    }
+    if(stats.Best.player2 > 8 && stats.Best.player2 < baseStats.BestLeg) {
+        baseStats.BestLeg = stats.Best.player2;
+        baseStats.BestLegPlayer = gameData.player2;
+    }
+    if(baseStats.BestLeg > 9999) baseStats.BestLeg = 0;
+    if(!baseStats.ThrowCount) baseStats.ThrowCount = 0;
+    baseStats.ThrowCount += stats["ThrowCount"].player1 + stats["ThrowCount"].player2;  
+    if(!baseStats.ThrowTotal) baseStats.ThrowTotal = 0;
+    baseStats.ThrowTotal += stats["ThrowTotal"].player1 + stats["ThrowTotal"].player2; 
+    return "Ok";
+};
+var eloChange = (points, ratinga, ratingb) => {
+    return 16 * (points - 1.0 / (1.0 + Math.pow(10, (ratingb - ratinga) / 400.0)));
+};
+var updateCommunityRating = async function(communityName, gameData, stats) {
+    let fp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player1 }, TableName : process.env.CommunityRatingTableName }).promise()).Item; 
     if(!fp) fp = {"CommunityName" : communityName, "UserName" : gameData.player1, "Rating" : 1600};
-    let sp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player2 }, TableName : tableName }).promise()).Item; 
+    let sp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player2 }, TableName : process.env.CommunityRatingTableName }).promise()).Item; 
     if(!sp) sp = {"CommunityName" : communityName, "UserName" : gameData.player2, "Rating" : 1600};
     if(!fp.Rating) fp.Rating = 1600;
     if(!sp.Rating) sp.Rating = 1600;
-    let fr = fp.Rating + 16 * (stats.WonGames.player1 + stats.DrawGames.player1 * 0.5 - 1.0 / (1.0 + Math.pow(10, (fp.Rating - sp.Rating) / 400.0)));
-    let sr = sp.Rating + 16 * (stats.WonGames.player2 + stats.DrawGames.player2 * 0.5 - 1.0 / (1.0 + Math.pow(10, (sp.Rating - fp.Rating) / 400.0)));
-    fp.Rating = fr;
-    sp.Rating = sr;
+    let e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
+    fp.Rating += e;
+    sp.Rating -= e;
     mergeStats("player1", fp, stats);
     mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : tableName }).promise();
-    await documentClient.put({ Item : sp, TableName : tableName }).promise();
+    await documentClient.put({ Item : fp, TableName : process.env.CommunityRatingTableName }).promise();
+    await documentClient.put({ Item : sp, TableName : process.env.CommunityRatingTableName }).promise();
+    return  { FirstPlayerRating: fp.Rating, SecondPlayerRating: sp.Rating, RatingChange: e };
+};
+var updateCommunityStats = async function(communityName, gameData, stats) {
+    let baseStats = (await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise()).Item; 
+    mergeGroupStats(baseStats, stats, gameData);
+    await documentClient.put({ Item : baseStats, TableName : process.env.CommunitiesTableName }).promise();
+};
+var updateEventStats = async function(communityName, eventName, gameData, stats) {
+    let baseStats = (await documentClient.scan({ 
+           FilterExpression: "CommunityName = :communityName and EventName = :eventName",
+            ExpressionAttributeValues: { ":communityName": communityName, ":eventName": eventName },
+            TableName : process.env.GameEventsTableName }).promise()).Items[0]; 
+    mergeGroupStats(baseStats, stats, gameData);
+    await documentClient.put({ Item : baseStats, TableName : process.env.GameEventsTableName }).promise();
     return "Ok";
 };
-var updateRegionRating = async function(region, gameData, stats, tableName) {
-    let fp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player1 }, TableName : tableName }).promise()).Item; 
+var updateRegionRating = async function(region, gameData, stats) {
+    let fp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player1 }, TableName : process.env.RegionRatingTableName }).promise()).Item; 
     if(!fp) fp = {"Region" : region, "UserName" : gameData.player1, "Rating" : 1600};
-    let sp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player2 }, TableName : tableName }).promise()).Item; 
+    let sp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player2 }, TableName : process.env.RegionRatingTableName }).promise()).Item; 
     if(!sp) sp = {"Region" : region, "UserName" : gameData.player2, "Rating" : 1600};
     if(!fp.Rating) fp.Rating = 1600;
     if(!sp.Rating) sp.Rating = 1600;
-    let fr = fp.Rating + 16 * (stats.WonGames.player1 + stats.DrawGames.player1 * 0.5 - 1.0 / (1.0 + Math.pow(10, (fp.Rating - sp.Rating) / 400.0)));
-    let sr = sp.Rating + 16 * (stats.WonGames.player2 + stats.DrawGames.player2 * 0.5 - 1.0 / (1.0 + Math.pow(10, (sp.Rating - fp.Rating) / 400.0)));
-    fp.Rating = fr;
-    sp.Rating = sr;
+    let e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
+    fp.Rating += e;
+    sp.Rating -= e;
     mergeStats("player1", fp, stats);
     mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : tableName }).promise();
-    await documentClient.put({ Item : sp, TableName : tableName }).promise();
-    return "Ok";
+    await documentClient.put({ Item : fp, TableName : process.env.RegionRatingTableName }).promise();
+    await documentClient.put({ Item : sp, TableName : process.env.RegionRatingTableName }).promise();
+    return  { FirstPlayerRating: fp.Rating, SecondPlayerRating: sp.Rating, RatingChange: e };
 };
-var updateWorldRating = async function(gameData, stats, tableName) {
-    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1 }, TableName : tableName }).promise()).Item; 
+var updateWorldRating = async function(gameData, stats) {
+    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1 }, TableName : process.env.WorldRatingTableName }).promise()).Item; 
     if(!fp) fp = {"UserName" : gameData.player1, "Rating" : 1600};
-    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2 }, TableName : tableName }).promise()).Item; 
+    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2 }, TableName : process.env.WorldRatingTableName }).promise()).Item; 
     if(!sp) sp = {"UserName" : gameData.player2, "Rating" : 1600};
     if(!fp.Rating) fp.Rating = 1600;
     if(!sp.Rating) sp.Rating = 1600;
-    let fr = fp.Rating + 16 * (stats.WonGames.player1 + stats.DrawGames.player1 * 0.5 - 1.0 / (1.0 + Math.pow(10, (fp.Rating - sp.Rating) / 400.0)));
-    let sr = sp.Rating + 16 * (stats.WonGames.player2 + stats.DrawGames.player2 * 0.5 - 1.0 / (1.0 + Math.pow(10, (sp.Rating - fp.Rating) / 400.0)));
-    fp.Rating = fr;
-    sp.Rating = sr;
+    let e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
+    fp.Rating += e;
+    sp.Rating -= e;
     mergeStats("player1", fp, stats);
     mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : tableName }).promise();
-    await documentClient.put({ Item : sp, TableName : tableName }).promise();
-    return "Ok";
+    await documentClient.put({ Item : fp, TableName : process.env.WorldRatingTableName }).promise();
+    await documentClient.put({ Item : sp, TableName : process.env.WorldRatingTableName }).promise();
+    return  { FirstPlayerRating: fp.Rating, SecondPlayerRating: sp.Rating, RatingChange: e };
 };
 var getWeekNumber = function(cd) {
     var d = new Date(Date.UTC(cd.getFullYear(), cd.getMonth(), cd.getDate()));
@@ -318,20 +382,75 @@ var getWeekNumber = function(cd) {
     var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
     return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
 };
-var updateWeeklyRating = async function(gameData, stats, tableName) {
+var updateWeeklyRating = async function(gameData, stats, cr, rr, wr) {
     var cd = new Date(gameData.timeStamp);
     let week = cd.getFullYear() + '_' + getWeekNumber(cd);
-    try {    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1, "Week": week }, TableName : tableName }).promise()).Item; 
+    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
     if(!fp) fp = {"UserName" : gameData.player1, "Week": week};
-    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2, "Week": week }, TableName : tableName }).promise()).Item; 
+    fp.CommunityRating = cr.FirstPlayerRating;
+    fp.RegionRating = rr.FirstPlayerRating;
+    fp.WorldRating = wr.FirstPlayerRating;
+    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
     if(!sp) sp = {"UserName" : gameData.player2, "Week": week};
+    sp.CommunityRating = cr.SecondPlayerRating;
+    sp.RegionRating = rr.SecondPlayerRating;
+    sp.WorldRating = wr.SecondPlayerRating;
     mergeStats("player1", fp, stats);
     mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : tableName }).promise();
-    await documentClient.put({ Item : sp, TableName : tableName }).promise();
-    
-    } catch(e) {throw "aaa";}
+    await documentClient.put({ Item : fp, TableName : process.env.UserWeeklyRatingTableName }).promise();
+    await documentClient.put({ Item : sp, TableName : process.env.UserWeeklyRatingTableName }).promise();
     return "Ok";
+};
+var getEvent = async function(userName, communityName, eventName) {
+    let wr = await documentClient.query({ 
+        KeyConditionExpression: "CommunityEvent = :communityEvent",
+        ExpressionAttributeValues: { ":communityEvent": communityName + '_' + eventName }, 
+        TableName : process.env.GamesTableName }).promise();
+    return wr.Items;
+};
+var deleteEvent = async function(userName, communityName, eventName) {
+    let community = await getCommunity(communityName);
+    if(community.Owner != userName && !community.Referees.includes(userName))
+        throw 'User '+userName+' is not able to change community ' + communityName;
+    let event = await getEvent(userName, communityName, eventName);
+    if(event.length > 0)
+        throw 'Only empty event can be deleted';
+    let e = community.Events.find(r => r.EventName == eventName);
+    if(!e)
+        throw 'Event '+eventName+' is not found in community ' + communityName;
+    await documentClient.delete({ 
+        Key: {"CommunityName": communityName, "CreationDate": e.CreationDate},
+        TableName : process.env.GameEventsTableName }).promise();
+    return "Deleted";
+};
+var deleteCommunity = async function(userName, communityName) {
+    let community = await getCommunity(communityName);
+    if(community.Owner != userName)
+        throw 'User '+userName+' is not owner of the community ' + communityName;
+    if(community.Events.length > 0)
+        throw 'Delete all events and games before';
+    if(community.Referees.length > 0)
+        throw 'Delete all referees before';
+    for(let i = 0; i < community.Rating.length; i++) {
+        let u = community.Rating[i];
+        await documentClient.delete({ 
+                Key: {"CommunityName": communityName, "UserName": u.UserName},
+                TableName : process.env.CommunityRatingTableName }).promise();
+        let user = await userProfile(u.UserName);
+        if(user.JoinedCommunities.length > 0)
+            user.JoinedCommunities = user.JoinedCommunities.filter(c => c != communityName);
+        if(user.OwnedCommunities.length > 0)
+            user.OwnedCommunities = user.OwnedCommunities.filter(c => c != communityName);
+        await updateProfile(user);
+    }
+    await documentClient.delete({ 
+        Key: {"Name": communityName},
+        TableName : process.env.CommunitiesTableName }).promise();
+    return "Deleted";
+};
+var deleteGame = async function(userName, communityName, eventName, refereeTimestamp) {
+
+    return "Not implemented";
 };
 var storeGame = async function(userName, communityName, region, eventName, gameData, stats) {
     await documentClient.put({ Item : { 
@@ -340,7 +459,7 @@ var storeGame = async function(userName, communityName, region, eventName, gameD
         "FirstPlayer" : gameData.player1,
         "SecondPlayer" : gameData.player2,
         "Opened": gameData.timeStamp,
-        "Published": new Date(),
+        "Published": new Date().toISOString(),
 		"EventName": gameData.eventName,
 		"SetLength": gameData.setLength,
 		"LegLength": gameData.legLength,
@@ -351,11 +470,13 @@ var storeGame = async function(userName, communityName, region, eventName, gameD
     },
     ConditionExpression: 'attribute_not_exists(CommunityEvent) AND attribute_not_exists(RefereeTimestamp)',
     TableName : process.env.GamesTableName }).promise();
-    await updateCommunityRating(communityName, gameData, stats, process.env.CommunityRatingTableName);
-    await updateRegionRating(region, gameData, stats, process.env.RegionRatingTableName);
-    await updateWorldRating(gameData, stats, process.env.WorldRatingTableName);
-    await updateWeeklyRating(gameData, stats, process.env.UserWeeklyRatingTableName);
-    return "Ok";
+    let cr = await updateCommunityRating(communityName, gameData, stats);
+    let rr = await updateRegionRating(region, gameData, stats);
+    let wr = await updateWorldRating(gameData, stats);
+    await updateWeeklyRating(gameData, stats, cr, rr, wr);
+    await updateCommunityStats(communityName, gameData, stats);
+    await updateEventStats(communityName, eventName, gameData, stats);
+    return { CommunityRating: cr, RegionRating: rr, WorldRating: wr };
 };
 var gameFinished = async function(userName, communityName, region, eventName, gameData) {
     if(!communityName) throw 'Community name is not defined';
@@ -376,10 +497,10 @@ var gameFinished = async function(userName, communityName, region, eventName, ga
     if(gameData.player1 == gameData.player2)
         throw 'Players should be different';
     let stats = Game501.Verify(gameData);
-    await storeGame(userName, communityName, region, eventName, gameData, stats);
-    return { message: "Ok" };
+    let res = await storeGame(userName, communityName, region, eventName, gameData, stats);
+    
+    return { message: "Ok", value: res };
 };
-
 exports.newCommunity = async function(event, context) {
     try {
     	let action = event['body-json'].action;
@@ -413,6 +534,14 @@ exports.newCommunity = async function(event, context) {
                 return JSON.stringify(await activateCommunityEvent(userName, communityName, event['body-json'].eventName, event['body-json'].active));
             case 'gameFinished':
                 return JSON.stringify(await gameFinished(userName, communityName, event['body-json'].region, event['body-json'].eventName, JSON.parse(event['body-json'].gameData)));
+            case "getEvent":
+                return JSON.stringify(await getEvent(userName, communityName, event['body-json'].eventName));
+            case "deleteEvent":
+                return JSON.stringify(await deleteEvent(userName, communityName, event['body-json'].eventName));
+            case "deleteCommunity":
+                return JSON.stringify(await deleteCommunity(userName, communityName));
+            case "deleteGame":
+                return JSON.stringify(await deleteGame(userName, communityName, event['body-json'].eventName,  event['body-json'].refereeTimestamp));
             default:
       	        return JSON.stringify({ action: action, message: 'Command not recognized' });
   		}

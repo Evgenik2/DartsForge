@@ -268,10 +268,13 @@
 			</div>
 			<div id="communityEvents" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 10 }">
 				<div class="history-container">
-					<div class="menu-row">
+					<div class="menu-row" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">
 						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="changeView(11); event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
 					</div>
-					<div class="events-row"> 
+					<div class="menu-row" v-bind:class="{ 'menu-collapsed': communityData.Owner != userName || (communityData.Events && communityData.Events.length > 0) }">
+						<a class="loginButton" href="_" v-on:click="deleteCommunity(); changeView(0); event.preventDefault();">{{language.deleteEmptyCommunity}}</a>
+					</div>	
+					<div class="events-row" v-bind:class="{ 'menu-collapsed': !communityData.Events || communityData.Events.length == 0 }"> 
 						<div class="community-rating community-rating-header	">
 							<div class="community-rating-event-group">
 								<div class="community-rating-rating">{{language.opened}}</div>
@@ -1239,6 +1242,8 @@
 							err.innerHTML = res.error.message ? res.error.message : res.error;
 						} else {
 							await keyboardKeys.refreshProfle();
+							this.community = this.newCommunityName;
+							this.selectCommunity();
 							err.innerHTML = "";
 							this.changeView(0);
 						}
@@ -1260,7 +1265,6 @@
 					},
 					selectCommunity: async function() {
 						var r = document.getElementById("changeCommunityName");
-						this.community = settings.community = r.selectedIndex >= 0 ? r.options[r.selectedIndex].value : undefined;
 						await this.updateCommunityData();
 						settings.store();
 						this.changeView(0);
@@ -1272,6 +1276,7 @@
 								this.community = settings.community = undefined;
 								return;
 							}
+							this.communityData.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
 							if(this.communityData.Rating)
 								this.communityData.Rating = this.communityData.Rating.map(e=>{
 									e.Rating = Math.round(e.Rating),
@@ -1420,6 +1425,13 @@
 							});
 						await keyboardKeys.refreshProfle();
 					},
+					deleteCommunity: async function() {
+						var res = await DartsApi({
+								action: 'deleteCommunity',
+								name: this.community
+							});
+						await keyboardKeys.refreshProfle();
+					}
 				}
 			});
 			banner = new Vue({
@@ -1526,7 +1538,7 @@
 			if(currentView < 0)
 				keyboardKeys.currentView = currentView;
 			else {
-				if(window.history.state.currentView)
+				if(window.history.state && window.history.state.currentView)
 					keyboardKeys.currentView = window.history.state.currentView;
 			}
 		</script>
