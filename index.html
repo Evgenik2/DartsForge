@@ -215,22 +215,22 @@
 					<div class="events-row stats-row-wide">
 						<div class="stats-row-header">{{language.menuEvent}}</div>
 						<div class="stats-row-header-middle"></div>
-						<div>{{eventData.EventName}}</div>
+						<div>{{eventName}}</div>
 					</div>
 					<div class="events-row stats-row-wide">
-						<a class="loginButton" href="_" v-on:click="deleteEvent(); changeView(10); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventData.EventName || eventHistory.length != 0 || !eventData.changeable }">{{language.deleteEmptyEvent}}</a>
+						<a class="loginButton" href="_" v-on:click="deleteEvent(); changeView(10); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventName || (eventHistory && eventHistory.length != 0) || !eventData.changeable }">{{language.deleteEmptyEvent}}</a>
 					</div>						
-					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory.length == 0 }">
+					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory && eventHistory.length == 0 }">
 						<div class="stats-row-header">HC</div>
 						<div class="stats-row-header-middle">{{eventData.HC}}</div>
 						<div>{{eventData.HCPlayer}}</div>
 					</div>
-					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory.length == 0 }">
+					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory && eventHistory.length == 0 }">
 						<div class="stats-row-header">BL</div>
 						<div class="stats-row-header-middle">{{eventData.BestLeg}}</div>
 						<div>{{eventData.BestLegPlayer}}</div>
 					</div>
-					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory.length == 0 }">
+					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory && eventHistory.length == 0 }">
 						<div class="stats-row-header">{{language.historyTotal}}</div>
 						<div class="stats-row-header-middle">{{eventHistory.length}}</div>
 					</div>
@@ -254,6 +254,9 @@
 							<div class="stats-row-header">{{language.menuGame}}</div>
 							<div>{{eventHistoryItemList[0].gameLength}}</div>
 						</div>
+						<div class="events-row stats-row">
+							<a class="loginButton" href="_" v-on:click="deleteGame(); changeView(13); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">{{language.deleteGame}}</a>
+						</div>	
 						<history-component  is="history-component" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
 						<game-set-component is="game-set-component" v-for="item in eventHistoryItemLegs" v-bind:item="item" v-bind:key="item.leg">
@@ -433,7 +436,7 @@
 						<div class="menu-row">
 							<div id="publishGameError" class="dialog-error"></div>
 						</div>
-						<div class="menu-row">
+						<div class="menu-row" v-bind:class="{ 'menu-collapsed': wait }">
 							<a class="loginButton" href="_" v-on:click="publishGame(); event.preventDefault();">{{language.publishGameBtn}}</a>
 							<a class="loginButton" href="_" v-on:click="keyboardDelete(); changeView(0); event.preventDefault();">{{language.publishGameUndoBtn}}</a>
 						</div>
@@ -800,7 +803,7 @@
 					communities: [],
 					community: undefined,
 					eventName: undefined,
-					eventData: [],
+					eventData: {},
 					communityData: {
 						CommunityRating: []
 					},
@@ -955,24 +958,25 @@
 						game.updateAll();
 					},
 					showEventHistory: async function(event) {
-						this.eventData = event;
-						this.eventName = event.EventName;
-						this.eventHistory = (await DartsApi({ action: "getEvent",
-								name: this.community,
-								eventName: this.eventName })).map(e=> {
-									Game501.ConvertNames(e);
-									let s = Game501.Verify(e);
-									e.legs = Game501.GetLegs(e);
-									e.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];;
-									return e;
-								});
+						settings.eventData = this.eventData = event;
+						settings.eventName = this.eventName = event.EventName;
+						settings.eventHistory = this.eventHistory = (await DartsApi({ action: "getEvent",
+							name: this.community, eventName: this.eventName })).map(e=> {
+//								Game501.ConvertNames(e);
+								let s = Game501.Verify(e);
+								e.legs = Game501.GetLegs(e);
+								e.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
+								return e;
+							});
+						settings.store();
 						this.changeView(13);
 					},
 					showEventHistoryItem: function(t) {
 						this.changeView(14);
 						var eventHistoryItem = this.eventHistory.find((i) => { return i.timeStamp == t});
-						this.eventHistoryItemLegs = eventHistoryItem.legs;
-						this.eventHistoryItemList = [eventHistoryItem];
+						settings.eventHistoryItemLegs = this.eventHistoryItemLegs = eventHistoryItem.legs;
+						settings.eventHistoryItemList = this.eventHistoryItemList = [eventHistoryItem];
+						settings.store();
 					},
 					showHistory: function() {
 						var to = new Date();
@@ -1205,7 +1209,7 @@
 										},
 										{
 											label: "Community rating",
-											data: keyboardKeys.profile.WeeklyRating.map(e=> Math.round(e.CommunityRating)),
+											data: keyboardKeys.profile.WeeklyRating.map(e=> Math.round(e["Community" + this.community + "Rating"])),
 											borderColor: "#88cdff",
 											backgroundColor: "transparent"
 										}]
@@ -1265,6 +1269,7 @@
 					},
 					selectCommunity: async function() {
 						var r = document.getElementById("changeCommunityName");
+						this.community = settings.community = r.selectedIndex >= 0 ? r.options[r.selectedIndex].value : undefined;
 						await this.updateCommunityData();
 						settings.store();
 						this.changeView(0);
@@ -1416,6 +1421,16 @@
 						settings.community = undefined;
 						auth.signOut();
 						window.location.replace('/DartsForge/');
+					},
+					deleteGame: async function() {
+						var res = await DartsApi({
+								action: 'deleteGame',
+								name: this.community,
+								eventName: this.eventName,
+								refereeTimestamp: this.eventHistoryItemList[0].RefereeTimestamp
+							});
+						await keyboardKeys.refreshProfle();
+						this.showEventHistory(this.communityData.Events.find(e=>e.EventName == this.eventName));
 					},
 					deleteEvent: async function() {
 						var res = await DartsApi({

@@ -83,8 +83,14 @@ var settings = {
                 keyboardKeys.newGameLength = settings.newGameLength = r.newGameLength;
                 keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
                 keyboardKeys.userName = settings.userName;
-                keyboardKeys.communities = settings.communities = r.communities;
-                keyboardKeys.community = settings.community = r.community;
+                if(r.communities) keyboardKeys.communities = settings.communities = r.communities;
+                if(r.community) keyboardKeys.community = settings.community = r.community;
+                if(r.eventHistoryItemLegs) keyboardKeys.eventHistoryItemLegs = settings.eventHistoryItemLegs = r.eventHistoryItemLegs;
+                if(r.eventHistoryItemList) keyboardKeys.eventHistoryItemList = settings.eventHistoryItemList = r.eventHistoryItemList;
+                if(r.eventData) keyboardKeys.eventData = settings.eventData = r.eventData;
+                if(r.eventName) keyboardKeys.eventName = settings.eventName = r.eventName;
+                if(r.eventHistory) keyboardKeys.eventHistory = settings.eventHistory = r.eventHistory;
+
                 if(keyboardKeys.community && r.communityData && r.communityData.Rating)
                     keyboardKeys.communityData = settings.communityData = r.communityData;
                 if(keyboardKeys.communities)

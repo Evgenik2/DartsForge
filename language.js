@@ -87,6 +87,7 @@ var languages = {
         eventName: "Name",
         menuEventGame: "Community game",
         menuEvent: "Community",
+        deleteGame: "Delete the game",
         deleteEmptyEvent: "Delete empty event",
         deleteEmptyCommunity: "Delete empty community"
     },
@@ -178,6 +179,7 @@ var languages = {
         eventName: "Название",
         menuEventGame: "История",
         menuEvent: "Событие",
+        deleteGame: "Удалить игру",
         deleteEmptyEvent: "Удалить пустое событие",
         deleteEmptyCommunity: "Удалить пустое сообщество"
     }
