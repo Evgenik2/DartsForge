@@ -274,6 +274,40 @@ var mergeStats = function(player, baseStats, stats) {
     if(!baseStats.ThrowTotal) baseStats.ThrowTotal = 0;
     baseStats.ThrowTotal += stats["ThrowTotal"][player]; 
 };
+var deleteStats = function(player, baseStats, stats) {
+    baseStats.LastUpdate = new Date().toISOString();
+    if(baseStats.t60) baseStats.t60 -= stats["60+"][player];
+    if(baseStats.t60 < 0) baseStats.t60 = 0;
+    if(baseStats.t100) baseStats.t100 -= stats["100+"][player];
+    if(baseStats.t100 < 0) baseStats.t100 = 0;
+    if(baseStats.t140) baseStats.t140 -= stats["140+"][player];
+    if(baseStats.t140 < 0) baseStats.t140 = 0;
+    if(baseStats.t180) baseStats.t180 -= stats["180"][player];
+    if(baseStats.t180 < 0) baseStats.t180 = 0;
+    if(baseStats.HC && baseStats.HC <= stats["HC"][player]) baseStats.HC = 0;
+    if(baseStats.BestLeg && baseStats.BestLeg >= stats["Best"][player]) baseStats.BestLeg = 0;
+    if(baseStats.LWAT) baseStats.LWAT -= stats["LWAT"][player];
+    if(baseStats.LWAT < 0) baseStats.LWAT = 0;
+    if(baseStats.WonLegs) baseStats.WonLegs -= stats["WonLegs"][player];
+    if(baseStats.WonLegs < 0) baseStats.WonLegs = 0;
+    if(baseStats.WonSets) baseStats.WonSets -= stats["WonSets"][player];
+    if(baseStats.WonSets < 0) baseStats.WonSets = 0;
+    if(baseStats.WonGames) baseStats.WonGames -= stats["WonGames"][player];
+    if(baseStats.WonGames < 0) baseStats.WonGames = 0;
+    if(baseStats.LooseGames) baseStats.LooseGames -= stats["LooseGames"][player];
+    if(baseStats.LooseGames < 0) baseStats.LooseGames = 0;
+    if(baseStats.DrawGames) baseStats.DrawGames -= stats["DrawGames"][player];
+    if(baseStats.DrawGames < 0) baseStats.DrawGames = 0;
+    if(baseStats.DoubleThrows) baseStats.DoubleThrows -= stats["DoubleThrows"][player]; 
+    if(baseStats.DoubleThrows < 0) baseStats.DoubleThrows = 0;
+    if(baseStats.DoubleSuccess) baseStats.DoubleSuccess -= stats["DoubleSuccess"][player]; 
+    if(baseStats.DoubleSuccess < 0) baseStats.DoubleSuccess = 0;
+    if(baseStats.ThrowCount) baseStats.ThrowCount -= stats["ThrowCount"][player]; 
+    if(baseStats.ThrowCount < 0) baseStats.ThrowCount = 0;
+    if(baseStats.ThrowTotal) baseStats.ThrowTotal -= stats["ThrowTotal"][player]; 
+    if(baseStats.ThrowTotal < 0) baseStats.ThrowTotal = 0;
+
+};
 var mergeGroupStats = function(baseStats, stats, gameData) {
     baseStats.LastUpdate = new Date().toISOString();
     if(!baseStats.t60) baseStats.t60 = 0;
@@ -310,6 +344,30 @@ var mergeGroupStats = function(baseStats, stats, gameData) {
     baseStats.ThrowTotal += stats["ThrowTotal"].player1 + stats["ThrowTotal"].player2; 
     return "Ok";
 };
+var deleteGroupStats = function(baseStats, stats, gameData) {
+    baseStats.LastUpdate = new Date().toISOString();
+    if(baseStats.t60) baseStats.t60 -= stats["60+"].player1 + stats["60+"].player2;
+    if(baseStats.t60 < 0) baseStats.t60 = 0;
+    if(baseStats.t100) baseStats.t100 -= stats["100+"].player1 + stats["100+"].player2;
+    if(baseStats.t100 < 0) baseStats.t100 = 0;
+    if(baseStats.t140) baseStats.t140 -= stats["140+"].player1 + stats["140+"].player2;
+    if(baseStats.t140 < 0) baseStats.t140 = 0;
+    if(baseStats.t180) baseStats.t180 -= stats["180"].player1 + stats["180"].player2;
+    if(baseStats.t180 < 0) baseStats.t180 = 0;
+    if(baseStats.HC && (stats.HC.player1 >= baseStats.HC || stats.HC.player2 >= baseStats.HC)) {
+        baseStats.HC = 0;
+        baseStats.HCPlayer = undefined;
+    }
+    if(baseStats.BestLeg && (stats.Best.player1 <= baseStats.BestLeg || stats.Best.player2 <= baseStats.BestLeg)) {
+        baseStats.BestLeg = 0;
+        baseStats.BestLegPlayer = undefined;
+    }
+    if(baseStats.ThrowCount) baseStats.ThrowCount -= stats["ThrowCount"].player1 + stats["ThrowCount"].player2;  
+    if(baseStats.ThrowCount < 0) baseStats.ThrowCount = 0;
+    if(baseStats.ThrowTotal) baseStats.ThrowTotal -= stats["ThrowTotal"].player1 + stats["ThrowTotal"].player2; 
+    if(baseStats.ThrowTotal < 0) baseStats.ThrowTotal = 0;
+    return "Ok";
+};
 var eloChange = (points, ratinga, ratingb) => {
     return 16 * (points - 1.0 / (1.0 + Math.pow(10, (ratingb - ratinga) / 400.0)));
 };
@@ -336,9 +394,9 @@ var updateCommunityStats = async function(communityName, gameData, stats) {
 };
 var updateEventStats = async function(communityName, eventName, gameData, stats) {
     let baseStats = (await documentClient.scan({ 
-           FilterExpression: "CommunityName = :communityName and EventName = :eventName",
-            ExpressionAttributeValues: { ":communityName": communityName, ":eventName": eventName },
-            TableName : process.env.GameEventsTableName }).promise()).Items[0]; 
+        FilterExpression: "CommunityName = :communityName and EventName = :eventName",
+        ExpressionAttributeValues: { ":communityName": communityName, ":eventName": eventName },
+        TableName : process.env.GameEventsTableName }).promise()).Items[0]; 
     mergeGroupStats(baseStats, stats, gameData);
     await documentClient.put({ Item : baseStats, TableName : process.env.GameEventsTableName }).promise();
     return "Ok";
@@ -382,17 +440,17 @@ var getWeekNumber = function(cd) {
     var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
     return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
 };
-var updateWeeklyRating = async function(gameData, stats, cr, rr, wr) {
+var updateWeeklyRating = async function(communityName, gameData, stats, cr, rr, wr) {
     var cd = new Date(gameData.timeStamp);
     let week = cd.getFullYear() + '_' + getWeekNumber(cd);
     let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
     if(!fp) fp = {"UserName" : gameData.player1, "Week": week};
-    fp.CommunityRating = cr.FirstPlayerRating;
+    fp["Community" + communityName + "Rating"] = cr.FirstPlayerRating;
     fp.RegionRating = rr.FirstPlayerRating;
     fp.WorldRating = wr.FirstPlayerRating;
     let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
     if(!sp) sp = {"UserName" : gameData.player2, "Week": week};
-    sp.CommunityRating = cr.SecondPlayerRating;
+    sp["Community" + communityName + "Rating"] = cr.SecondPlayerRating;
     sp.RegionRating = rr.SecondPlayerRating;
     sp.WorldRating = wr.SecondPlayerRating;
     mergeStats("player1", fp, stats);
@@ -448,14 +506,73 @@ var deleteCommunity = async function(userName, communityName) {
         TableName : process.env.CommunitiesTableName }).promise();
     return "Deleted";
 };
+var deleteCommunityStats = async function(communityName, player, pn,  stats) {
+    let fp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : player }, TableName : process.env.CommunityRatingTableName }).promise()).Item; 
+    if(fp) {
+        deleteStats("player" + pn, fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.CommunityRatingTableName }).promise();
+    }
+};
+var deleteRegionStats = async function(region, player, pn,  stats) {
+    let fp = (await documentClient.get({ Key: { "Region" : region, "UserName" : player }, TableName : process.env.RegionRatingTableName }).promise()).Item; 
+    if(fp) {
+        deleteStats("player" + pn, fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.RegionRatingTableName }).promise();
+    }
+};
+var deleteWorldStats = async function(player, pn,  stats) {
+    let fp = (await documentClient.get({ Key: { "UserName" : player }, TableName : process.env.WorldRatingTableName }).promise()).Item; 
+    if(fp) {
+        deleteStats("player" + pn, fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.WorldRatingTableName }).promise();
+    }
+};
+var deleteWeeklyStats = async function(gameData, player, pn,  stats) {
+    var cd = new Date(gameData.timeStamp);
+    let week = cd.getFullYear() + '_' + getWeekNumber(cd);
+    let fp = (await documentClient.get({ Key: { "UserName" : player, "Week" : week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
+    if(fp) {
+        deleteStats("player" + pn, fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.UserWeeklyRatingTableName }).promise();
+    }
+};
+var deleteCommunityGroupStats = async function(communityName, gameData, stats) {
+    let baseStats = (await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise()).Item; 
+    deleteGroupStats(baseStats, stats, gameData);
+    await documentClient.put({ Item : baseStats, TableName : process.env.CommunitiesTableName }).promise();
+};
+var deleteEventStats = async function(communityName, eventName, gameData, stats) {
+    let baseStats = (await documentClient.scan({ 
+        FilterExpression: "CommunityName = :communityName and EventName = :eventName",
+        ExpressionAttributeValues: { ":communityName": communityName, ":eventName": eventName },
+        TableName : process.env.GameEventsTableName }).promise()).Items[0]; 
+    deleteGroupStats(baseStats, stats, gameData);
+    await documentClient.put({ Item : baseStats, TableName : process.env.GameEventsTableName }).promise();
+    return "Ok";
+};
 var deleteGame = async function(userName, communityName, eventName, refereeTimestamp) {
-
-    return "Not implemented";
+    let community = await getCommunity(communityName);
+    if(community.Owner != userName)
+        throw 'User '+userName+' is not owner of the community ' + communityName;
+    let gameData = (await documentClient.get({ Key: { "CommunityEvent" : communityName + '_' + eventName, "RefereeTimestamp" : refereeTimestamp }, TableName : process.env.GamesTableName }).promise()).Item;
+    let stats = Game501.Verify(gameData);
+    await deleteCommunityStats(communityName, gameData.player1, 1, stats);
+    await deleteCommunityStats(communityName, gameData.player2, 2, stats);
+    await deleteRegionStats(community.Region, gameData.player1, 1, stats);
+    await deleteRegionStats(community.Region, gameData.player2, 2, stats);
+    await deleteWorldStats(gameData.player1, 1, stats);
+    await deleteWorldStats(gameData.player2, 2, stats);
+    await deleteWeeklyStats(gameData, gameData.player1, 1, stats);
+    await deleteWeeklyStats(gameData, gameData.player2, 2, stats);
+    await deleteCommunityGroupStats(communityName, gameData, stats);
+    await deleteEventStats(communityName, eventName, gameData, stats);
+    await documentClient.delete({ Key: { "CommunityEvent" : communityName + '_' + eventName, "RefereeTimestamp" : refereeTimestamp }, TableName : process.env.GamesTableName }).promise();
+    return "Deleted";
 };
 var storeGame = async function(userName, communityName, region, eventName, gameData, stats) {
     await documentClient.put({ Item : { 
         "CommunityEvent" : communityName + '_' + eventName, 
-        "RefereeTimestamp" :  gameData.timeStamp + '_' + userName,
+        "RefereeTimestamp" : gameData.timeStamp + '_' + userName,
         "FirstPlayer" : gameData.player1,
         "SecondPlayer" : gameData.player2,
         "Opened": gameData.timeStamp,
@@ -473,7 +590,7 @@ var storeGame = async function(userName, communityName, region, eventName, gameD
     let cr = await updateCommunityRating(communityName, gameData, stats);
     let rr = await updateRegionRating(region, gameData, stats);
     let wr = await updateWorldRating(gameData, stats);
-    await updateWeeklyRating(gameData, stats, cr, rr, wr);
+    await updateWeeklyRating(communityName, gameData, stats, cr, rr, wr);
     await updateCommunityStats(communityName, gameData, stats);
     await updateEventStats(communityName, eventName, gameData, stats);
     return { CommunityRating: cr, RegionRating: rr, WorldRating: wr };
