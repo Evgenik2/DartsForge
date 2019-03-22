@@ -218,7 +218,7 @@
 						<div>{{eventName}}</div>
 					</div>
 					<div class="events-row stats-row-wide">
-						<a class="loginButton" href="_" v-on:click="deleteEvent(); changeView(10); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventName || (eventHistory && eventHistory.length != 0) || !eventData.changeable }">{{language.deleteEmptyEvent}}</a>
+						<a class="loginButton" href="_" v-longpress="deleteEvent" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventName || (eventHistory && eventHistory.length != 0) || !eventData.changeable }">{{language.deleteEmptyEvent}}</a>
 					</div>						
 					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory && eventHistory.length == 0 }">
 						<div class="stats-row-header">HC</div>
@@ -255,7 +255,7 @@
 							<div>{{eventHistoryItemList[0].gameLength}}</div>
 						</div>
 						<div class="events-row stats-row">
-							<a class="loginButton" href="_" v-on:click="deleteGame(); changeView(13); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">{{language.deleteGame}}</a>
+							<a class="loginButton" href="_" v-longpress="deleteGame" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">{{language.deleteGame}}</a>
 						</div>	
 						<history-component  is="history-component" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
@@ -275,7 +275,7 @@
 						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="changeView(11); event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
 					</div>
 					<div class="menu-row" v-bind:class="{ 'menu-collapsed': communityData.Owner != userName || (communityData.Events && communityData.Events.length > 0) }">
-						<a class="loginButton" href="_" v-on:click="deleteCommunity(); changeView(0); event.preventDefault();">{{language.deleteEmptyCommunity}}</a>
+						<a class="loginButton" href="_" v-longpress="deleteCommunity" v-on:click="event.preventDefault();">{{language.deleteEmptyCommunity}}</a>
 					</div>	
 					<div class="events-row" v-bind:class="{ 'menu-collapsed': !communityData.Events || communityData.Events.length == 0 }"> 
 						<div class="community-rating community-rating-header	">
@@ -1065,6 +1065,8 @@
 							this.game = game;
 							this.value = 0;
 							this.closes = 0;
+						} else {
+							this.keyboardOk();
 						}
 					},
 					keyboardOk: function() {
@@ -1439,6 +1441,7 @@
 								eventName: this.eventName
 							});
 						await keyboardKeys.refreshProfle();
+						this.changeView(10);
 					},
 					deleteCommunity: async function() {
 						var res = await DartsApi({
@@ -1446,6 +1449,7 @@
 								name: this.community
 							});
 						await keyboardKeys.refreshProfle();
+						this.changeView(0);
 					}
 				}
 			});
