@@ -1054,7 +1054,7 @@
 						void elm.offsetWidth;
 						elm.classList.add("animError");
 					},
-					keyboardLongOk() {
+					keyboardLongOk: function() {
 						if(game.lastLeg.next == 0) return;
 						var left = game.lastLeg.next == 1 ? game.lastLeg.left1 : game.lastLeg.left2;
 						var v = left - this.value;
@@ -1066,7 +1066,7 @@
 							this.value = 0;
 							this.closes = 0;
 						} else {
-							this.keyboardOk();
+						//	this.keyboardOk(event);
 						}
 					},
 					keyboardOk: function() {
