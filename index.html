@@ -45,7 +45,7 @@
 		</script>
 		<script src="Chart.min.js"></script>
 		<script src="amazon-cognito-auth.min.js"></script>
-		<script src="Serverless/Game501.js"></script>
+		<script src="Game501.js"></script>
 		<script src="fittext.js"></script>
 		<script src="vue.min.js"></script>
 		<script src="swipe.js"></script>
@@ -62,7 +62,7 @@
 			if(userLang == "ru-RU")
 				settings.language = "ru";
 			function registerServiceWorker() {
-				var root = "/DartsForge/";
+				var root = "/";
 				if ('serviceWorker' in navigator) {
 					try {
 						navigator.serviceWorker.register('sw.js', { scope: root }).then(() => {
@@ -1420,7 +1420,7 @@
 						settings.userName = undefined;
 						settings.community = undefined;
 						auth.signOut();
-						window.location.replace('/DartsForge/');
+						window.location.replace('/');
 					},
 					deleteGame: async function() {
 						var res = await DartsApi({

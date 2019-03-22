@@ -110,8 +110,8 @@ function initCognitoSDK() {
         ClientId : '2l9l4t5o41uenmn9sg0ohre60d',
         AppWebDomain : "dartsforge.auth.us-east-2.amazoncognito.com",
         TokenScopesArray : ['openid','email'],
-        RedirectUriSignIn : hostUrl + "/DartsForge/",
-        RedirectUriSignOut : hostUrl + "/DartsForge/",
+        RedirectUriSignIn : hostUrl,
+        RedirectUriSignOut : hostUrl,
         IdentityProvider : 'COGNITO', 
         UserPoolId : 'us-east-2_GFcVOejW2', 
         AdvancedSecurityDataCollectionFlag : false
@@ -136,5 +136,5 @@ auth.parseCognitoWebResponse(curUrl);
 
 
 if(curUrl.indexOf("token") != -1)
-    window.location.replace('/DartsForge/');
+    window.location.replace('/');
 settings.userName = auth.username;
