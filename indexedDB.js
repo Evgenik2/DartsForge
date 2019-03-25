@@ -6,15 +6,18 @@ function logerr(err){
     console.log(err);
 }
 function connectDB(tableName, f){
-    try {
-        var request = indexedDB.open(baseName);
-        request.onerror = logerr;
-        request.onsuccess = function(){
-            f(request.result);
-        }   
-    }catch(e) {
-        keyboardKeys.currentView = -1;
-    }
+    var request = indexedDB.open(baseName, 10000);
+    request.onerror = logerr;
+    request.onupgradeneeded = function() {
+        ["Settings", "CurrentGame", "History"].forEach(storeName=>{
+            let upgradeDB = request.result;
+            if(!upgradeDB.objectStoreNames.contains(storeName))
+                upgradeDB.createObjectStore(storeName, { keyPath: "key" });
+        });
+    };
+    request.onsuccess = function(){
+        f(request.result);
+    };  
 }
 function CreateObjectStore(storeName, f) {
     try {
@@ -123,15 +126,16 @@ function getRecords(tableName, start, end, f) {
         }
     });
 }
-function setRecord(tableName, key, data) {
+function setRecord(tableName, key, data, f) {
     connectDB(tableName, function(db) {
         var request = db.transaction([tableName], "readwrite").objectStore(tableName).put({ key: key, data: data });
         request.onerror = logerr;
         request.onsuccess = function(){
+            if(f) f();
         }
     });
 }
-function deleteRecord(tableName, key) {
+function deleteRecord(tableName, key, f) {
     connectDB(tableName, function(db) {
         var request = db.transaction([tableName], "readwrite").objectStore(tableName).openCursor(IDBKeyRange.only(key))
         request.onerror = logerr;
@@ -140,7 +144,10 @@ function deleteRecord(tableName, key) {
             if (cursor) {
                 cursor.delete();
                 cursor.continue();
-            }	
+            } else {
+                if(f)
+                    f();
+            }
         }
     });
 }

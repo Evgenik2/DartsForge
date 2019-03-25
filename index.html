@@ -59,7 +59,7 @@
 		<script>
 			var currentView = 0;
 			var userLang = navigator.language || navigator.userLanguage; 
-			if(userLang == "ru-RU")
+			if(userLang == "ru-RU" || userLang == "ru")
 				settings.language = "ru";
 			function registerServiceWorker() {
 				var root = "/";
@@ -99,7 +99,7 @@
 		<div id="app" class="app">
 			<div id="caption" class="caption" v-bind:class="{ 'menu-collapsed': currentView < 0 || currentView == 0 && !menuShown }">
 				<div class="menucaption">
-					<div class="menubannerbtn bannerSmall" id="banner" href="_">
+					<div class="menubannerbtn bannerSmall" id="banner">
 						<svg class="menubannersvg" viewBox="0 0 210 297" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:10;">
 							<rect width="126.24404" height="213.17857" x="45.357143" y="43" rx="20" ry="20"/>
 							<path d="M 49.066034,220.95591 H 167.75055"/>
@@ -146,7 +146,7 @@
 						</svg>
 					</div>
 				</div>
-				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || !community || (waitingAgreement.length == 0 && waitingJoining.length == 0) }">
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': wait || !userName || !community || (waitingAgreement.length == 0 && waitingJoining.length == 0 && history.length == 0) }">
 					<div class="menudropbtn" v-on:click="toggleMenuShow('notificationDropdown');">
 						<svg class="menudropsvg menuelement" viewBox="0 0 210 250">
 							<path class="menudropsvgpath menuelement" 
@@ -157,6 +157,7 @@
 					<div id="notificationDropdown" class="dropdown-content dropdown-content-bell">
 						<communities-component-waitingAgreement  is="communities-component-waitingAgreement" v-for="item in waitingAgreement" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingAgreement>
 						<communities-component-waitingJoining  is="communities-component-waitingJoining" v-for="item in waitingJoining" v-bind:item="item" v-bind:key="item.name"></communities-component-waitingJoining>
+						<communities-component-history-waiting  is="communities-component-history-waiting" v-for="item in history" v-bind:item="item" v-bind:key="item.name"></communities-component-history-waiting>
 					</div>
 				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || community }">
@@ -203,7 +204,7 @@
 						<div class="dropdown-content-item menuelement" v-on:click="changeEnding(); event.preventDefault();">{{endings}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeLanguage(); event.preventDefault();"><i :class="[language.flag]"></i> {{language.language}}</div>
 						<!--<div class="dropdown-content-item" v-on:click="showHistory()">{{language.menuHistory}}</div>-->
-						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !userName }" href="_" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</div> 
+						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !userName }" v-on:click="logOut(); event.preventDefault();">{{language.menuLogout}}</div> 
 					</div>
 				</div>
 			</div>
@@ -218,7 +219,7 @@
 						<div>{{eventName}}</div>
 					</div>
 					<div class="events-row stats-row-wide">
-						<a class="loginButton" href="_" v-longpress="deleteEvent" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventName || (eventHistory && eventHistory.length != 0) || !eventData.changeable }">{{language.deleteEmptyEvent}}</a>
+						<div class="loginButton" v-longpress="deleteEvent" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventName || (eventHistory && eventHistory.length != 0) || !eventData.changeable }">{{language.deleteEmptyEvent}}</div>
 					</div>						
 					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory && eventHistory.length == 0 }">
 						<div class="stats-row-header">HC</div>
@@ -255,7 +256,7 @@
 							<div>{{eventHistoryItemList[0].gameLength}}</div>
 						</div>
 						<div class="events-row stats-row">
-							<a class="loginButton" href="_" v-longpress="deleteGame" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">{{language.deleteGame}}</a>
+							<div class="loginButton" v-longpress="deleteGame" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">{{language.deleteGame}}</div>
 						</div>	
 						<history-component  is="history-component" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
@@ -272,10 +273,10 @@
 			<div id="communityEvents" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 10 }">
 				<div class="history-container">
 					<div class="menu-row" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">
-						<a class="dropdown-content-item" class="loginButton" href="_" v-on:click="changeView(11); event.preventDefault();">{{language.menuCommunityEventsNew}}</a> 						
+						<div class="dropdown-content-item" class="loginButton" v-on:click="changeView(11); event.preventDefault();">{{language.menuCommunityEventsNew}}</div>
 					</div>
 					<div class="menu-row" v-bind:class="{ 'menu-collapsed': communityData.Owner != userName || (communityData.Events && communityData.Events.length > 0) }">
-						<a class="loginButton" href="_" v-longpress="deleteCommunity" v-on:click="event.preventDefault();">{{language.deleteEmptyCommunity}}</a>
+						<div class="loginButton" v-longpress="deleteCommunity" v-on:click="event.preventDefault();">{{language.deleteEmptyCommunity}}</div>
 					</div>	
 					<div class="events-row" v-bind:class="{ 'menu-collapsed': !communityData.Events || communityData.Events.length == 0 }"> 
 						<div class="community-rating community-rating-header	">
@@ -312,7 +313,7 @@
 						<div id="createCommunityEventError" class="dialog-error"></div>
 					</div>
 					<div class="menu-row">
-						<a class="loginButton" href="_" v-on:click="createCommunityEvent(); event.preventDefault();">{{language.createCommunityEventBtn}}</a>
+						<div class="loginButton" v-on:click="createCommunityEvent(); event.preventDefault();">{{language.createCommunityEventBtn}}</div>
 					</div>
 				</div>					
 			</div>
@@ -337,7 +338,7 @@
 							<div id="createCommunityError" class="dialog-error"></div>
 						</div>
 						<div class="menu-row">
-							<a class="loginButton" href="_" v-on:click="createCommunity(); event.preventDefault();">{{language.createCommunityBtn}}</a>
+							<div class="loginButton" v-on:click="createCommunity(); event.preventDefault();">{{language.createCommunityBtn}}</div>
 						</div>
 					</div>	
 				</div>
@@ -356,8 +357,8 @@
 							<div id="courtCommunityError" class="dialog-error"></div>
 						</div>
 						<div class="menu-row">
-							<!--<a class="loginButton" href="_" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</a>-->
-							<a class="loginButton" href="_" v-on:click="courtCommunity(); event.preventDefault();">{{language.courtCommunityBtn}}</a>
+							<!--<div class="loginButton" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</div>-->
+							<div class="loginButton" v-on:click="courtCommunity(); event.preventDefault();">{{language.courtCommunityBtn}}</div>
 						</div>
 					</div>	
 				</div>
@@ -376,7 +377,7 @@
 							<div id="changeCommunityError" class="dialog-error"></div>
 						</div>
 						<div class="menu-row">
-							<a class="loginButton" href="_" v-on:click="selectCommunity(); event.preventDefault();">{{language.changeCommunityBtn}}</a>
+							<div class="loginButton" v-on:click="selectCommunity(); event.preventDefault();">{{language.changeCommunityBtn}}</div>
 						</div>
 					</div>	
 				</div>
@@ -437,8 +438,8 @@
 							<div id="publishGameError" class="dialog-error"></div>
 						</div>
 						<div class="menu-row" v-bind:class="{ 'menu-collapsed': wait }">
-							<a class="loginButton" href="_" v-on:click="publishGame(); event.preventDefault();">{{language.publishGameBtn}}</a>
-							<a class="loginButton" href="_" v-on:click="keyboardDelete(); changeView(0); event.preventDefault();">{{language.publishGameUndoBtn}}</a>
+							<div class="loginButton" v-on:click="publishGame(); event.preventDefault();">{{language.publishGameBtn}}</div>
+							<div class="loginButton" v-on:click="keyboardDelete(); changeView(0); event.preventDefault();">{{language.publishGameUndoBtn}}</div>
 						</div>
 					</div>	
 				</div>
@@ -513,9 +514,9 @@
 								<div class="menu-row menu-entering-collapsed">
 										<div class="menu-key" v-bind:class="{ 'menu-disabled': game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="menuShown = game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);">{{language.menuContinue}}</div>
 								</div>
-								<!--<div class="menu-row menu-entering-collapsed">
-									<div class="menu-text menu-text-ver">v.1.01</div>
-								</div>-->
+								<div class="menu-row menu-entering-collapsed">
+									<div class="menu-text menu-text-ver">v.1.03</div>
+								</div>
 								<div class="menu-empty"></div>
 						</div>
 						<div id="keyboard-numbers" class="keyboard-numbers" v-bind:class="{ 'element-collapsed': menuShown }">
@@ -681,6 +682,8 @@
 							var g = JSON.parse(v);
 							game.timeStamp = new Date(g.timeStamp);
 							game.finished = g.finished;
+							game.community = g.community;
+							game.communityRegion = g.communityRegion;
 							game.player1 = g.player1;
 							game.player2 = g.player2;
 							game.eventName = g.eventName;
@@ -962,7 +965,6 @@
 						settings.eventName = this.eventName = event.EventName;
 						settings.eventHistory = this.eventHistory = (await DartsApi({ action: "getEvent",
 							name: this.community, eventName: this.eventName })).map(e=> {
-//								Game501.ConvertNames(e);
 								let s = Game501.Verify(e);
 								e.legs = Game501.GetLegs(e);
 								e.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
@@ -985,7 +987,6 @@
 						getRecords("History", from, to, function(r) {
 							keyboardKeys.history = r.reverse();
 						});
-						this.changeView(1);
 					},
 					showHistoryItem: function(t) {
 						this.changeView(2);
@@ -998,6 +999,8 @@
 							return;
 						game.finished = false;
 						game.timeStamp = new Date();
+						game.community = this.community,
+						game.communityRegion = this.communityData.Region,
 						game.setLength = this.newSetLength;
 						game.legLength = this.newLegLength;
 						game.gameLength = this.newGameLength;
@@ -1124,6 +1127,7 @@
 					},
 					changeView: function(view) {
 						this.currentView = view;
+						document.getElementById("keyScore").classList.remove("animError");
 						var elm = document.getElementById("scoring-data");
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
@@ -1154,7 +1158,13 @@
 						if(r.selectedIndex >= 0)
 							this.courtCommunityName = r.options[r.selectedIndex].value;
 					},
+					updateHistory: function() {
+						getAllRecords("History", function(r) {
+							keyboardKeys.history = r.reverse().map(e=>{ e.timeStamp = new Date(e.timeStamp); e.timeStampDate = formatDate(e.timeStamp); e.language = keyboardKeys.language; return e;});
+						});
+					},
 					refreshProfle: async function() {
+						this.updateHistory();
 						this.profile = await DartsApiProfile();
 						await this.updateCommunityData();
 						this.communitiesList = this.profile.OwnedCommunities.concat(this.profile.JoinedCommunities);
@@ -1388,19 +1398,23 @@
 							this.changeView(0);
 						}
 					},
-					publishGame: async function() {
-						if(this.wait || !game.finished)
+					publishGame: async function(g) {
+						if(!g) g = game;
+						if(!g.community) g.community = this.community;
+						if(!g.communityRegion) g.communityRegion = this.communityData.Region;
+						if(this.wait || !g.finished)
 							return;
 						var res = await DartsApi({
 								action: 'gameFinished',
-								name: this.community,
-								region: this.communityData.Region,
-								eventName: game.eventName,
-								gameData: JSON.stringify(game)
+								name: g.community,
+								region: g.communityRegion,
+								eventName: g.eventName,
+								gameData: JSON.stringify(g)
 							});
 						var err = document.getElementById("publishGameError");
 						if(res.error) {
-							err.innerHTML = res.error.message ? res.error.message : res.error;
+							g.error = err.innerHTML = res.error.message ? res.error.message : res.error;
+							setRecord("History", new Date(g.timeStamp), JSON.stringify(g), () => keyboardKeys.updateHistory());
 						} else {
 							game.game = [ [ {
 											firstThrows: [],
@@ -1411,7 +1425,10 @@
 							deleteAll("CurrentGame");
 							game.updateAll();
 							await keyboardKeys.refreshProfle();
-							err.innerHTML = "";					
+							err.innerHTML = "";	
+							deleteRecord("History", this.item.timeStamp, ()=> {
+								keyboardKeys.updateHistory();
+							});				
 							this.showEventHistory(this.communityData.Events.find(e=>e.EventName == game.eventName));
 						}
 					},
@@ -1482,15 +1499,9 @@
 			function updateAll() {
 				game.updateAll();
 			}
-			CreateObjectStore("Settings", function() {
-				CreateObjectStore("CurrentGame", function() {
-					CreateObjectStore("History", function() {
-						game.restoreLastState();
-						settings.restore();
-						updateAll();
-					});
-				});
-			});
+			game.restoreLastState();
+			settings.restore();
+			updateAll();
 			var app = document.getElementById("app");
 			var keyPressTimer = null;
 			var keyLongPress = false;
@@ -1541,7 +1552,7 @@
 				document.getElementById(element).classList.toggle("show");
 			}
 			window.onclick = function(event) {
-				if (!event.target.matches('.menuelement')) closeAllMenus();
+				if (!event.target.matches('.menuelement') && !event.target.parentElement.matches('.menuelement')) closeAllMenus();
 			}
 			function closeAllMenus() {
 				let dropdowns = document.getElementsByClassName("dropdown-content");
@@ -1560,6 +1571,8 @@
 				if(window.history.state && window.history.state.currentView)
 					keyboardKeys.currentView = window.history.state.currentView;
 			}
+			if(document.getElementsByTagName('ya-tr-span').length > 0)
+				keyboardKeys.currentView = -1;
 		</script>
 	</body>
 </html>

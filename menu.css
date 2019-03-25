@@ -453,6 +453,7 @@
     border: none;
 }
 .profile-stats-item {
+    border: none;
 }
 .weeklyChart {
     flex: 1;

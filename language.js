@@ -89,7 +89,10 @@ var languages = {
         menuEvent: "Community",
         deleteGame: "Delete the game",
         deleteEmptyEvent: "Delete empty event",
-        deleteEmptyCommunity: "Delete empty community"
+        deleteEmptyCommunity: "Delete empty community",
+        delete: "Delete",
+        repeat: "Repeat",
+        notPublished: " Game wasn't published. "
     },
     "ru": {
         flag: "flag-RU",
@@ -181,7 +184,10 @@ var languages = {
         menuEvent: "Событие",
         deleteGame: "Удалить игру",
         deleteEmptyEvent: "Удалить пустое событие",
-        deleteEmptyCommunity: "Удалить пустое сообщество"
+        deleteEmptyCommunity: "Удалить пустое сообщество",
+        delete: "Удалить",
+        repeat: "Повторить",
+        notPublished: " Игра не была опубликована. "
     }
 
 };

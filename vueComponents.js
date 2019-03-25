@@ -25,7 +25,7 @@ Vue.directive('longpress', {
             if (pressTimer === null) {
                 pressTimer = setTimeout(() => {
                     // Run function
-                    handler()
+                    handler();
                 }, 1000)
             }
         }
@@ -86,8 +86,8 @@ Vue.component("communities-component-communityRating", {
             <div class="community-rating">
                 <div class="community-rating-rating">{{item.Rating}}</div>
                 <div class="community-rating-userName">{{item.UserName}}</div>
-                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': !item.changeable }" href="_" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</a>
-                <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</a>   
+                <div class="community-rating-status loginButton" v-bind:class="{ 'menu-collapsed': !item.changeable }" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</div>
+                <div class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</div>   
             </div>
         </div>
     `,
@@ -109,10 +109,10 @@ Vue.component("communities-component-communityEvents", {
         <div class="events-row"> 
             <div class="community-rating">
                 <div class="community-rating-event-group">
-                    <a class="community-rating-rating" href="_" v-on:click="showEvent(); event.preventDefault();">{{item.Date}}</a>
+                    <div class="community-rating-rating loginButton" v-on:click="showEvent(); event.preventDefault();">{{item.Date}}</div>
                 </div>
                 <div class="community-rating-event-group">
-                    <a class="community-rating-event" href="_" v-on:click="showEvent(); event.preventDefault();">{{item.EventName}}</a>
+                    <div class="community-rating-event loginButton" v-on:click="showEvent(); event.preventDefault();">{{item.EventName}}</div>
                 </div>
                 <div class="community-rating-event-group community-rating-event-group-short">
                     <div class="community-rating-event">{{item.HC}}</div>
@@ -122,8 +122,8 @@ Vue.component("communities-component-communityEvents", {
                 </div>
                 <div class="community-rating-userName"></div>
                 <div class="community-rating-event-group">
-                    <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': !item.changeable }" href="_" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</a>
-                    <a class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</a>   
+                    <div class="community-rating-status loginButton" v-bind:class="{ 'menu-collapsed': !item.changeable }" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</div>
+                    <div class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</div>   
                 </div>
             </div>
         </div>
@@ -135,6 +135,43 @@ Vue.component("communities-component-communityEvents", {
     methods: {
         showEvent: async function(item) {
             keyboardKeys.showEventHistory(this.item);
+        },
+        changeStatus: async function(item) {
+            if(item.changeable) {
+                await DartsApi({ action: 'activateCommunityEvent', name: keyboardKeys.community, eventName: item.EventName, active: item.Active ? false : true});
+                await keyboardKeys.updateCommunityData();
+            }
+        }
+    },
+});
+
+Vue.component("communities-component-history-waiting", {
+    template: `
+        <div class="menu-row"> 
+            <div class="community-message menuelement">
+                <div class="menuelement">{{item.timeStampDate}} {{item.player1}} VS {{item.player2}}{{item.language.notPublished}}</div>
+                <div class="menu-row" >
+                    <div class="dialog-error">{{item.error}}</div>
+                </div>
+                <div class="message-row"> 
+                    <div class="event-button menuelement loginButton" v-on:click="reject(); event.preventDefault();">{{item.language.delete}}</div>
+                    <div class="event-button menuelement loginButton" v-on:click="repeat(); event.preventDefault();">{{item.language.repeat}}</div>
+                </div>
+            </div>
+        </div>
+    `,
+    props: {
+        item: Object,
+        language: languages[settings.language]
+    },
+    methods: {
+        repeat: function () {
+            keyboardKeys.publishGame(this.item);
+        },
+        reject: function () {
+            deleteRecord("History", this.item.timeStamp, ()=> {
+                keyboardKeys.updateHistory();
+            });
         }
     },
 });
@@ -143,7 +180,7 @@ Vue.component("communities-component-waitingAgreement", {
         <div class="menu-row"> 
             <div class="community-message menuelement">
                 <div class="menuelement">{{item.language.courtMessage1}}{{item.CommunityName}}{{item.language.courtMessage2}}</div>
-				<a class="event-button menuelement" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</a>
+				<div class="event-button menuelement loginButton" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</div>
             </div>
         </div>
     `,
@@ -163,8 +200,8 @@ Vue.component("communities-component-waitingJoining", {
             <div class="community-message">
                 <div>{{item.UserName}}{{item.language.joinMessage1}}{{item.CommunityName}}{{item.language.joinMessage2}}</div>
                 <div class="message-row"> 
-                    <a class="event-button" href="_" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</a>
-				    <a class="event-button" href="_" v-on:click="accept(); event.preventDefault();">{{item.language.apply}}</a>
+                    <div class="event-button loginButton" v-on:click="reject(); event.preventDefault();">{{item.language.reject}}</div>
+				    <div class="event-button loginButton" v-on:click="accept(); event.preventDefault();">{{item.language.apply}}</div>
                 </div>
             </div>
         </div>
