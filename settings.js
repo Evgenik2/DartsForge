@@ -137,4 +137,4 @@ auth.parseCognitoWebResponse(curUrl);
 
 if(curUrl.indexOf("token") != -1)
     window.location.replace('/');
-settings.userName = auth.username;
+settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));

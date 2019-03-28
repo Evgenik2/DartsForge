@@ -92,7 +92,11 @@ var languages = {
         deleteEmptyCommunity: "Delete empty community",
         delete: "Delete",
         repeat: "Repeat",
-        notPublished: " Game wasn't published. "
+        notPublished: " Game wasn't published. ",
+        gameLengthError: "You can't continue the game due to the game length was changed.",
+        gameSetError: "The game can't be continued. The game is too far from sets limit you choose.",
+        gameLegError: "The game can't be continued. The game is too far from legs limit you choose.",
+        gamenoStartSwapError: "You are late to change player sex."
     },
     "ru": {
         flag: "flag-RU",
@@ -187,7 +191,11 @@ var languages = {
         deleteEmptyCommunity: "Удалить пустое сообщество",
         delete: "Удалить",
         repeat: "Повторить",
-        notPublished: " Игра не была опубликована. "
+        notPublished: " Игра не была опубликована. ",
+        gameLengthError: "Невозможно изменить тип уже начатой игры.",
+        gameSetError: "Игра не может быть продолжена. Игра зашла дальше чем вы выставили ограничение по сетам.",
+        gameLegError: "Игра не может быть продолжена. Игра зашла дальше чем вы выставили ограничение по легам.",
+        gamenoStartSwapError: "Уже поздно менять пол игрока."
     }
 
 };

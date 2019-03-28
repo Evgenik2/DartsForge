@@ -252,9 +252,6 @@
     align-self: center;
     text-align: center;
 }
-.dialog-error {
-    color: red;
-}
 .community-message {
     display: flex;
     flex-direction: column;
