@@ -321,11 +321,6 @@ Vue.component("history-component", {
                     <div class="stat-game-way">{{item.stats[7].player1}}</div>
                     <div class="stat-game-way">{{item.stats[7].player2}}</div>
                 </div>
-                <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">LWAT</div>
-                    <div class="stat-game-way">{{item.stats[8].player1}}</div>
-                    <div class="stat-game-way">{{item.stats[8].player2}}</div>
-                </div>
             </div>
         </div>
     `,
