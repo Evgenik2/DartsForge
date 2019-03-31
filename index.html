@@ -515,7 +515,7 @@
 									<div class="menu-key" v-bind:class="{ 'menu-disabled': !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="newGame()" :key="language.menuNewGame" ref="c73">{{language.menuNewGame}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-										<div class="menu-key" v-bind:class="{ 'menu-disabled': newGameError || game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="menuShown = game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);" :key="language.menuContinue" ref="c74">{{language.menuContinue}}</div>
+										<div class="menu-key" v-bind:class="{ 'menu-disabled': newGameError || game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2) }" v-on:click="continueGame()" :key="language.menuContinue" ref="c74">{{language.menuContinue}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed" v-bind:class="{ 'menu-collapsed': !newGameError }">
 									<div class="menu-text menu-text-ver dialog-error" :key="newGameError" ref="1006">{{newGameError}}</div>
@@ -706,6 +706,9 @@
 					undo: function() {
 						if(this.step == 0) return;
 						deleteRecord("CurrentGame", this.step);
+						deleteRecord("History", this.timeStamp, ()=> {
+							keyboardKeys.updateHistory();
+						});	
 						this.restoreLastState();
 					},
 					updateStats: function() {
@@ -977,7 +980,7 @@
 								e.legs = Game501.GetLegs(e);
 								e.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
 								return e;
-							});
+							}).sort((a, b) => b.timeStamp.localeCompare(a.timeStamp));
 						settings.store();
 						this.changeView(13);
 					},
@@ -1001,6 +1004,11 @@
 						var historyItem = this.history.find((i) => { return i.timeStamp == t});
 						this.historyItemLegs = historyItem.legs;
 						this.historyItemList = [historyItem];
+					},
+					continueGame: function() {
+						game.legLength = this.newLegLength;
+						game.setLength = this.newSetLength;
+						this.menuShown = game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);
 					},
 					newGame: function() {
 						this.newGameError = undefined;
@@ -1154,6 +1162,7 @@
 					},
 					changeView: function(view) {
 						this.currentView = view;
+						document.getElementById("publishGameError").innerHTML = undefined;
 						document.getElementById("keyScore").classList.remove("animError");
 						var elm = document.getElementById("scoring-data");
 						elm.classList.remove("animSwipeRight");
@@ -1453,7 +1462,7 @@
 							game.updateAll();
 							await keyboardKeys.refreshProfle();
 							err.innerHTML = "";	
-							deleteRecord("History", this.item.timeStamp, ()=> {
+							deleteRecord("History", g.timeStamp, ()=> {
 								keyboardKeys.updateHistory();
 							});				
 							this.showEventHistory(this.communityData.Events.find(e=>e.EventName == game.eventName));
@@ -1466,7 +1475,7 @@
 						settings.userName = undefined;
 						settings.community = undefined;
 						auth.signOut();
-						window.location.replace('/');
+						//window.location.replace('/');
 					},
 					deleteGame: async function() {
 						var res = await DartsApi({

@@ -117,6 +117,11 @@ function initCognitoSDK() {
         AdvancedSecurityDataCollectionFlag : false
     };
     var auth = new AmazonCognitoIdentity.CognitoAuth(authData);
+    auth.getFQDNSignOut = function() {
+      var uri = auth.getCognitoConstants().DOMAIN_SCHEME.concat(auth.getCognitoConstants().COLONDOUBLESLASH, auth.getAppWebDomain(), auth.getCognitoConstants().SLASH, auth.getCognitoConstants().DOMAIN_PATH_SIGNOUT, auth.getCognitoConstants().QUESTIONMARK, auth.getCognitoConstants().DOMAIN_QUERY_PARAM_REDIRECT_URI, auth.getCognitoConstants().EQUALSIGN, encodeURIComponent(auth.RedirectUriSignOut), auth.getCognitoConstants().AMPERSAND, auth.getCognitoConstants().DOMAIN_QUERY_PARAM_RESPONSE_TYPE, auth.getCognitoConstants().EQUALSIGN, auth.responseType, auth.getCognitoConstants().AMPERSAND, auth.getCognitoConstants().CLIENT_ID, auth.getCognitoConstants().EQUALSIGN, auth.getClientId());
+      return uri;
+    }
+//    auth.useCodeGrantFlow();
     // You can also set state parameter 
     // auth.setState(<state parameter>);  
 
