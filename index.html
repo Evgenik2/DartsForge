@@ -125,11 +125,36 @@
 					<div v-bind:class="{ 'menu-collapsed': currentView != 5 }" :key="language.createCommunity" ref="c6">{{language.createCommunity}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 6 }" :key="language.courtCommunity" ref="c7">{{language.courtCommunity}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 7 }" :key="language.changeCommunity" ref="c8">{{language.changeCommunity}}</div>
-					<div v-bind:class="{ 'menu-collapsed': currentView != 8 }" :key="language.communityRating" ref="c9">{{language.communityRating}}</div>
+
+					<div class="dropdown" v-bind:class="{ 'menu-collapsed': currentView != 8 }">
+						<div class="menudropbtn" v-on:click="toggleMenuShow('communityRatingDropdown');">
+							<div class="menubtnContent">
+								<div class="menuelement" :key="language.communityRating" ref="c9">{{language.communityRating}}</div>
+								<div class="menudroparrow menuelement">▼</div>
+							</div>
+						</div>
+						<div id="communityRatingDropdown" class="dropdown-content dropdown-content-left">
+							<div class="dropdown-content-item" v-on:click="exportRatingToTxt(); event.preventDefault();" :key="language.fileExportTXT" ref="c118">{{language.fileExportTXT}} </div>
+							<div class="dropdown-content-item" v-on:click="exportRatingToCSV(); event.preventDefault();" :key="language.fileExportCSV" ref="c119">{{language.fileExportCSV}} </div>
+						</div>
+					</div>
+
 					<div v-bind:class="{ 'menu-collapsed': currentView != 10 }" :key="language.menuCommunityEvents" ref="c10">{{language.menuCommunityEvents}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 11 }" :key="language.menuCommunityEventsNew" ref="c11">{{language.menuCommunityEventsNew}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 12 }" :key="language.publishGame" ref="c12">{{language.publishGame}}</div>
-					<div v-bind:class="{ 'menu-collapsed': currentView != 13 }" :key="language.menuEvent" ref="c13">{{language.menuEvent}}</div>
+
+					<div class="dropdown" v-bind:class="{ 'menu-collapsed': currentView != 13 }">
+						<div class="menudropbtn" v-on:click="toggleMenuShow('menuEventDropdown');">
+							<div class="menubtnContent">
+								<div class="menuelement" :key="language.menuEvent" ref="c9">{{language.menuEvent}}</div>
+								<div class="menudroparrow menuelement">▼</div>
+							</div>
+						</div>
+						<div id="menuEventDropdown" class="dropdown-content dropdown-content-left">
+							<div class="dropdown-content-item" v-on:click="exportEventToTxt(); event.preventDefault();" :key="language.fileExportTXT" ref="c118">{{language.fileExportTXT}} </div>
+							<div class="dropdown-content-item" v-on:click="exportEventToCSV(); event.preventDefault();" :key="language.fileExportCSV" ref="c119">{{language.fileExportCSV}} </div>
+						</div>
+					</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 14 }" :key="language.menuEventGame" ref="c14">{{language.menuEventGame}}</div>
 				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !wait }" >
@@ -270,6 +295,13 @@
 			</div>
 			<div id="manageCommunity" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 8 }">
 				<div class="history-container">
+					<!--<div v-on:click="exportRatingToTxt()" >
+						<svg class="menu-exportBtn" viewBox="0 0 210 297" style="fill:black;fill-opacity:0.1;fill-rule:nonzero;stroke-width:50;">
+							<rect width="176" height="256" x="16" y="18" style="stroke-width:30;fill:none;stroke:#000000;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none" rx="40" ry="40" />
+							<rect style="fill:none;stroke:#000000;stroke-width:30;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="rect817" width="94" height="1.5" x="58" y="76" />
+							<text style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:72.73938751px;line-height:40;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.378851" x="51" y="149" transform="scale(0.81575902,1.2258522)"><tspan x="51" y="149" style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:72.73938751px;line-height:40;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';writing-mode:lr-tb;stroke-width:0.378851">TXT</tspan></text>							<rect style="fill:none;stroke:#000000;stroke-width:30;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="rect817-47" width="94" height="1.5" x="58" y="224" />
+						</svg>
+					</div>-->
 					<communities-component-communityRating  is="communities-component-communityRating" v-for="item in communityData.Rating" v-bind:item="item" v-bind:key="item.name"></communities-component-communityRating>		
 				</div>
 			</div>
@@ -521,7 +553,7 @@
 									<div class="menu-text menu-text-ver dialog-error" :key="newGameError" ref="1006">{{newGameError}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-text menu-text-ver">v.1.04</div>
+									<div class="menu-text menu-text-ver">v.1.05</div>
 								</div>
 								<div class="menu-empty"></div>
 						</div>
@@ -942,9 +974,9 @@
 					keyboardClick: function (value) {
 						var v = this.value * 10 + value;
 						if(v > 180)
-							v = 0;
+							v = value;
 						if(!game.validateNumber(v))
-							v = 0;
+							v = game.validateNumber(value) ? value : 0;
 						this.value = v;
 						this.legN = this.legs.length - 1;
 					},
@@ -1219,8 +1251,14 @@
 							opt.innerHTML = this.communitiesList[i];
 							r.appendChild(opt);
 						}
-						if(!this.communityData.Rating || !this.communityData.Rating.find(e=>e.UserName == this.userName))
+						if(!this.communityData.Rating || !this.communityData.Rating.find(e=>e.UserName == this.userName)) {
 							this.community = settings.community = null;
+							if(this.communitiesList.length > 0) {
+								this.community = settings.community = this.communitiesList[0];
+								await this.updateCommunityData();
+								settings.store();
+							}
+						}
 						let stats = this.profile.WorldRating;
 						if(stats)
 							this.userWorldStats = [
@@ -1331,14 +1369,17 @@
 							}
 							this.communityData.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
 							if(this.communityData.Rating)
-								this.communityData.Rating = this.communityData.Rating.map(e=>{
-									e.Rating = Math.round(e.Rating),
-									e.Status = e.IsOwner ? this.language.userOwner 
-											: e.IsReferee ? this.language.userReferee
-											: this.language.userPlayer;
-									e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
-									return e;
-								}).sort((a, b) => b.Rating < a.Rating ? -1 : 1);
+								this.communityData.Rating = this.communityData.Rating
+									.sort((a, b) => b.Rating < a.Rating ? -1 : 1)
+									.map((e, i)=>{	
+										e.N = i + 1;
+										e.Av = e.ThrowTotal / e.ThrowCount;
+										e.Status = e.IsOwner ? this.language.userOwner 
+												: e.IsReferee ? this.language.userReferee
+												: this.language.userPlayer;
+										e.changeable = e.UserName != this.userName && this.communityData.Owner == this.userName;
+										return e;
+									});
 							if(this.communityData.Events)
 								this.communityData.Events = this.communityData.Events.map(e=>{
 									let d = new Date(e.CreationDate)
@@ -1503,7 +1544,48 @@
 							});
 						await keyboardKeys.refreshProfle();
 						this.changeView(0);
-					}
+					},
+					exportRatingToTxt: function() {
+						this.exportRating(this.community + "_Rating.txt", '\t', '');
+					},
+					exportRatingToCSV: function() {
+						this.exportRating(this.community + "_Rating.csv", ',', '"');
+					},
+					exportRating: function(fn, s, q) {
+						download(fn, 
+							q + "N" + q + s + q + "Rating" + q + s + q + "Name" + q + s + q + "BL" + q + s + q + "HC" + q + s + q +"Av" + q + s + q +"W/D/L" + q + s + q +"Doubles" + q + s + q +"60+" + q + s + q +"100+" + q + s + q +"140+" + q + s + q +"180" + q + "\r\n" + 
+							this.communityData.Rating.map(
+								(e, i)=> q + e.N + '.' + q + s + q + round1(e.Rating) + q + s + q + e.UserName + q + s + q + tos(e.BestLeg) + q + s + q + tos(e.HC) + q + s + q + round1(e.Av) + q + s + q + tos(e.WonGames) + '/' + tos(e.DrawGames) + '/' + tos(e.LooseGames) + q + s + q + tos(e.DoubleSuccess) + '/' + tos(e.DoubleThrows) + q + s + q + tos(e.t60) + q + s + q + tos(e.t100) + q + s + q + tos(e.t140) + q + s + q + tos(e.t180) + q)
+								.join('\r\n')
+						);
+					},
+					exportEventToTxt: function() {
+						this.exportEvent(this.community + "_" + this.eventData.EventName + "_Event.txt", '\t', '');
+					},
+					exportEventToCSV: function() {
+						this.exportEvent(this.community + "_" + this.eventData.EventName + "_Event.csv", ',', '"');
+					},
+					exportEvent: function(fn, s, q) {
+						download(fn, 
+							q + "HC" + q + s + q + this.eventData.HC + q + s + q + this.eventData.HCPlayer + q + "\r\n" +
+							q + "BL" + q + s + q + this.eventData.BestLeg + q + s + q + this.eventData.BestLegPlayer + q + "\r\n" +
+							q + "ThrowCount" + q + s + q + this.eventData.ThrowCount + q + "\r\n" +
+							q + "ThrowTotal" + q + s + q + this.eventData.ThrowTotal + q + "\r\n" +
+							q + "ThrowTotal" + q + s + q + this.eventData.ThrowTotal + q + "\r\n" +
+							q + "60+" + q + s + q + this.eventData.t60 + q + "\r\n" +
+							q + "100+" + q + s + q + this.eventData.t100 + q + "\r\n" +
+							q + "140+" + q + s + q + this.eventData.t140 + q + "\r\n" +
+							q + "180" + q + s + q + this.eventData.t180 + q + "\r\n" +
+							q + "Count" + q + s + q + this.eventHistory.length + q + "\r\n" +
+							q + "Date" + q + s + q + "Name" + q + s + q + "Sets" + q + s + q + "BL" + q + s + q + "HC" + q + s + q +"Av" + q + s + q +"Doubles" + q + s + q +"100+" + q + s + q +"140+" + q + s + q +"180" + q + "\r\n" + 
+							this.eventHistory.map(
+								(e, i)=> 
+									q + formatDate(e.Published) + q + s + q + e.player1 + q + s + q + round1(e.wonSets1) + q + s + q + tos(e.stats[7].player1) + q + s + q + tos(e.stats[4].player1) + q + s + q + round1(e.stats[3].player1) + q + s + q + tos(e.stats[5].player1) + q + s + q + tos(e.stats[0].player1) + q + s + q + tos(e.stats[1].player1) + q + s + q + tos(e.stats[2].player1) + q + "\r\n" +
+									q + q + s + q + e.player2 + q + s + q + round1(e.wonSets2) + q + s + q + tos(e.stats[7].player2) + q + s + q + tos(e.stats[4].player2) + q + s + q + round1(e.stats[3].player2) + q + s + q + tos(e.stats[5].player2) + q + s + q + tos(e.stats[0].player2) + q + s + q + tos(e.stats[1].player2) + q + s + q + tos(e.stats[2].player2) + q
+								)
+								.join('\r\n')
+						);
+					},
 				}
 			});
 			banner = new Vue({

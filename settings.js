@@ -1,3 +1,27 @@
+function tos(i) {
+    if(!i)
+        return 0;
+    return i;
+}
+function round1(i) {
+    return Math.round(tos(i) * 10) / 10;
+}
+function round2(i) {
+    return Math.round(tos(i) * 100) / 100;
+}
+
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+  
+    element.style.display = 'none';
+    document.body.appendChild(element);
+  
+    element.click();
+  
+    document.body.removeChild(element);
+}
 async function DartsApi(request) {
     try {
         keyboardKeys.wait = true;
@@ -104,7 +128,7 @@ var settings = {
 };
 
 function initCognitoSDK() {
-    var hostUrl = document.URL.split("/DartsForge/")[0];
+    var hostUrl = document.URL.split("?")[0];
     var domain = hostUrl.split("//")[1];
     var authData = {
         ClientId : '2l9l4t5o41uenmn9sg0ohre60d',
@@ -117,22 +141,25 @@ function initCognitoSDK() {
         AdvancedSecurityDataCollectionFlag : false
     };
     var auth = new AmazonCognitoIdentity.CognitoAuth(authData);
-    auth.getFQDNSignOut = function() {
-      var uri = auth.getCognitoConstants().DOMAIN_SCHEME.concat(auth.getCognitoConstants().COLONDOUBLESLASH, auth.getAppWebDomain(), auth.getCognitoConstants().SLASH, auth.getCognitoConstants().DOMAIN_PATH_SIGNOUT, auth.getCognitoConstants().QUESTIONMARK, auth.getCognitoConstants().DOMAIN_QUERY_PARAM_REDIRECT_URI, auth.getCognitoConstants().EQUALSIGN, encodeURIComponent(auth.RedirectUriSignOut), auth.getCognitoConstants().AMPERSAND, auth.getCognitoConstants().DOMAIN_QUERY_PARAM_RESPONSE_TYPE, auth.getCognitoConstants().EQUALSIGN, auth.responseType, auth.getCognitoConstants().AMPERSAND, auth.getCognitoConstants().CLIENT_ID, auth.getCognitoConstants().EQUALSIGN, auth.getClientId());
-      return uri;
-    }
-//    auth.useCodeGrantFlow();
+//    auth.getFQDNSignOut = function() {
+//      var uri = auth.getCognitoConstants().DOMAIN_SCHEME.concat(auth.getCognitoConstants().COLONDOUBLESLASH, auth.getAppWebDomain(), auth.getCognitoConstants().SLASH, auth.getCognitoConstants().DOMAIN_PATH_SIGNOUT, auth.getCognitoConstants().QUESTIONMARK, auth.getCognitoConstants().DOMAIN_QUERY_PARAM_REDIRECT_URI, auth.getCognitoConstants().EQUALSIGN, encodeURIComponent(auth.RedirectUriSignOut), auth.getCognitoConstants().AMPERSAND, auth.getCognitoConstants().DOMAIN_QUERY_PARAM_RESPONSE_TYPE, auth.getCognitoConstants().EQUALSIGN, auth.responseType, auth.getCognitoConstants().AMPERSAND, auth.getCognitoConstants().CLIENT_ID, auth.getCognitoConstants().EQUALSIGN, auth.getClientId());
+//      return uri;
+//    }
     // You can also set state parameter 
     // auth.setState(<state parameter>);  
 
     // The default response_type is "token", uncomment the next line will make it be "code".
-    // auth.useCodeGrantFlow();
+    auth.useCodeGrantFlow();
     return auth;
 }
 var auth = initCognitoSDK();
 var curUrl = window.location.href;
 auth.userhandler = {
     onSuccess: function(result) {
+        if(curUrl.indexOf("token") != -1 || curUrl.indexOf("code") != -1)
+            window.location.replace('/');
+        if(auth.username)
+            settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
     },
     onFailure: function(err) {
     }
@@ -140,6 +167,5 @@ auth.userhandler = {
 auth.parseCognitoWebResponse(curUrl);
 
 
-if(curUrl.indexOf("token") != -1)
-    window.location.replace('/');
-settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
+if(auth.username)
+    settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));

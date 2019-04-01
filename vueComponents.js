@@ -56,9 +56,9 @@ Vue.directive('longpress', {
 Vue.component("stats-component", {
     template: `
         <div class="stat-item"> 
-            <div class="stat-head">{{item.name}}</div>
-            <div class="stat-value">{{item.player1}}</div>
-            <div class="stat-value">{{item.player2}}</div>
+            <div class="stat-head" :key="item.name" ref="c2000">{{item.name}}</div>
+            <div class="stat-value" :key="item.player1" ref="c2001">{{item.player1}}</div>
+            <div class="stat-value" :key="item.player2" ref="c2002">{{item.player2}}</div>
         </div>
     `,
     props: {
@@ -68,7 +68,7 @@ Vue.component("stats-component", {
 Vue.component("communities-component", {
     template: `
         <div class="menu-row"> 
-            <div class="stat-head" v-on:click="selectCommunity">{{item}}</div>
+            <div class="stat-head" v-on:click="selectCommunity" :key="item" ref="c2003">{{item}}</div>
         </div>
     `,
     props: {
@@ -84,10 +84,11 @@ Vue.component("communities-component-communityRating", {
     template: `
         <div class="menu-row"> 
             <div class="community-rating">
-                <div class="community-rating-rating">{{item.Rating}}</div>
-                <div class="community-rating-userName">{{item.UserName}}</div>
-                <div class="community-rating-status loginButton" v-bind:class="{ 'menu-collapsed': !item.changeable }" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</div>
-                <div class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</div>   
+                <div class="community-rating-n">{{item.N}}. </div>
+                <div class="community-rating-rating" :key="item.Rating" ref="c2004"> {{Math.round(item.Rating)}}</div>
+                <div class="community-rating-userName" :key="item.UserName" ref="c2005">{{item.UserName}}</div>
+                <div class="community-rating-status loginButton" v-bind:class="{ 'menu-collapsed': !item.changeable }" v-on:click="changeStatus(item); event.preventDefault();" :key="item.Status" ref="c2006">{{item.Status}}</div>
+                <div class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }" :key="item.Status" ref="c2007">{{item.Status}}</div>   
             </div>
         </div>
     `,
@@ -109,21 +110,21 @@ Vue.component("communities-component-communityEvents", {
         <div class="events-row"> 
             <div class="community-rating">
                 <div class="community-rating-event-group">
-                    <div class="community-rating-rating loginButton" v-on:click="showEvent(); event.preventDefault();">{{item.Date}}</div>
+                    <div class="community-rating-rating loginButton" v-on:click="showEvent(); event.preventDefault();" :key="item.Date" ref="c2008">{{item.Date}}</div>
                 </div>
                 <div class="community-rating-event-group">
-                    <div class="community-rating-event loginButton" v-on:click="showEvent(); event.preventDefault();">{{item.EventName}}</div>
+                    <div class="community-rating-event loginButton" v-on:click="showEvent(); event.preventDefault();" :key="item.EventName" ref="c2009">{{item.EventName}}</div>
                 </div>
                 <div class="community-rating-event-group community-rating-event-group-short">
-                    <div class="community-rating-event">{{item.HC}}</div>
+                    <div class="community-rating-event" :key="item.HC" ref="c2010">{{item.HC}}</div>
                 </div>
                 <div class="community-rating-event-group community-rating-event-group-short">
-                    <div class="community-rating-event">{{item.BestLeg}}</div>
+                    <div class="community-rating-event" :key="item.BestLeg" ref="c2011">{{item.BestLeg}}</div>
                 </div>
                 <div class="community-rating-userName"></div>
                 <div class="community-rating-event-group">
-                    <div class="community-rating-status loginButton" v-bind:class="{ 'menu-collapsed': !item.changeable }" v-on:click="changeStatus(item); event.preventDefault();">{{item.Status}}</div>
-                    <div class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }">{{item.Status}}</div>   
+                    <div class="community-rating-status loginButton" v-bind:class="{ 'menu-collapsed': !item.changeable }" v-on:click="changeStatus(item); event.preventDefault();" :key="item.Status" ref="c2012">{{item.Status}}</div>
+                    <div class="community-rating-status" v-bind:class="{ 'menu-collapsed': item.changeable }" :key="item.Status" ref="c2013">{{item.Status}}</div>   
                 </div>
             </div>
         </div>
@@ -255,11 +256,11 @@ Vue.component("profile-stats-component", {
 Vue.component("game-leg-component", {
     template: `
         <div class="scoring-row">
-            <div class="scoring-throw scoring-throw-first" v-bind:class="{ 'scoring-throw-red': item.throw1 % 1000 >= 100, 'scoring-throw-next': item.next == 1 }">{{item.throw1 === "" ? "" : (item.throw1 >= 10000 ? "X" + Math.floor(item.throw1 / 10000) : item.throw1 % 1000) + "*".repeat(Math.floor(item.throw1 % 10000 / 1000))}}</div>
-            <div class="scoring-throw">{{item.left1}}</div>
-            <div class="scoring-throw scoring-throw-number">{{item.throw}}</div>
-            <div class="scoring-throw">{{item.left2}}</div>
-            <div class="scoring-throw scoring-throw-second" v-bind:class="{ 'scoring-throw-red': item.throw2 % 1000 >= 100, 'scoring-throw-next': item.next == 2 }">{{item.throw2 === "" ? "" : (item.throw2 >= 10000 ? "X" + Math.floor(item.throw2 / 10000) : item.throw2 % 1000) + "*".repeat(Math.floor(item.throw2 % 10000 / 1000))}}</div>
+            <div class="scoring-throw scoring-throw-first" v-bind:class="{ 'scoring-throw-red': item.throw1 % 1000 >= 100, 'scoring-throw-next': item.next == 1 }" :key="item.throw1" ref="c2015">{{item.throw1 === "" ? "" : (item.throw1 >= 10000 ? "X" + Math.floor(item.throw1 / 10000) : item.throw1 % 1000) + "*".repeat(Math.floor(item.throw1 % 10000 / 1000))}}</div>
+            <div class="scoring-throw" :key="item.left1" ref="c2016">{{item.left1}}</div>
+            <div class="scoring-throw scoring-throw-number" :key="item.throw" ref="c2017">{{item.throw}}</div>
+            <div class="scoring-throw" :key="item.left2" ref="c2018">{{item.left2}}</div>
+            <div class="scoring-throw scoring-throw-second" v-bind:class="{ 'scoring-throw-red': item.throw2 % 1000 >= 100, 'scoring-throw-next': item.next == 2 }" :key="item.throw2" ref="c2019">{{item.throw2 === "" ? "" : (item.throw2 >= 10000 ? "X" + Math.floor(item.throw2 / 10000) : item.throw2 % 1000) + "*".repeat(Math.floor(item.throw2 % 10000 / 1000))}}</div>
         </div>
     `,
     props: {

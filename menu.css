@@ -287,8 +287,6 @@
     border-radius: 0.2vmax;
     border: 0.3vmax;
     background: #dddddd;
-    margin-left: 10px;
-    margin-right: 10px;
     max-width: 1000px;
 }
 .community-rating-header {
@@ -299,6 +297,13 @@
     flex: 1;
     color: #111111;
     justify-content: center;
+}
+.community-rating-n {
+    display: flex;
+    color: #888888;
+    min-width: 3vmax;
+    justify-content: left;
+    margin-right: 10px;
 }
 .community-rating-rating {
     display: flex;
@@ -382,6 +387,9 @@
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
     font-size: 2.5vmax;
+}
+.dropdown-content-left {
+    left: 0;
 }
 .dropdown-content-bell {
     right: -15vmax;
@@ -498,4 +506,7 @@
 .menu-btn-on {
     color: #ff8f00;
     stroke: #ff8f00;
+}
+.menu-exportBtn {
+    height: 5vmax;
 }
