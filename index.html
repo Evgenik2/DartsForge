@@ -1349,6 +1349,12 @@
 							err.innerHTML = res.error.message ? res.error.message : res.error;
 						} else {
 							await this.updateCommunityData();
+							ws.send(JSON.stringify({ action: "newCommunityEvent", 
+									  community: this.community,
+									  eventName: this.newCommunityEvent,
+									  userName: this.userName,
+									  token: await GetToken() 
+									}));
 							err.innerHTML = "";
 							this.changeView(10);
 						}
@@ -1356,6 +1362,7 @@
 					selectCommunity: async function() {
 						var r = document.getElementById("changeCommunityName");
 						this.community = settings.community = r.selectedIndex >= 0 ? r.options[r.selectedIndex].value : undefined;
+						ws.send({ "action": "join", "community": this.community });
 						await this.updateCommunityData();
 						settings.store();
 						this.changeView(0);

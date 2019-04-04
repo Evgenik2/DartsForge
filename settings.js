@@ -22,25 +22,28 @@ function download(filename, text) {
   
     document.body.removeChild(element);
 }
+async function GetToken() {
+    return await new Promise(function(resolve, reject) {
+        auth.userhandler = {
+            onSuccess: function(result) {
+                resolve(result.getIdToken().getJwtToken());
+            },
+            onFailure: function(err) {
+                reject("Error!" + err);
+            }
+        };
+        auth.getSession();
+    });
+}
 async function DartsApi(request) {
     try {
         keyboardKeys.wait = true;
-        var token = await new Promise(function(resolve, reject) {
-            auth.userhandler = {
-                onSuccess: function(result) {
-                    resolve(result.getIdToken().getJwtToken());
-                },
-                onFailure: function(err) {
-                    reject("Error!" + err);
-                }
-            };
-            auth.getSession();
-        });
+
         var response = await fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev', {
             headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'Authorization': token
+            'Authorization': await GetToken()
             },
             method: "POST",
             body: JSON.stringify(request)
@@ -169,3 +172,33 @@ auth.parseCognitoWebResponse(curUrl);
 
 if(auth.username)
     settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
+
+
+    var ws;
+    function start(){
+        ws = new WebSocket("wss://5me0v9emlj.execute-api.us-east-2.amazonaws.com/dev");
+        ws.onopen = function() { 
+            ws.send(JSON.stringify({ "action": "join", "community": settings.community }));
+            console.log("Connection opened...") 
+        };
+        ws.onmessage = async function(evt) {
+            let data = JSON.parse(evt.data);
+            if(data.error) {
+                alert(evt.data);
+                return;
+            }
+            switch(data.action) {
+                case "newCommunityEvent":
+
+                    await keyboardKeys.updateCommunityData();
+
+                    break;
+            }
+        };
+        ws.onclose = function(){
+            // Try to reconnect in 5 seconds
+            setTimeout(start, 5000);
+        };
+    }
+    start();
+    

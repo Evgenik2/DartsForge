@@ -142,7 +142,8 @@ var activateCommunityEvent = async function(userName, communityName, eventName, 
   	if(eventName.length > 20) throw 'Event name should be less than 20 characters';
   	let ev = cd.Events.find(e=>e.EventName == eventName);
     if(!ev) throw "Event doesn't exists";
-  	await documentClient.put({ Item : { CommunityName : communityName, CreationDate : ev.CreationDate, EventName : eventName, Active : active }, TableName : process.env.GameEventsTableName }).promise();
+    ev.Active = active;
+  	await documentClient.put({ Item : ev, TableName : process.env.GameEventsTableName }).promise();
     return { message: "Community " + communityName +" event " + eventName + " activated by " + userName };
 };
 var courtCommunity = async function(userName, communityName) {
@@ -556,6 +557,7 @@ var deleteGame = async function(userName, communityName, eventName, refereeTimes
         throw 'User '+userName+' is not owner of the community ' + communityName;
     let gameData = (await documentClient.get({ Key: { "CommunityEvent" : communityName + '_' + eventName, "RefereeTimestamp" : refereeTimestamp }, TableName : process.env.GamesTableName }).promise()).Item;
     let stats = Game501.Verify(gameData);
+
     await deleteCommunityStats(communityName, gameData.player1, 1, stats);
     await deleteCommunityStats(communityName, gameData.player2, 2, stats);
     await deleteRegionStats(community.Region, gameData.player1, 1, stats);
