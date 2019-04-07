@@ -32,8 +32,20 @@ async function GetToken() {
                 reject("Error!" + err);
             }
         };
-        auth.getSession();
+        if(!auth.userName)
+            setTimeout(function() {
+                auth.getSession();
+            }, 2000);
+        else
+            auth.getSession();
     });
+}
+async function sendWS(data) {
+    data.token = await GetToken();
+    if(!data.community)
+        data.community = keyboardKeys.community;
+    data.userName = keyboardKeys.userName;
+    ws.send(JSON.stringify(data));
 }
 async function DartsApi(request) {
     try {
@@ -169,16 +181,13 @@ auth.userhandler = {
 };
 auth.parseCognitoWebResponse(curUrl);
 
-
 if(auth.username)
     settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
-
-
     var ws;
     function start(){
         ws = new WebSocket("wss://5me0v9emlj.execute-api.us-east-2.amazonaws.com/dev");
         ws.onopen = function() { 
-            ws.send(JSON.stringify({ "action": "join", "community": settings.community }));
+            ws.send(JSON.stringify({ "action": "join", "community": settings.community, "userName": keyboardKeys.userName }));
             console.log("Connection opened...") 
         };
         ws.onmessage = async function(evt) {
@@ -188,10 +197,33 @@ if(auth.username)
                 return;
             }
             switch(data.action) {
+                case "courtCommunity":
+                    if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable &&
+                        !keyboardKeys.profile.Joins.find(e=>e.CommunityName == data.community && e.UserName == data.userName)) {
+                            keyboardKeys.profile.Joins.push({CommunityName: data.community, UserName: data.userName, language: keyboardKeys.language});
+                            keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
+                        }
+                        break;
+                case "rejectCourt":
+                    if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable) {
+                        keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
+                        keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
+                    }
+                    break;
+                case "rejectJoin":
+                    if(data.userName == keyboardKeys.userName || (keyboardKeys.community == data.community && keyboardKeys.communityData.changeable)) {
+                        keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
+                        keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
+                        keyboardKeys.profile.Courts = keyboardKeys.profile.Courts.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
+                        keyboardKeys.waitingAgreement = keyboardKeys.profile.Courts;
+                    }
+                    break;
+                case "joinCommunity":
+                    await keyboardKeys.refreshProfile();
+                    break;
+                case "deleteEvent":
                 case "newCommunityEvent":
-
                     await keyboardKeys.updateCommunityData();
-
                     break;
             }
         };

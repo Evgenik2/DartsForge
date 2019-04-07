@@ -1194,7 +1194,7 @@
 					},
 					changeView: function(view) {
 						this.currentView = view;
-						document.getElementById("publishGameError").innerHTML = undefined;
+						document.getElementById("publishGameError").innerHTML = "";
 						document.getElementById("keyScore").classList.remove("animError");
 						var elm = document.getElementById("scoring-data");
 						elm.classList.remove("animSwipeRight");
@@ -1231,7 +1231,7 @@
 							keyboardKeys.history = r.reverse().map(e=>{ e.timeStamp = new Date(e.timeStamp); e.timeStampDate = formatDate(e.timeStamp); e.language = keyboardKeys.language; return e;});
 						});
 					},
-					refreshProfle: async function() {
+					refreshProfile: async function() {
 						this.updateHistory();
 						this.profile = await DartsApiProfile();
 						await this.updateCommunityData();
@@ -1331,7 +1331,7 @@
 						if(res.error) {
 							err.innerHTML = res.error.message ? res.error.message : res.error;
 						} else {
-							await keyboardKeys.refreshProfle();
+							await keyboardKeys.refreshProfile();
 							this.community = this.newCommunityName;
 							this.selectCommunity();
 							err.innerHTML = "";
@@ -1349,12 +1349,7 @@
 							err.innerHTML = res.error.message ? res.error.message : res.error;
 						} else {
 							await this.updateCommunityData();
-							ws.send(JSON.stringify({ action: "newCommunityEvent", 
-									  community: this.community,
-									  eventName: this.newCommunityEvent,
-									  userName: this.userName,
-									  token: await GetToken() 
-									}));
+							sendWS({ action: "newCommunityEvent", eventName: this.newCommunityEvent });
 							err.innerHTML = "";
 							this.changeView(10);
 						}
@@ -1406,7 +1401,10 @@
 									opt.innerHTML = this.communityData.Events[i].EventName;
 									opt.value = this.communityData.Events[i].EventName;
 									r.appendChild(opt);
+									if(!game.eventName)
+										game.eventName = opt.value;
 								}
+
 							var r = document.getElementById("player1");
 							for (i = r.options.length - 1; i >= 0 ; i--)
 								r.options[i] = null;
@@ -1450,23 +1448,26 @@
 								action: 'rejectCourt',
 								name: item.CommunityName
 							});
-						await keyboardKeys.refreshProfle();
+							sendWS({ action: 'rejectCourt', community: item.CommunityName, courtName: item.UserName });
+						await keyboardKeys.refreshProfile();
 					},
 					rejectJoin: async function(item) {
 						var res = await DartsApi({
 								action: 'rejectJoin',
 								name: item.CommunityName,
 								courtName: item.UserName
-							});
-						await keyboardKeys.refreshProfle();
+						});
+						sendWS({ action: 'rejectJoin', community: item.CommunityName, courtName: item.UserName });
+						await keyboardKeys.refreshProfile();
 					},
 					acceptJoin: async function(item) {
 						var res = await DartsApi({
 								action: 'joinCommunity',
 								name: item.CommunityName,
 								courtName: item.UserName
-							});
-						await keyboardKeys.refreshProfle();
+						});
+						sendWS({ action: 'joinCommunity', community: item.CommunityName, courtName: item.UserName });							
+						await keyboardKeys.refreshProfile();
 					},
 					courtCommunity: async function() {
 						var res = await DartsApi({
@@ -1477,7 +1478,8 @@
 						if(res.error) {
 							err.innerHTML = res.error.message ? res.error.message : res.error;
 						} else {
-							await keyboardKeys.refreshProfle();
+							sendWS({ action: 'courtCommunity', community: this.courtCommunityName});							
+							await keyboardKeys.refreshProfile();
 							err.innerHTML = "";
 							this.changeView(0);
 						}
@@ -1508,7 +1510,7 @@
 							game.player2 = undefined;
 							deleteAll("CurrentGame");
 							game.updateAll();
-							await keyboardKeys.refreshProfle();
+							await keyboardKeys.refreshProfile();
 							err.innerHTML = "";	
 							deleteRecord("History", g.timeStamp, ()=> {
 								keyboardKeys.updateHistory();
@@ -1532,7 +1534,7 @@
 								eventName: this.eventName,
 								refereeTimestamp: this.eventHistoryItemList[0].RefereeTimestamp
 							});
-						await keyboardKeys.refreshProfle();
+						await keyboardKeys.refreshProfile();
 						this.showEventHistory(this.communityData.Events.find(e=>e.EventName == this.eventName));
 					},
 					deleteEvent: async function() {
@@ -1540,8 +1542,9 @@
 								action: 'deleteEvent',
 								name: this.community,
 								eventName: this.eventName
-							});
-						await keyboardKeys.refreshProfle();
+						});				
+						await keyboardKeys.refreshProfile();
+						sendWS({ action: "deleteEvent", eventName: this.eventName });
 						this.changeView(10);
 					},
 					deleteCommunity: async function() {
@@ -1549,7 +1552,7 @@
 								action: 'deleteCommunity',
 								name: this.community
 							});
-						await keyboardKeys.refreshProfle();
+						await keyboardKeys.refreshProfile();
 						this.changeView(0);
 					},
 					exportRatingToTxt: function() {
@@ -1668,7 +1671,7 @@
     			r.appendChild(opt);
 			}
 			if(settings.userName) 
-				keyboardKeys.refreshProfle();
+				keyboardKeys.refreshProfile();
 			window.fitText(document.getElementsByClassName("marker-view-score"), 0.2);
 
 
