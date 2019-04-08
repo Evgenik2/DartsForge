@@ -99,6 +99,13 @@ var languages = {
         gamenoStartSwapError: "You are late to change player sex.",
         fileExportTXT: "File export to TXT",
         fileExportCSV: "File export to CSV",
+        messageReject1: " join to the community ",
+        messageReject2: " rejected.",
+        messageReject3: " withdraw the application to ",
+        messageJoin: " joined the community ",
+        messageEventCreated: " event created.",
+        messageEventDeleted: " event deleted."
+
     },
     "ru": {
         flag: "flag-RU",
@@ -200,6 +207,12 @@ var languages = {
         gamenoStartSwapError: "Уже поздно менять пол игрока.",
         fileExportTXT: "Сохранить в файл TXT",
         fileExportCSV: "Сохранить в файл CSV",
+        messageReject1: " заявка в ",
+        messageReject2: " отклонена.",
+        messageReject3: " отозвал заявку в ",
+        messageJoin: " присоединился к сообществу ",
+        messageEventCreated: " событие создано.",
+        messageEventDeleted: " событие удалено."
     }
 
 };

@@ -651,6 +651,8 @@
 				</div>
 			</div>
 		</div>
+		<div id="alert" class="alert alert-hidden">
+		</div>
 		<script defer async>
 			var keyboardKeys;
 			var banner;
@@ -1596,6 +1598,16 @@
 								.join('\r\n')
 						);
 					},
+					alert: function(message) {
+						var r = document.getElementById("alert");
+						if (r.classList.contains('alert-hidden')) 
+							r.classList.remove("alert-hidden");
+						r.innerHTML = message;
+				    setTimeout(function(){ 
+							if (!r.classList.contains('alert-hidden')) 
+								r.classList.add("alert-hidden");
+						}, 5000);
+					}
 				}
 			});
 			banner = new Vue({
@@ -1701,6 +1713,11 @@
 			}
 			if(document.getElementsByTagName('ya-tr-span').length > 0 || document.getElementsByClassName("translated-ltr").length > 0)
 				keyboardKeys.currentView = -1;
+				var r = document.getElementById("alert");
+				r.onclick = ()=> {
+					if (!r.classList.contains('alert-hidden')) 
+						r.classList.add("alert-hidden");
+				};
 		</script>
 	</body>
 </html>
