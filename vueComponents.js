@@ -273,52 +273,62 @@ Vue.component("history-component", {
             <!--<div class="history-timeStamp">{{item.startTime}}</div>-->
             <div class="scoring-row">
                 <div class="stat-game-way-player"> 
-                    <div class="stat-game-way-head">{{new Date(item.timeStamp).toLocaleString()}}</div>
-                    <div class="stat-game-way-head" v-bind:class="{ 'stat-game-way-winner': item.winner==item.player1 }">{{item.player1}}</div>
-                    <div class="stat-game-way-head" v-bind:class="{ 'stat-game-way-winner': item.winner==item.player2 }">{{item.player2}}</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">{{new Date(item.timeStamp).toLocaleString()}}</div>
+                    <div class="stat-game-way-head" v-bind:class="{  'stat-gip': kind=='gip', 'stat-game-way-winner': item.finished && item.winner==item.player1 }">{{item.player1}}</div>
+                    <div class="stat-game-way-head" v-bind:class="{  'stat-gip': kind=='gip', 'stat-game-way-winner': item.finished && item.winner==item.player2 }">{{item.player2}}</div>
                 </div>
-                <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">Sets</div>
+                <div class="stat-game-way-item" v-bind:class="{ 'element-collapsed': item.setLength==1 }"> 
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">Sets</div>
                     <div class="stat-game-way">{{item.wonSets1}}</div>
                     <div class="stat-game-way">{{item.wonSets2}}</div>
                 </div>
+                <div class="stat-game-way-item" v-bind:class="{ 'element-collapsed': item.setLength!=1 }"> 
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">Legs</div>
+                    <div class="stat-game-way">{{item.wonLegs1}}</div>
+                    <div class="stat-game-way">{{item.wonLegs2}}</div>
+                </div>
+                <div class="stat-game-way-item"v-bind:class="{ 'element-collapsed': item.finished }"> 
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">Score</div>
+                    <div class="stat-game-way" v-bind:class="{ 'scoring-throw-next': item.legs[item.legs.length - 1].next == 1 }">{{item.legs[item.legs.length - 1].left1}}</div>
+                    <div class="stat-game-way" v-bind:class="{ 'scoring-throw-next': item.legs[item.legs.length - 1].next == 2 }">{{item.legs[item.legs.length - 1].left2}}</div>
+                </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">100+</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">100+</div>
                     <div class="stat-game-way">{{item.stats[0].player1}}</div>
                     <div class="stat-game-way">{{item.stats[0].player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">140+</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">140+</div>
                     <div class="stat-game-way">{{item.stats[1].player1}}</div>
                     <div class="stat-game-way">{{item.stats[1].player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">180</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">180</div>
                     <div class="stat-game-way">{{item.stats[2].player1}}</div>
                     <div class="stat-game-way">{{item.stats[2].player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">Av</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">Av</div>
                     <div class="stat-game-way">{{item.stats[3].player1}}</div>
                     <div class="stat-game-way">{{item.stats[3].player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">HC</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">HC</div>
                     <div class="stat-game-way">{{item.stats[4].player1}}</div>
                     <div class="stat-game-way">{{item.stats[4].player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">Dbls</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">Dbls</div>
                     <div class="stat-game-way">{{item.stats[5].player1}}</div>
                     <div class="stat-game-way">{{item.stats[5].player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">%</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">%</div>
                     <div class="stat-game-way">{{item.stats[6].player1}}</div>
                     <div class="stat-game-way"item>{{item.stats[6].player2}}</div>
                 </div>
                 <div class="stat-game-way-item"> 
-                    <div class="stat-game-way-head">Best</div>
+                    <div class="stat-game-way-head" v-bind:class="{ 'stat-gip': kind=='gip' }">Best</div>
                     <div class="stat-game-way">{{item.stats[7].player1}}</div>
                     <div class="stat-game-way">{{item.stats[7].player2}}</div>
                 </div>

@@ -290,9 +290,6 @@ body::-webkit-scrollbar {
 .scoring-throw-red {
     color: red;
 }
-.scoring-throw-next {
-    background: #ffa8a8
-}
 .keyboard-stats {
     flex-direction: row;
     margin: 0.2vmax;
@@ -354,6 +351,9 @@ body::-webkit-scrollbar {
     margin-left: 0.2vmax;
     margin-bottom: 0.2vmax;
     padding: 0.5vmax;
+}
+.stat-gip {
+    background: #666666;
 }
 .stat-game-way-winner {
     color: #ff8f00;

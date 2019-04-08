@@ -96,6 +96,9 @@
 			.dialog-error {
 				color: red;
 			}
+			.scoring-throw-next {
+					background: #ffa8a8
+			}
 		</style>
 	</head>
 	<body>
@@ -262,6 +265,10 @@
 					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory && eventHistory.length == 0 }">
 						<div class="stats-row-header" :key="language.historyTotal" ref="c36">{{language.historyTotal}}</div>
 						<div class="stats-row-header-middle" :key="eventHistory.length" ref="c37">{{eventHistory.length}}</div>
+					</div>
+
+					<div class="history-data">
+						<history-component  is="history-component" v-for="item in gip" kind="gip" v-bind:item="item" v-bind:key="item.timeStamp"></history-component>
 					</div>
 					<div class="history-data">
 						<history-component  is="history-component" v-for="item in eventHistory" kind="event" v-bind:item="item" v-bind:key="item.timeStamp"></history-component>
@@ -841,7 +848,6 @@
 						return setN % 2 == 0 ? legN % 2 == 0 : legN % 2 != 0;
 					}
 				};
-			var hostUrl = document.URL.split("/DartsForge/")[0];
 			keyboardKeys = new Vue({
 				el: "#app",
 				data: {				
@@ -885,6 +891,7 @@
 					currentView: 0,
 					historyItemLegs: [],
 					historyItemList: [],
+					gip: [],
 					eventHistoryItemLegs: [],
 					eventHistoryItemList: [{stats:[]}],
 					stats: game.stats,
@@ -1012,6 +1019,8 @@
 							name: this.community, eventName: this.eventName })).map(e=> {
 								let s = Game501.Verify(e);
 								e.legs = Game501.GetLegs(e);
+								e.wonLegs1 = s.WonLegs.player1;
+								e.wonLegs2 = s.WonLegs.player2;
 								e.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
 								return e;
 							}).sort((a, b) => b.timeStamp.localeCompare(a.timeStamp));
@@ -1043,6 +1052,7 @@
 						game.legLength = this.newLegLength;
 						game.setLength = this.newSetLength;
 						this.menuShown = game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);
+						sendWS({ action: "gipUpdate", game: game });
 					},
 					newGame: function() {
 						this.newGameError = undefined;
@@ -1050,6 +1060,7 @@
 							return;
 						game.finished = false;
 						game.timeStamp = new Date();
+						game.refereeTimestamp = game.timeStamp + '_' + this.userName,
 						game.community = this.community,
 						game.communityRegion = this.communityData.Region,
 						game.setLength = this.newSetLength;
@@ -1067,6 +1078,7 @@
 						deleteAll("CurrentGame");
 						game.updateAll();
 						this.menuShown = false;
+						sendWS({ action: "gipUpdate", game: game });
 					},
 					updateGameSettingsError: function() {
 						this.newGameError = undefined;
@@ -1170,6 +1182,7 @@
 						this.legN = this.legs.length - 1;
 						this.scrollToView();
 						game.storeCurrentState();
+						sendWS({ action: "gipUpdate", game: game });
 					},
 					scrollToView: function() {
 						var element = document.getElementById("scoring-throws");
@@ -1519,6 +1532,7 @@
 							});				
 							this.showEventHistory(this.communityData.Events.find(e=>e.EventName == game.eventName));
 						}
+						sendWS({ action: "gipFinished", refereeTimestamp: g.refereeTimestamp });
 					},
 					logIn: function() {
 						auth.getSession();
