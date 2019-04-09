@@ -277,7 +277,7 @@
 			</div>
 			<div id="eventGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 14 }">
 				<div class="history-container">
-					<div class="history-data">
+					<div class="history-data" v-if="eventHistoryItemList[0]">
 						<div class="events-row stats-row">
 							<div class="stats-row-header" :key="language.menuSets" ref="c38">{{language.menuSets}}</div>
 							<div :key="eventHistoryItemList[0].setLength" ref="c39">{{eventHistoryItemList[0].setLength}}</div>
@@ -290,12 +290,12 @@
 							<div class="stats-row-header" :key="language.menuGame" ref="c42">{{language.menuGame}}</div>
 							<div :key="eventHistoryItemList[0].gameLength" ref="c43">{{eventHistoryItemList[0].gameLength}}</div>
 						</div>
-						<div class="events-row stats-row">
+						<div class="events-row stats-row" v-if="eventHistoryItemList[0].finished">
 							<div class="loginButton" v-longpress="deleteGame" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }" :key="language.deleteGame" ref="c44">{{language.deleteGame}}</div>
 						</div>	
-						<history-component  is="history-component" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
+						<history-component  is="history-component" v-if="eventHistoryItemList[0]" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
-						<game-set-component is="game-set-component" v-for="item in eventHistoryItemLegs" v-bind:item="item" v-bind:key="item.leg">
+						<game-set-component is="game-set-component" v-if="eventHistoryItemLegs" v-for="item in eventHistoryItemLegs" v-bind:item="item" v-bind:key="item.leg">
 						</game-set-component>
 					</div>
 				</div>
@@ -460,9 +460,9 @@
 			<div id="historyGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 2 }">
 				<div class="history-container">
 					<div class="history-data">
-						<history-component  is="history-component" v-for="item in historyItemList" v-bind:item="item" v-bind:key="item.timeStamp">
+						<history-component  is="history-component" v-if="historyItemList"  v-for="item in historyItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
-						<game-set-component is="game-set-component" v-for="item in historyItemLegs" v-bind:item="item" v-bind:key="item.leg">
+						<game-set-component is="game-set-component" v-if="historyItemLegs" v-for="item in historyItemLegs" v-bind:item="item" v-bind:key="item.leg">
 						</game-set-component>
 					</div>
 				</div>
@@ -615,23 +615,23 @@
 				<div id="scoring" class="scoring">
 					<div id="game-component">
 							<div id="scoring-data" class="scoring-data"> <!-- v-swipe="swipeLeg"-->
-								<div id="scoring-left" class="marker-view" v-bind:class="{ 'element-collapsed': !markerView || game.finished }">
-									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 1 }" :key="legs[legs.length - 1].left1" ref="c76">{{legs[legs.length - 1].left1}}</div>
+								<div id="scoring-left" v-if="legs" class="marker-view" v-bind:class="{ 'element-collapsed': !markerView || game.finished }">
+									  <div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 1 }" :key="legs[legs.length - 1].left1" ref="c76">{{legs[legs.length - 1].left1}}</div>
 										<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 2 }" :key="legs[legs.length - 1].left2" ref="c77">{{legs[legs.length - 1].left2}}</div>
-									</div>
-									<div class="scoring-head">
+								</div>
+								<div class="scoring-head">
 									<div class="scoring-player" v-on:click="prev" :key="legs[legN].player1" ref="c78">{{legs[legN].player1}}</div>
 									<div class="scoring-leg" v-bind:class="{ 'element-collapsed': showSeparator }" :key="legs[legN].leg" ref="c79">
-											{{language.leg}} {{legs[legN].leg + 1}}
+												{{language.leg}} {{legs[legN].leg + 1}}
 									</div>
 									<div class="scoring-leg-group" v-bind:class="{ 'element-collapsed': !showSeparator }">
-										<div class="scoring-leg" :key="legs[legN].set" ref="c80">
-											{{language.set}} {{legs[legN].set + 1}}
-										</div>
-										<div class="scoring-leg-separator"></div>
-										<div class="scoring-leg" :key="legs[legN].leg" ref="c81">
-											{{language.leg}} {{legs[legN].leg + 1}}
-										</div>
+											<div class="scoring-leg" :key="legs[legN].set" ref="c80">
+												{{language.set}} {{legs[legN].set + 1}}
+											</div>
+											<div class="scoring-leg-separator"></div>
+											<div class="scoring-leg" :key="legs[legN].leg" ref="c81">
+												{{language.leg}} {{legs[legN].leg + 1}}
+											</div>
 									</div>
 									<div class="scoring-player" v-on:click="next" :key="legs[legN].player2" ref="c82">{{legs[legN].player2}}</div>
 								</div>
@@ -1027,9 +1027,11 @@
 						settings.store();
 						this.changeView(13);
 					},
-					showEventHistoryItem: function(t) {
-						this.changeView(14);
+					showEventHistoryItem: function(t, h=true) {
+						this.changeView(14, h);
 						var eventHistoryItem = this.eventHistory.find((i) => { return i.timeStamp == t});
+						if(!eventHistoryItem)
+							eventHistoryItem = this.gip.find((i) => { return i.timeStamp == t});
 						settings.eventHistoryItemLegs = this.eventHistoryItemLegs = eventHistoryItem.legs;
 						settings.eventHistoryItemList = this.eventHistoryItemList = [eventHistoryItem];
 						settings.store();
@@ -1052,6 +1054,8 @@
 						game.legLength = this.newLegLength;
 						game.setLength = this.newSetLength;
 						this.menuShown = game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);
+						if(!game.refereeTimestamp)
+							game.refereeTimestamp = game.timeStamp + '_' + this.userName;
 						sendWS({ action: "gipUpdate", game: game });
 					},
 					newGame: function() {
@@ -1060,7 +1064,7 @@
 							return;
 						game.finished = false;
 						game.timeStamp = new Date();
-						game.refereeTimestamp = game.timeStamp + '_' + this.userName,
+						game.refereeTimestamp = game.timeStamp + '_' + this.userName;
 						game.community = this.community,
 						game.communityRegion = this.communityData.Region,
 						game.setLength = this.newSetLength;
@@ -1182,6 +1186,8 @@
 						this.legN = this.legs.length - 1;
 						this.scrollToView();
 						game.storeCurrentState();
+						if(!game.refereeTimestamp)
+							game.refereeTimestamp = game.timeStamp + '_' + this.userName;
 						sendWS({ action: "gipUpdate", game: game });
 					},
 					scrollToView: function() {
@@ -1207,7 +1213,7 @@
 							case 14: return this.language.menuEventGame;
 						}
 					},
-					changeView: function(view) {
+					changeView: function(view, h=true) {
 						this.currentView = view;
 						document.getElementById("publishGameError").innerHTML = "";
 						document.getElementById("keyScore").classList.remove("animError");
@@ -1215,7 +1221,7 @@
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
 						this.menuShown = true;
-						if(this.currentView != 12)
+						if(h && this.currentView != 12)
 							window.history.pushState({currentView: this.currentView}, "DartsForge: " + this.getViewName(), window.location.URL);
 					},
 					changeViewBack: function() {
@@ -1503,6 +1509,9 @@
 						if(!g) g = game;
 						if(!g.community) g.community = this.community;
 						if(!g.communityRegion) g.communityRegion = this.communityData.Region;
+						if(!g.refereeTimestamp)
+							g.refereeTimestamp = g.timeStamp + '_' + this.userName;
+
 						if(this.wait || !g.finished)
 							return;
 						var res = await DartsApi({
@@ -1732,6 +1741,13 @@
 					if (!r.classList.contains('alert-hidden')) 
 						r.classList.add("alert-hidden");
 				};
+
+			let cleaner = ()=> {
+					if(keyboardKeys)
+							keyboardKeys.gip = keyboardKeys.gip.filter(e=>(new Date() - e.lastUpdated) < 15*60*1000);
+					setTimeout(cleaner, 60000);
+			}
+			cleaner();
 		</script>
 	</body>
 </html>

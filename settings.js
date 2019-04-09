@@ -240,13 +240,16 @@ if(auth.username)
                 case "gipUpdate":
                     if(keyboardKeys.community == data.community) {
                         let s = Game501.Verify(data.game);
+                        data.game.lastUpdated = new Date();
                         data.game.legs = Game501.GetLegs(data.game);
                         data.game.wonLegs1 = s.WonLegs.player1;
                         data.game.wonLegs2 = s.WonLegs.player2;
                         data.game.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
                         keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.game.refereeTimestamp);
                         keyboardKeys.gip.push(data.game);
-                        keyboardKeys.gip.sort((a,b)=>a.refereeTimestamp.localeCompae(b.refereeTimestamp));
+                        keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
+                        if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
+                            keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
                     }
                     break;
                 case "gipFinished":
@@ -254,6 +257,8 @@ if(auth.username)
                         keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.refereeTimestamp);
                         keyboardKeys.gip.sort((a,b)=>a.refereeTimestamp.localeCompare(b.refereeTimestamp));
                         await keyboardKeys.updateCommunityData();
+                        if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
+                            keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
                     }
                     break;
             }

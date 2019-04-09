@@ -35,7 +35,10 @@
       var compressor = kompressor || 1;
 
       var resizer = function () {
-        el.style.fontSize = Math.max(Math.min(el.clientWidth / (compressor*10), parseFloat(settings.maxFontSize)), parseFloat(settings.minFontSize)) + 'px';
+        if(el.clientWidth <= 0) {
+          //el.style.fontSize = "15vmax";  
+        } else
+          el.style.fontSize = Math.max(Math.min(el.clientWidth / (compressor*10), parseFloat(settings.maxFontSize)), parseFloat(settings.minFontSize)) + 'px';
       };
 
       // Call once to set.
