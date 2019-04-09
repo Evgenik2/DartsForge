@@ -1743,7 +1743,7 @@
 				};
 
 			let cleaner = ()=> {
-					if(keyboardKeys)
+					if(keyboardKeys.gip)
 							keyboardKeys.gip = keyboardKeys.gip.filter(e=>(new Date() - e.lastUpdated) < 15*60*1000);
 					setTimeout(cleaner, 60000);
 			}
