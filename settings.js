@@ -1,3 +1,16 @@
+function fillOpt(element, arr, h, v) {
+    var r = document.getElementById(element);
+    if(!r) return;
+    r.innerHTML = "";
+    for (i = r.options.length - 1; i >= 0 ; i--)
+        r.options[i] = null;
+    for (let i = 0; i < arr.length; i++) {
+        var opt = document.createElement('option');
+        opt.innerHTML = h(i);
+        opt.value = v(i);
+        r.appendChild(opt);
+    }
+}
 function tos(i) {
     if(!i)
         return 0;
@@ -41,11 +54,35 @@ async function GetToken() {
     });
 }
 async function sendWS(data) {
-    data.token = await GetToken();
+    if(keyboardKeys.userName) {
+        data.userName = keyboardKeys.userName;
+        data.token = await GetToken();
+    }
     if(!data.community)
         data.community = keyboardKeys.community;
-    data.userName = keyboardKeys.userName;
     ws.send(JSON.stringify(data));
+}
+async function DartsPublicApi(action, communityName, eventName) {
+    try {
+        keyboardKeys.wait = true;
+        var response = await fetch('https://iua4civobg.execute-api.us-east-2.amazonaws.com/dev?action='+action+
+            (communityName?"&communityName="+communityName:"") +
+            (eventName ? "&eventName=" + eventName:""), {
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            },
+            method: "GET"
+        });
+        if (response.status !== 200)  
+            throw 'Looks like there was a problem. ' + JSON.stringify(response);
+        return await response.json();  
+    } catch(e) {  
+        console.log('Darts Api Error: ', e);  
+    }
+    finally {
+        keyboardKeys.wait = false;
+    }
 }
 async function DartsApi(request) {
     try {
@@ -83,10 +120,7 @@ async function DartsApiProfile() {
     return profile;
 }
 async function CommunityData(communityName) {
-    let community = await DartsApi({
-        action: 'getCommunity',
-        name: communityName
-    });
+    let community = await DartsPublicApi('getCommunity', communityName);
     if(!community.Referees)
         community.Referees = [];
     return community;
@@ -129,14 +163,16 @@ var settings = {
                 if(r.eventData) keyboardKeys.eventData = settings.eventData = r.eventData;
                 if(r.eventName) keyboardKeys.eventName = settings.eventName = r.eventName;
                 if(r.eventHistory) keyboardKeys.eventHistory = settings.eventHistory = r.eventHistory;
-
+                if(keyboardKeys.currentView == 13 || keyboardKeys.currentView == 14)
+                    keyboardKeys.updateEventHistoryData(keyboardKeys.eventData);
                 if(keyboardKeys.community && r.communityData && r.communityData.Rating)
                     keyboardKeys.communityData = settings.communityData = r.communityData;
-                if(keyboardKeys.communities)
-                    keyboardKeys.fillCommunitiesList();
-                else
-                    keyboardKeys.requestCommunitiesList();
-                updateAll();
+                keyboardKeys.requestCommunitiesList();
+                keyboardKeys.updateChangeCommunityList();
+                if(!keyboardKeys.userName && keyboardKeys.currentView != 10 && keyboardKeys.currentView != 13 && keyboardKeys.currentView != 14) {
+                    keyboardKeys.changeView(keyboardKeys.community ? 8 : 7);
+                }
+                game.updateAll();
             }
         });
     }
@@ -180,93 +216,111 @@ auth.userhandler = {
     }
 };
 auth.parseCognitoWebResponse(curUrl);
-
+    
 if(auth.username)
     settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
-    var ws;
-    function start(){
-        ws = new WebSocket("wss://5me0v9emlj.execute-api.us-east-2.amazonaws.com/dev");
-        ws.onopen = function() { 
-            ws.send(JSON.stringify({ "action": "join", "community": settings.community, "userName": keyboardKeys.userName }));
-            console.log("Connection opened...") 
-        };
-        ws.onmessage = async function(evt) {
-            let data = JSON.parse(evt.data);
-            if(data.error) {
-                alert(evt.data);
-                return;
-            }
-            switch(data.action) {
-                case "courtCommunity":
-                    if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable &&
-                        !keyboardKeys.profile.Joins.find(e=>e.CommunityName == data.community && e.UserName == data.userName)) {
-                            keyboardKeys.alert(data.userName + keyboardKeys.language.joinMessage1 + data.comunity);
-                            keyboardKeys.profile.Joins.push({CommunityName: data.community, UserName: data.userName, language: keyboardKeys.language});
-                            keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
-                        }
-                        break;
-                case "rejectCourt":
-                    if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable) {
-                        keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject1 + data.comunity + keyboardKeys.language.messageReject2);
-                        keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
+var ws;
+function start() {
+    ws = new WebSocket("wss://5me0v9emlj.execute-api.us-east-2.amazonaws.com/dev");
+    ws.onopen = function() { 
+        ws.send(JSON.stringify({ "action": "join", "community": settings.community, "userName": keyboardKeys.userName, target: keyboardKeys.userName || keyboardKeys.targetNumber < 0 ? undefined : keyboardKeys.targetNumber }));
+        console.log("Connection opened...") 
+    };
+    ws.onerror = function(e) {
+        console.log(JSON.stringify(e));
+    },
+    ws.onmessage = async function(evt) {
+        let data = JSON.parse(evt.data);
+        if(data.error) {
+            alert(evt.data);
+            return;
+        }
+        switch(data.action) {
+            case "target": 
+                if(keyboardKeys.targets.indexOf (data.target) <= 0)
+                    keyboardKeys.targets.push(data.target);
+                fillOpt("target", keyboardKeys.targets, i => keyboardKeys.targets[i] ? keyboardKeys.targets[i] : "No", i => keyboardKeys.targets[i]);
+                break;
+            case "courtCommunity":
+                if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable &&
+                    !keyboardKeys.profile.Joins.find(e=>e.CommunityName == data.community && e.UserName == data.userName)) {
+                        keyboardKeys.alert(data.userName + keyboardKeys.language.joinMessage1 + data.comunity);
+                        keyboardKeys.profile.Joins.push({CommunityName: data.community, UserName: data.userName, language: keyboardKeys.language});
                         keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
                     }
                     break;
-                case "rejectJoin":
-                    if(data.userName == keyboardKeys.userName || (keyboardKeys.community == data.community && keyboardKeys.communityData.changeable)) {
-                        keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject3 + data.comunity);
-                        keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
-                        keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
-                        keyboardKeys.profile.Courts = keyboardKeys.profile.Courts.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
-                        keyboardKeys.waitingAgreement = keyboardKeys.profile.Courts;
+            case "rejectCourt":
+                if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable) {
+                    keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject1 + data.comunity + keyboardKeys.language.messageReject2);
+                    keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
+                    keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
+                }
+                break;
+            case "rejectJoin":
+                if(data.userName == keyboardKeys.userName || (keyboardKeys.community == data.community && keyboardKeys.communityData.changeable)) {
+                    keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject3 + data.comunity);
+                    keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
+                    keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
+                    keyboardKeys.profile.Courts = keyboardKeys.profile.Courts.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
+                    keyboardKeys.waitingAgreement = keyboardKeys.profile.Courts;
+                }
+                break;
+            case "joinCommunity":
+                keyboardKeys.alert(data.userName + keyboardKeys.language.messageJoin + data.comunity);
+                await keyboardKeys.refreshProfile();
+                break;
+            case "deleteEvent":
+                if(keyboardKeys.community == data.community) {
+                    keyboardKeys.alert(data.eventName + keyboardKeys.language.messageEventDeleted);
+                    await keyboardKeys.updateCommunityData();
+                }
+                break;
+            case "newCommunityEvent":
+                if(keyboardKeys.community == data.community) {
+                    keyboardKeys.alert(data.eventName + keyboardKeys.language.messageEventCreated);
+                    await keyboardKeys.updateCommunityData();
+                }
+                break;
+            case "gipUpdate":
+                if(keyboardKeys.community == data.community) {
+                    let s = Game501.Verify(data.game);
+                    data.game.lastUpdated = new Date();
+                    data.game.legs = Game501.GetLegs(data.game);
+                    data.game.wonLegs1 = s.WonLegs.player1;
+                    data.game.wonLegs2 = s.WonLegs.player2;
+                    data.game.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
+                    keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.game.refereeTimestamp);
+                    keyboardKeys.gip.push(data.game);
+                    keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
+                    if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
+                        keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
                     }
-                    break;
-                case "joinCommunity":
-                    keyboardKeys.alert(data.userName + keyboardKeys.language.messageJoin + data.comunity);
-                    await keyboardKeys.refreshProfile();
-                    break;
-                case "deleteEvent":
-                    if(keyboardKeys.community == data.community) {
-                        keyboardKeys.alert(data.eventName + keyboardKeys.language.messageEventDeleted);
-                        await keyboardKeys.updateCommunityData();
+                break;
+            case "gipFinished":
+                if(keyboardKeys.community == data.community) {
+                    data.game = keyboardKeys.gip.find(e=>e.refereeTimestamp == data.refereeTimestamp);
+                    keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.refereeTimestamp);
+                    keyboardKeys.gip.sort((a,b)=>a.refereeTimestamp.localeCompare(b.refereeTimestamp));
+                    await keyboardKeys.updateCommunityData();
+                    if(keyboardKeys.eventName == data.game.eventName) {
+                        keyboardKeys.eventHistory.push(data.game);
+                        keyboardKeys.eventHistory.sort((a, b) => b.timeStamp.localeCompare(a.timeStamp));
+                        settings.eventHistory = keyboardKeys.eventHistory;
+                        settings.store();
                     }
-                    break;
-                case "newCommunityEvent":
-                    if(keyboardKeys.community == data.community) {
-                        keyboardKeys.alert(data.eventName + keyboardKeys.language.messageEventCreated);
-                        await keyboardKeys.updateCommunityData();
-                    }
-                    break;
-                case "gipUpdate":
-                    if(keyboardKeys.community == data.community) {
-                        let s = Game501.Verify(data.game);
-                        data.game.lastUpdated = new Date();
-                        data.game.legs = Game501.GetLegs(data.game);
-                        data.game.wonLegs1 = s.WonLegs.player1;
-                        data.game.wonLegs2 = s.WonLegs.player2;
-                        data.game.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
-                        keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.game.refereeTimestamp);
-                        keyboardKeys.gip.push(data.game);
-                        keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
-                        if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
-                            keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
-                    }
-                    break;
-                case "gipFinished":
-                    if(keyboardKeys.community == data.community) {
-                        keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.refereeTimestamp);
-                        keyboardKeys.gip.sort((a,b)=>a.refereeTimestamp.localeCompare(b.refereeTimestamp));
-                        await keyboardKeys.updateCommunityData();
-                        if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
-                            keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
-                    }
-                    break;
-            }
-        };
-        ws.onclose = function(){
-            // Try to reconnect in 5 seconds
-            setTimeout(start, 5000);
-        };
-    }
-    start();
+                    if(data.game.player1 == keyboardKeys.userName || data.game.player2 == keyboardKeys.userName)
+                        keyboardKeys.refreshProfile();
+                    if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
+                        keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
+                    if(keyboardKeys.currentView == 13)
+                        keyboardKeys.showEventHistory(keyboardKeys.eventData);
+                }
+                break;
+        }
+    };
+    ws.onclose = function(){
+        // Try to reconnect in 5 seconds
+        setTimeout(start, 5000);
+    };
+}
     

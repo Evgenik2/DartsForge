@@ -127,6 +127,12 @@
     border-width: 0;
     padding: 0.8vmax 0 0.8vmax 0;
 }
+.menu-target {
+    flex: 0.5;
+}
+.menu-event {
+    flex: 1.5;
+}
 .menu-empty {
     display: flex;
     flex: 1;

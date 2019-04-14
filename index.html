@@ -191,7 +191,7 @@
 						<communities-component-history-waiting  is="communities-component-history-waiting" v-for="item in history" v-bind:item="item" v-bind:key="item.name"></communities-component-history-waiting>
 					</div>
 				</div>
-				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || community }">
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': community }">
 					<div class="menudropbtn" v-on:click="toggleMenuShow('communityDropdown');">
 						<div class="menubtnContent">
 							<div class="menuelement" :key="language.menuSelectCommunity" ref="c15">{{language.menuSelectCommunity}}</div>
@@ -199,12 +199,13 @@
 						</div>
 					</div>
 					<div id="communityDropdown" class="dropdown-content">
-						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();" :key="language.changeCommunity" ref="c16">{{language.changeCommunity}} </div>
-						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();" :key="language.createCommunity" ref="c17">{{language.createCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="requestCommunitiesList(); changeView(6); event.preventDefault();" :key="language.courtCommunity" ref="c18">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-if="userName" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();" :key="language.changeCommunity" ref="c16">{{language.changeCommunity}} </div>
+						<div class="dropdown-content-item" v-if="userName" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();" :key="language.createCommunity" ref="c17">{{language.createCommunity}} </div>
+						<div class="dropdown-content-item" v-if="userName" v-on:click="requestCommunitiesList(); changeView(6); event.preventDefault();" :key="language.courtCommunity" ref="c18">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-if="!userName" v-on:click="updateChangeCommunityList(); changeView(7); event.preventDefault();" :key="language.changeCommunity" ref="c23">{{language.changeCommunity}} </div>
 					</div>
 				</div>
-				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName || !community}">
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !community}">
 					<div class="menudropbtn" v-on:click="toggleMenuShow('communityDropdown2');">
 						<div class="menubtnContent">
 							<div class="menuelement" :key="community" ref="c19">{{community}}</div>
@@ -212,12 +213,13 @@
 						</div>
 					</div>
 					<div id="communityDropdown2" class="dropdown-content">
-						<div class="dropdown-content-item" v-on:click="changeView(0); event.preventDefault();" :key="language.menuInGame" ref="c20">{{language.menuInGame}}</div> 
+						<div class="dropdown-content-item" v-if="userName" v-on:click="changeView(0); event.preventDefault();" :key="language.menuInGame" ref="c20">{{language.menuInGame}}</div> 
 						<div class="dropdown-content-item" v-on:click="updateCommunityData(); changeView(8); event.preventDefault();" :key="language.communityRating" ref="c21">{{language.communityRating}} </div>
 						<div class="dropdown-content-item" v-on:click="changeView(10); event.preventDefault();" :key="language.menuCommunityEvents" ref="c22">{{language.menuCommunityEvents}}</div> 
-						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();" :key="language.changeCommunity" ref="c23">{{language.changeCommunity}} </div>
-						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();" :key="language.createCommunity" ref="c24">{{language.createCommunity}} </div>
-						<div class="dropdown-content-item" v-on:click="requestCommunitiesList(); changeView(6); event.preventDefault();" :key="language.courtCommunity" ref="c25">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-if="userName" v-bind:class="{ 'menu-collapsed': (!profile.OwnedCommunities || profile.OwnedCommunities.length == 0) && (!profile.JoinedCommunities || profile.JoinedCommunities.length == 0) }" v-on:click="changeView(7); event.preventDefault();" :key="language.changeCommunity" ref="c23">{{language.changeCommunity}} </div>
+						<div class="dropdown-content-item" v-if="userName" v-bind:class="{ 'menu-collapsed': !profile.OwnedCommunities || profile.OwnedCommunities.length != 0}" v-on:click="changeView(5); event.preventDefault();" :key="language.createCommunity" ref="c24">{{language.createCommunity}} </div>
+						<div class="dropdown-content-item" v-if="userName" v-on:click="requestCommunitiesList(); changeView(6); event.preventDefault();" :key="language.courtCommunity" ref="c25">{{language.courtCommunity}} </div>
+						<div class="dropdown-content-item" v-if="!userName" v-on:click="updateChangeCommunityList(); changeView(7); event.preventDefault();" :key="language.changeCommunity" ref="c23">{{language.changeCommunity}} </div>
 					</div>
 				</div>
 				<div class="menudropbtn" v-bind:class="{ 'menu-collapsed': userName }" v-on:click="logIn();" :key="language.menuLoginSignin" :key="language.menuLoginSignin" ref="1000">{{language.menuLoginSignin}}</div>
@@ -249,7 +251,7 @@
 						<div class="stats-row-header-middle"></div>
 						<div :key="eventName" ref="c30">{{eventName}}</div>
 					</div>
-					<div class="events-row stats-row-wide">
+					<div class="events-row stats-row-wide" v-if="userName">
 						<div class="loginButton" v-longpress="deleteEvent" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !eventName || (eventHistory && eventHistory.length != 0) || !eventData.changeable }" :key="language.deleteEmptyEvent" ref="c31">{{language.deleteEmptyEvent}}</div>
 					</div>						
 					<div class="events-row stats-row-wide" v-bind:class="{ 'menu-collapsed': eventHistory && eventHistory.length == 0 }">
@@ -278,6 +280,10 @@
 			<div id="eventGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 14 }">
 				<div class="history-container">
 					<div class="history-data" v-if="eventHistoryItemList[0]">
+							<div class="events-row">
+									<div :key="eventHistoryItemList[0].timeStamp" ref="c4001">{{new Date(eventHistoryItemList[0].timeStamp).toLocaleString()}}</div>
+									<div  :key="eventHistoryItemList[0].timeStamp" ref="c4001">{{eventHistoryItemList[0].player1}} VS {{eventHistoryItemList[0].player2}}</div>
+							</div>
 						<div class="events-row stats-row">
 							<div class="stats-row-header" :key="language.menuSets" ref="c38">{{language.menuSets}}</div>
 							<div :key="eventHistoryItemList[0].setLength" ref="c39">{{eventHistoryItemList[0].setLength}}</div>
@@ -290,10 +296,10 @@
 							<div class="stats-row-header" :key="language.menuGame" ref="c42">{{language.menuGame}}</div>
 							<div :key="eventHistoryItemList[0].gameLength" ref="c43">{{eventHistoryItemList[0].gameLength}}</div>
 						</div>
-						<div class="events-row stats-row" v-if="eventHistoryItemList[0].finished">
+						<div class="events-row stats-row" v-if="eventHistoryItemList[0].finished && userName">
 							<div class="loginButton" v-longpress="deleteGame" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }" :key="language.deleteGame" ref="c44">{{language.deleteGame}}</div>
 						</div>	
-						<history-component  is="history-component" v-if="eventHistoryItemList[0]" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
+						<history-component  is="history-component" kind="full" v-if="eventHistoryItemList[0]" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
 						<game-set-component is="game-set-component" v-if="eventHistoryItemLegs" v-for="item in eventHistoryItemLegs" v-bind:item="item" v-bind:key="item.leg">
 						</game-set-component>
@@ -317,7 +323,7 @@
 					<div class="menu-row" v-bind:class="{ 'menu-collapsed': !communityData.changeable }">
 						<div class="dropdown-content-item" class="loginButton" v-on:click="changeView(11); event.preventDefault();" :key="language.menuCommunityEventsNew" ref="c45">{{language.menuCommunityEventsNew}}</div>
 					</div>
-					<div class="menu-row" v-bind:class="{ 'menu-collapsed': communityData.Owner != userName || (communityData.Events && communityData.Events.length > 0) }">
+					<div class="menu-row" v-if="userName" v-bind:class="{ 'menu-collapsed': communityData.Owner != userName || (communityData.Events && communityData.Events.length > 0) }">
 						<div class="loginButton" v-longpress="deleteCommunity" v-on:click="event.preventDefault();" :key="language.deleteEmptyCommunity" ref="c46">{{language.deleteEmptyCommunity}}</div>
 					</div>	
 					<div class="events-row" v-bind:class="{ 'menu-collapsed': !communityData.Events || communityData.Events.length == 0 }"> 
@@ -415,6 +421,9 @@
 						<div class="menu-row">
 							<select class="menu-key menu-select-key" id="changeCommunityName" v-bind="community"></select>
 						</div>
+						<div class="menu-row" v-if="!userName">
+							<select class="menu-key menu-select-key" id="changeTargetNumber" v-bind="targetNumber"></select>
+						</div>
 						<div class="menu-row">
 							<div id="changeCommunityError" class="dialog-error"></div>
 						</div>
@@ -493,7 +502,9 @@
 							<div class="menu-empty"></div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="eventName" class="menu-text-span" :key="language.menuEventName" ref="c64">{{language.menuEventName}}</label></div>
-									<select class="menu-input" id="eventName" v-model="game.eventName">
+									<select class="menu-input menu-event" id="eventName" v-model="game.eventName">
+									</select>
+									<select v-bind:class="{ 'menu-collapsed': targets.length == 0 }" class="menu-input menu-target" id="target" v-model="game.target">
 									</select>
 								</div>
 								<div class="menu-row">
@@ -853,6 +864,8 @@
 				data: {				
 					wait: false,
 					userName: undefined,
+					targetNumber: -1,
+					targets: [],
 					communities: [],
 					community: undefined,
 					eventName: undefined,
@@ -1012,11 +1025,8 @@
 						settings.store();
 						game.updateAll();
 					},
-					showEventHistory: async function(event) {
-						settings.eventData = this.eventData = event;
-						settings.eventName = this.eventName = event.EventName;
-						settings.eventHistory = this.eventHistory = (await DartsApi({ action: "getEvent",
-							name: this.community, eventName: this.eventName })).map(e=> {
+					updateEventHistoryData: async function(event) {
+						settings.eventHistory = this.eventHistory = (await DartsPublicApi("getEvent", this.community, this.eventName)).map(e=> {
 								let s = Game501.Verify(e);
 								e.legs = Game501.GetLegs(e);
 								e.wonLegs1 = s.WonLegs.player1;
@@ -1025,10 +1035,16 @@
 								return e;
 							}).sort((a, b) => b.timeStamp.localeCompare(a.timeStamp));
 						settings.store();
+					},
+					showEventHistory: async function(event) {
+						settings.eventData = this.eventData = event;
+						settings.eventName = this.eventName = event.EventName;
+						this.updateEventHistoryData(this.eventData);
 						this.changeView(13);
 					},
 					showEventHistoryItem: function(t, h=true) {
-						this.changeView(14, h);
+						if(h)
+							this.changeView(14);
 						var eventHistoryItem = this.eventHistory.find((i) => { return i.timeStamp == t});
 						if(!eventHistoryItem)
 							eventHistoryItem = this.gip.find((i) => { return i.timeStamp == t});
@@ -1055,7 +1071,7 @@
 						game.setLength = this.newSetLength;
 						this.menuShown = game.finished || !(game.player1 && game.player2 && game.eventName && game.player1 != game.player2);
 						if(!game.refereeTimestamp)
-							game.refereeTimestamp = game.timeStamp + '_' + this.userName;
+							game.refereeTimestamp = game.timeStamp.toISOString() + '_' + this.userName;
 						sendWS({ action: "gipUpdate", game: game });
 					},
 					newGame: function() {
@@ -1064,7 +1080,7 @@
 							return;
 						game.finished = false;
 						game.timeStamp = new Date();
-						game.refereeTimestamp = game.timeStamp + '_' + this.userName;
+						game.refereeTimestamp = game.timeStamp.toISOString() + '_' + this.userName;
 						game.community = this.community,
 						game.communityRegion = this.communityData.Region,
 						game.setLength = this.newSetLength;
@@ -1187,7 +1203,7 @@
 						this.scrollToView();
 						game.storeCurrentState();
 						if(!game.refereeTimestamp)
-							game.refereeTimestamp = game.timeStamp + '_' + this.userName;
+							game.refereeTimestamp = game.timeStamp.toISOString() + '_' + this.userName;
 						sendWS({ action: "gipUpdate", game: game });
 					},
 					scrollToView: function() {
@@ -1228,24 +1244,19 @@
 						window.history.back();
 					},
 					requestCommunitiesList: async function() {
-						settings.communities = keyboardKeys.communities = await DartsApi({ action: 'getCommunities' });
+						settings.communities = keyboardKeys.communities = await DartsPublicApi('getCommunities');
 						settings.store();
-						this.fillCommunitiesList();
+						if(this.userName)
+							fillOpt("changeCommunityName", this.communitiesList, i => this.communitiesList[i], i => this.communitiesList[i]);
+						else
+							fillOpt("changeCommunityName", this.communities, i => this.communities[i].Name, i => this.communities[i].Name);
 					},
-					fillCommunitiesList: async function () {
-						var r = document.getElementById("courtCommunityName");
-						if(!r) return;
-						r.innerHTML = "";
-						for (i = r.options.length - 1; i >= 0 ; i--)
-							r.options[i] = null;
-						for (let i = 0; i < settings.communities.length; i++) {
-							var opt = document.createElement('option');
-							opt.value = settings.communities[i].Name;
-							opt.innerHTML = settings.communities[i].Name + ' (' + settings.communities[i].Region +')';
-							r.appendChild(opt);
+					updateChangeCommunityList: function() {
+						if(!this.userName) {
+							fillOpt("element", settings.communities, i => settings.communities[i].Name + ' (' + settings.communities[i].Region +')', i => settings.communities[i].Name);
+							if(r.selectedIndex >= 0)
+								this.courtCommunityName = r.options[r.selectedIndex].value;
 						}
-						if(r.selectedIndex >= 0)
-							this.courtCommunityName = r.options[r.selectedIndex].value;
 					},
 					updateHistory: function() {
 						getAllRecords("History", function(r) {
@@ -1261,17 +1272,7 @@
 							this.waitingAgreement = this.profile.Courts.map(e=>{ e.language = keyboardKeys.language; return e; });
 						if(this.profile.Joins)
 							this.waitingJoining = this.profile.Joins.map(e=>{ e.language = keyboardKeys.language; return e; });
-						var r = document.getElementById("changeCommunityName");
-						if(!r) return;
-						r.innerHTML = "";
-						for (i = r.options.length - 1; i >= 0 ; i--)
-							r.options[i] = null;
-						for (let i = 0; i < this.communitiesList.length; i++) {
-							var opt = document.createElement('option');
-							opt.value = this.communitiesList[i];
-							opt.innerHTML = this.communitiesList[i];
-							r.appendChild(opt);
-						}
+						fillOpt("changeCommunityName", this.communitiesList, i => this.communitiesList[i], i => this.communitiesList[i]);
 						if(!this.communityData.Rating || !this.communityData.Rating.find(e=>e.UserName == this.userName)) {
 							this.community = settings.community = null;
 							if(this.communitiesList.length > 0) {
@@ -1377,11 +1378,15 @@
 					},
 					selectCommunity: async function() {
 						var r = document.getElementById("changeCommunityName");
+						var ctn = document.getElementById("changeTargetNumber");
+						this.targetNumber = settings.targetNumber = ctn.selectedIndex >= 0 ? ctn.options[ctn.selectedIndex].value : undefined;
+						
 						this.community = settings.community = r.selectedIndex >= 0 ? r.options[r.selectedIndex].value : undefined;
-						ws.send({ "action": "join", "community": this.community });
+						sendWS({ "action": "join", "community": this.community, target: this.userName || this.targetNumber < 0 ? undefined : this.targetNumber });
+						settings.targetNumber = this.targetNumber;
 						await this.updateCommunityData();
 						settings.store();
-						this.changeView(0);
+						this.changeView(this.userName ? 0 : 8);
 					},
 					updateCommunityData: async function() {
 						if(this.community) {
@@ -1390,7 +1395,7 @@
 								this.community = settings.community = undefined;
 								return;
 							}
-							this.communityData.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
+							this.communityData.changeable = this.userName && (this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName));
 							if(this.communityData.Rating)
 								this.communityData.Rating = this.communityData.Rating
 									.sort((a, b) => b.Rating < a.Rating ? -1 : 1)
@@ -1412,44 +1417,15 @@
 									e.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
 									return e;
 								}).sort((a, b) => b.Date < a.Date ? -1 : 1);
-
-							var r = document.getElementById("eventName");
-							for (i = r.options.length - 1; i >= 0 ; i--)
-								r.options[i] = null;
-							for (let i = 0; i < this.communityData.Events.length; i++) 
-								if(this.communityData.Events[i].Active) {
-									var opt = document.createElement('option');
-									opt.innerHTML = this.communityData.Events[i].EventName;
-									opt.value = this.communityData.Events[i].EventName;
-									r.appendChild(opt);
-									if(!game.eventName)
-										game.eventName = opt.value;
-								}
-
-							var r = document.getElementById("player1");
-							for (i = r.options.length - 1; i >= 0 ; i--)
-								r.options[i] = null;
-							for (let i = 0; i < this.communityData.Rating.length; i++) {
-								var opt = document.createElement('option');
-								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
-								opt.value = this.communityData.Rating[i].UserName;
-								r.appendChild(opt);
-							}
-							var r = document.getElementById("player2");
-							for (i = r.options.length - 1; i >= 0 ; i--)
-								r.options[i] = null;
-							for (let i = 0; i < this.communityData.Rating.length; i++) {
-								var opt = document.createElement('option');
-								opt.innerHTML = this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')';
-								opt.value = this.communityData.Rating[i].UserName;
-								r.appendChild(opt);
-							}
+							fillOpt("eventName", this.communityData.Events, i => this.communityData.Events[i].EventName, i => this.communityData.Events[i].EventName);
+							fillOpt("player1", this.communityData.Rating, i => this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
+							fillOpt("player2", this.communityData.Rating, i => this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
 							let stats = this.communityData.Rating.find(e=>e.UserName == this.userName);
 							let p =  this.communityData.Rating.findIndex(e=>e.UserName == this.userName) + 1;
 							if(stats)
 								this.userCommunityStats = [
 //									{name: "#", value: p},
-									{name: "Rating", value: stats.Rating},
+									{name: "Rating", value: Math.round(stats.Rating)},
 //									{name: "W/D/L", value: stats.WonGames + "/" + stats.DrawGames + "/" + stats.LooseGames},	
 //									{name: "60+", value: stats.t60},
 //									{name: "100+", value: stats.t100},
@@ -1462,6 +1438,10 @@
 //									{name: "Dbls", value: stats.DoubleSuccess + "/" + stats.DoubleThrows},	
 									{name: "Av", value: Math.round(stats.ThrowTotal / stats.ThrowCount)}	
 								];
+							if(this.communityData.targets) {
+								this.targets = this.communityData.targets;
+								fillOpt("target", this.targets, i => this.targets[i] ? this.targets[i] : "No", i => this.targets[i]);
+							}
 						}
 					},
 					rejectCourt: async function(item) {
@@ -1510,7 +1490,7 @@
 						if(!g.community) g.community = this.community;
 						if(!g.communityRegion) g.communityRegion = this.communityData.Region;
 						if(!g.refereeTimestamp)
-							g.refereeTimestamp = g.timeStamp + '_' + this.userName;
+							g.refereeTimestamp = g.timeStamp.toISOString() + '_' + this.userName;
 
 						if(this.wait || !g.finished)
 							return;
@@ -1633,121 +1613,139 @@
 					}
 				}
 			});
-			banner = new Vue({
-					el: "#installBanner",
-					data: {
-						language: languages[settings.language]
-					},
-					methods: {
-						close: function() {
+			async function startAll() {
+					banner = new Vue({
+							el: "#installBanner",
+							data: {
+								language: languages[settings.language]
+							},
+							methods: {
+								close: function() {
 
+								}
+							}
+						});
+					/*var swipeBlock = document.getElementById("scoring");
+					swipe(swipeBlock, { maxTime: 1000, minTime: 100, maxDist: 150,  minDist: 60 });
+					swipeBlock.addEventListener("swipe", function() {
+						if(e.detail.swipeType == "right") {
+							gameComponent.legN--;
+							if(gameComponent.legN < 0)
+								gameComponent.legN = 0;
+						}
+						if(e.detail.swipeType == "left") {
+							gameComponent.legN++;
+							if(gameComponent.legN >= gameComponent.legs.length)
+								gameComponent.legN = gameComponent.legs.length - 1;
+						}
+					});
+					*/
+
+		//			if(curUrl.indexOf("community=")) {
+		//				keyboardKeys.community = curUrl.split("community=")[1];
+		//				keyboardKeys.changeView(8);
+		//			} else {
+						game.restoreLastState();
+						settings.restore();
+		//			}
+					game.updateAll();
+					var app = document.getElementById("app");
+					var keyPressTimer = null;
+					var keyLongPress = false;
+					document.onkeydown = e => {
+						if (keyPressTimer === null)
+							keyPressTimer = setTimeout(() => {
+								keyLongPress = true;
+							}, 1000);
+					};
+					document.onkeyup = e => {
+						if (keyPressTimer !== null) {
+							clearTimeout(keyPressTimer);
+							keyPressTimer = null;
+						}
+						if(!keyboardKeys.menuShown && keyboardKeys.currentView == 0)
+						switch(e.keyCode ? e.keyCode : e.keyChar) {
+							case 48: case 96: case 45: keyboardKeys.keyboardClick(0);break;
+							case 49: case 97: case 35: keyboardKeys.keyboardClick(1);break;
+							case 50: case 98: case 40: keyboardKeys.keyboardClick(2);break;
+							case 51: case 99: case 34: keyboardKeys.keyboardClick(3);break;
+							case 52: case 100: case 37: keyboardKeys.keyboardClick(4);break;
+							case 53: case 101: case 12: keyboardKeys.keyboardClick(5);break;
+							case 54: case 102: case 39: keyboardKeys.keyboardClick(6);break;
+							case 55: case 103: case 36: keyboardKeys.keyboardClick(7);break;
+							case 56: case 104: case 38: keyboardKeys.keyboardClick(8);break;
+							case 57: case 105: case 33: keyboardKeys.keyboardClick(9);break;
+							case 13: keyLongPress ? keyboardKeys.keyboardLongOk() : keyboardKeys.keyboardOk();break;
+							case 8: keyboardKeys.keyboardDelete();break;
+							case 46: keyboardKeys.value = keyboardKeys.closes = keyboardKeys.doubles = 0; break;
+							case 27: keyboardKeys.menuShown = true; break;
+						}
+						keyLongPress = false;
+					};
+					fillOpt("newCommunityRegion", flags, i => flags[i][1], i => flags[i][0]);
+
+					if(settings.userName) 
+						keyboardKeys.refreshProfile();
+					window.fitText(document.getElementsByClassName("marker-view-score"), 0.2);
+
+
+					function toggleMenuShow(element) {
+						closeAllMenus();
+						document.getElementById(element).classList.toggle("show");
+					}
+					window.onclick = function(event) {
+						if (!event.target.matches('.menuelement') && !event.target.parentElement.matches('.menuelement')&& !event.target.parentElement.parentElement.matches('.menuelement')) closeAllMenus();
+					}
+					function closeAllMenus() {
+						let dropdowns = document.getElementsByClassName("dropdown-content");
+							for (let i = 0; i < dropdowns.length; i++) {
+								let openDropdown = dropdowns[i];
+								if (openDropdown.classList.contains('show')) 
+									openDropdown.classList.remove('show');
+							}
+					}
+					window.onpopstate = function(event) {
+						keyboardKeys.currentView = event.state ? event.state.currentView : 0;
+					};
+					if(currentView < 0)
+						keyboardKeys.currentView = currentView;
+					else {
+						if(window.history.state && window.history.state.currentView) {
+							keyboardKeys.currentView = window.history.state.currentView;
 						}
 					}
-				});
-			/*var swipeBlock = document.getElementById("scoring");
-			swipe(swipeBlock, { maxTime: 1000, minTime: 100, maxDist: 150,  minDist: 60 });
-			swipeBlock.addEventListener("swipe", function() {
-				if(e.detail.swipeType == "right") {
-					gameComponent.legN--;
-					if(gameComponent.legN < 0)
-						gameComponent.legN = 0;
-				}
-				if(e.detail.swipeType == "left") {
-					gameComponent.legN++;
-					if(gameComponent.legN >= gameComponent.legs.length)
-						gameComponent.legN = gameComponent.legs.length - 1;
-				}
-			});
-			*/
-			function updateAll() {
-				game.updateAll();
-			}
-			game.restoreLastState();
-			settings.restore();
-			updateAll();
-			var app = document.getElementById("app");
-			var keyPressTimer = null;
-			var keyLongPress = false;
-			document.onkeydown = e => {
-				if (keyPressTimer === null)
-					keyPressTimer = setTimeout(() => {
-						keyLongPress = true;
-					}, 1000);
-			};
-			document.onkeyup = e => {
-				if (keyPressTimer !== null) {
-					clearTimeout(keyPressTimer);
-					keyPressTimer = null;
-				}
-				if(!keyboardKeys.menuShown && keyboardKeys.currentView == 0)
-				switch(e.keyCode ? e.keyCode : e.keyChar) {
-					case 48: case 96: case 45: keyboardKeys.keyboardClick(0);break;
-					case 49: case 97: case 35: keyboardKeys.keyboardClick(1);break;
-					case 50: case 98: case 40: keyboardKeys.keyboardClick(2);break;
-					case 51: case 99: case 34: keyboardKeys.keyboardClick(3);break;
-					case 52: case 100: case 37: keyboardKeys.keyboardClick(4);break;
-					case 53: case 101: case 12: keyboardKeys.keyboardClick(5);break;
-					case 54: case 102: case 39: keyboardKeys.keyboardClick(6);break;
-					case 55: case 103: case 36: keyboardKeys.keyboardClick(7);break;
-					case 56: case 104: case 38: keyboardKeys.keyboardClick(8);break;
-					case 57: case 105: case 33: keyboardKeys.keyboardClick(9);break;
-					case 13: keyLongPress ? keyboardKeys.keyboardLongOk() : keyboardKeys.keyboardOk();break;
-					case 8: keyboardKeys.keyboardDelete();break;
-					case 46: keyboardKeys.value = keyboardKeys.closes = keyboardKeys.doubles = 0; break;
-					case 27: keyboardKeys.menuShown = true; break;
-				}
-				keyLongPress = false;
-			};
-			var r = document.getElementById("newCommunityRegion");
-			for (let i = 0; i < flags.length; i++) {
-				var opt = document.createElement('option');
-			    opt.innerHTML = flags[i][1];
-				opt.value = flags[i][0];
-    			r.appendChild(opt);
-			}
-			if(settings.userName) 
-				keyboardKeys.refreshProfile();
-			window.fitText(document.getElementsByClassName("marker-view-score"), 0.2);
-
-
-			function toggleMenuShow(element) {
-				closeAllMenus();
-				document.getElementById(element).classList.toggle("show");
-			}
-			window.onclick = function(event) {
-				if (!event.target.matches('.menuelement') && !event.target.parentElement.matches('.menuelement')&& !event.target.parentElement.parentElement.matches('.menuelement')) closeAllMenus();
-			}
-			function closeAllMenus() {
-				let dropdowns = document.getElementsByClassName("dropdown-content");
-					for (let i = 0; i < dropdowns.length; i++) {
-						let openDropdown = dropdowns[i];
-						if (openDropdown.classList.contains('show')) 
-							openDropdown.classList.remove('show');
+					keyboardKeys.requestCommunitiesList();
+					if(document.getElementsByTagName('ya-tr-span').length > 0 || document.getElementsByClassName("translated-ltr").length > 0)
+						keyboardKeys.currentView = -1;
+					var r = document.getElementById("alert");
+					r.onclick = ()=> {
+						if (!r.classList.contains('alert-hidden')) 
+							r.classList.add("alert-hidden");
+					};
+					
+					var r = document.getElementById("changeTargetNumber");
+					var opt = document.createElement('option');
+						opt.value = -1;
+						opt.innerHTML = "No target";
+						r.appendChild(opt);
+					for (let i = 1; i < 64; i++) {
+						var opt = document.createElement('option');
+						opt.value = i;
+						opt.innerHTML = "Target " + i;
+						r.appendChild(opt);
 					}
+					let clean = ()=> {
+						if(keyboardKeys.gip)
+								keyboardKeys.gip = keyboardKeys.gip.filter(e=>(new Date() - e.lastUpdated) < 15*60*1000);
+					};
+					let cleaner = ()=> {
+							clean();
+							setTimeout(cleaner, 60000);
+					}
+					cleaner();
+					start();
 			}
-			window.onpopstate = function(event) {
-				keyboardKeys.currentView = event.state ? event.state.currentView : 0;
-			};
-			if(currentView < 0)
-				keyboardKeys.currentView = currentView;
-			else {
-				if(window.history.state && window.history.state.currentView)
-					keyboardKeys.currentView = window.history.state.currentView;
-			}
-			if(document.getElementsByTagName('ya-tr-span').length > 0 || document.getElementsByClassName("translated-ltr").length > 0)
-				keyboardKeys.currentView = -1;
-				var r = document.getElementById("alert");
-				r.onclick = ()=> {
-					if (!r.classList.contains('alert-hidden')) 
-						r.classList.add("alert-hidden");
-				};
-
-			let cleaner = ()=> {
-					if(keyboardKeys.gip)
-							keyboardKeys.gip = keyboardKeys.gip.filter(e=>(new Date() - e.lastUpdated) < 15*60*1000);
-					setTimeout(cleaner, 60000);
-			}
-			cleaner();
+			startAll();
 		</script>
 	</body>
 </html>

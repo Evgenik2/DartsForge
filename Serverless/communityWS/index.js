@@ -21,10 +21,6 @@ let sendUser = async function(event, community, message) {
             ExpressionAttributeValues: { ":userName": message.userName }, 
             TableName: 'ConnectionTable',
         }).promise();
-//                await documentClient.put({
-//                    TableName: 'Logs',
-//                    Item: { timestamp: "" + Math.floor(Date.now() / 1000), count: connections.Items.length, TTL: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 }
-//                }).promise();
         let apigwManagementApi = getApigwManagementApi(event);
         message.count = connections.Items.length;
         await Promise.all(connections.Items.map(async function(connection) {
@@ -90,12 +86,40 @@ module.exports.handler = async function(event, context) {
         let message = body.message;
         let action = body.action;
         let community = body.community;
+//                await documentClient.put({
+//                    TableName: 'Logs',
+//                    Item: { timestamp: "" + Math.floor(Date.now() / 1000), action: action, TTL: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 }
+//                }).promise();
         switch(action) {
             case "join":
+                let i = { connectionId : event.requestContext.connectionId, community: community, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 };
+                if(body.userName)
+                    i.userName = body.userName;
                 await documentClient.put({
                     TableName: 'ConnectionTable',
-                    Item: { connectionId : event.requestContext.connectionId, community: community, userName: body.userName, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 }
+                    Item: i
                 }).promise();
+  
+              //  try {
+                let gip = await documentClient.query({
+                    TableName: 'GIP',
+                    KeyConditionExpression: "Community = :community",
+                    ExpressionAttributeValues: { ":community": community },
+                    Key: { Community: community }
+                }).promise();
+                if(gip.Items && gip.Items.length > 0) {
+                    let apigwManagementApi = getApigwManagementApi(event);
+                    for(const i of gip.Items) {
+                        await apigwManagementApi.postToConnection({ ConnectionId: event.requestContext.connectionId, Data: JSON.stringify({
+                            action: "gipUpdate",
+                            community: community,
+                            userName: body.userName,
+        					game: JSON.parse(i.Game) 
+                        }) }).promise();
+       
+                    }
+                }
+                
                 break;
             case "courtCommunity":
                 return await send(event, community, {
@@ -129,6 +153,27 @@ module.exports.handler = async function(event, context) {
 					eventName: body.eventName,
 					userName: body.userName 
                 });
+            case "gipUpdate":
+                await documentClient.put({
+                    TableName: 'GIP',
+                    Item: { Community : community, RefereeTimestamp: body.game.refereeTimestamp, Game: JSON.stringify(body.game), TTL: Math.floor(Date.now() / 1000) + 60 * 15 }
+                }).promise();
+                return await send(event, community, {
+                    action: action,
+                    community: community,
+					game: body.game 
+                });
+            case "gipFinished":
+                await documentClient.delete({
+                    TableName: 'GIP',
+                    Key: { Community: community, RefereeTimestamp: body.refereeTimestamp }
+                }).promise();
+                return await send(event, community, {
+                    action: action,
+                    community: community,
+					refereeTimestamp: body.refereeTimestamp 
+                });
+
             default:
                 return await send(event, community, message);
         }

@@ -43,7 +43,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('fetch', function(event) {
   console.log(event.request.url);
-  if(event.request.method == 'POST')
+  if(event.request.method == 'POST' || event.request.url.indexOf("amazonaws.com") > 0)
     event.respondWith(fromNetworkOnly(event.request).catch(function() {
         return { authorized: event.response.headers['x-amzn-errortype'] != 'UnauthorizedException' };
     }));  
