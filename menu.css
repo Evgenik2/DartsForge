@@ -162,6 +162,29 @@
     align-self: stretch;
     font-size: 1.8vmax;
 }
+.marker-container {
+    display: flex;
+    flex: 1;
+    align-content: center;
+}
+.eventGip-header {
+    margin: 1vmax;
+    display: flex;
+    flex-direction: column;
+}
+.eventGip-marker-view {
+    display: flex;
+    flex: 1;
+    align-content: center;
+}
+
+.eventGIP {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    font-size: 1.8vmax;
+}
 .history-container {
     display: flex;
     flex-direction: column;

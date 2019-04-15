@@ -160,6 +160,7 @@
 						</div>
 					</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 14 }" :key="language.menuEventGame" ref="c14">{{language.menuEventGame}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 15 }" :key="language.menuEventGame" ref="c14">{{language.menuInGame}}</div>
 				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !wait }" >
 					<div class="menudropbtn">
@@ -290,34 +291,36 @@
 					</div>
 				</div>
 			</div>
-			<div id="eventGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 14 }">
-				<div class="history-container">
-					<div class="history-data" v-if="eventHistoryItemList[0]">
-							<div class="events-row">
-									<div :key="eventHistoryItemList[0].timeStamp" ref="c4001">{{new Date(eventHistoryItemList[0].timeStamp).toLocaleString()}}</div>
-									<div  :key="eventHistoryItemList[0].timeStamp" ref="c4001">{{eventHistoryItemList[0].player1}} VS {{eventHistoryItemList[0].player2}}</div>
+			<div id="eventGIP" class="eventGIP" v-if="eventHistoryItemList[0] && eventHistoryItemLegs.length > 0" v-bind:class="{ 'menu-collapsed': currentView != 15 }">
+						<div class="eventGip-header">
+								<div class="scoring-head">
+										<div class="scoring-player">{{eventHistoryItemLegs[eventHistoryItemLegs.length - 1].player1}}</div>
+										<div class="scoring-leg-group">
+												<div class="scoring-leg" v-if="eventHistoryItemList[0].setLength > 1">
+														Set {{eventHistoryItemLegs[eventHistoryItemLegs.length - 1].set + 1}} / {{eventHistoryItemList[0].setLength}}
+												</div>
+												<div class="scoring-leg-separator" v-if="eventHistoryItemList[0].setLength > 1"></div>
+												<div class="scoring-leg">
+														Leg {{eventHistoryItemLegs[eventHistoryItemLegs.length - 1].leg + 1}} / {{eventHistoryItemList[0].legLength}}
+												</div>
+										</div>
+										<div class="scoring-player">{{eventHistoryItemLegs[eventHistoryItemLegs.length - 1].player2}}</div>
+								</div>
+						</div>
+						<div class="marker-container">
+							<div id="scoring-left" v-if="legs" class="eventGip-marker-view" v-bind:class="{ 'element-collapsed': !markerView || game.finished }">
+									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 1 }" :key="legs[legs.length - 1].left1" ref="c76">{{legs[legs.length - 1].left1}}</div>
+									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 2 }" :key="legs[legs.length - 1].left2" ref="c77">{{legs[legs.length - 1].left2}}</div>
 							</div>
-						<div class="events-row stats-row">
-							<div class="stats-row-header" :key="language.menuSets" ref="c38">{{language.menuSets}}</div>
-							<div :key="eventHistoryItemList[0].setLength" ref="c39">{{eventHistoryItemList[0].setLength}}</div>
 						</div>
-						<div class="events-row stats-row">
-							<div class="stats-row-header" :key="language.menuLegs" ref="c40">{{language.menuLegs}}</div>
-							<div :key="eventHistoryItemList[0].legLength" ref="c41">{{eventHistoryItemList[0].legLength}}</div>
+						<div class="eventGip-header">
+							<div class="scoring-head">
+									<div class="scoring-player" v-if="eventHistoryItemFirstThrow">{{eventHistoryItemFirstThrow}}</div>
+									<div class="scoring-player" v-if="eventHistoryItemSecondThrow">{{eventHistoryItemSecondThrow}}</div>
+							</div>
 						</div>
-						<div class="events-row stats-row">
-							<div class="stats-row-header" :key="language.menuGame" ref="c42">{{language.menuGame}}</div>
-							<div :key="eventHistoryItemList[0].gameLength" ref="c43">{{eventHistoryItemList[0].gameLength}}</div>
-						</div>
-						<div class="events-row stats-row" v-if="eventHistoryItemList[0].finished && userName">
-							<div class="loginButton" v-longpress="deleteGame" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }" :key="language.deleteGame" ref="c44">{{language.deleteGame}}</div>
-						</div>	
 						<history-component  is="history-component" kind="full" v-if="eventHistoryItemList[0]" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
 						</history-component>
-						<game-set-component is="game-set-component" v-if="eventHistoryItemLegs" v-for="item in eventHistoryItemLegs" v-bind:item="item" v-bind:key="item.leg">
-						</game-set-component>
-					</div>
-				</div>
 			</div>
 			<div id="manageCommunity" class="profile" v-bind:class="{ 'menu-collapsed': currentView != 8 }">
 				<div class="history-container">
@@ -922,6 +925,8 @@
 					historyItemLegs: [],
 					historyItemList: [],
 					gip: [],
+					eventHistoryItemFirstThrow: "",
+					eventHistoryItemSecondThrow: "",
 					eventHistoryItemLegs: [],
 					eventHistoryItemList: [{stats:[]}],
 					stats: game.stats,
@@ -1060,14 +1065,29 @@
 						this.changeView(13);
 					},
 					showEventHistoryItem: function(t, h=true) {
-						if(h)
-							this.changeView(14);
 						var eventHistoryItem = this.eventHistory.find((i) => { return i.timeStamp == t});
-						if(!eventHistoryItem)
+						if(!eventHistoryItem) {
 							eventHistoryItem = this.gip.find((i) => { return i.timeStamp == t});
+							if(h)
+								this.changeView(15);
+						} else {
+							if(h)
+								this.changeView(14);
+						}
 						settings.eventHistoryItemLegs = this.eventHistoryItemLegs = eventHistoryItem.legs;
 						settings.eventHistoryItemList = this.eventHistoryItemList = [eventHistoryItem];
-						settings.store();
+						let throws = eventHistoryItem.legs[eventHistoryItem.legs.length - 1].throws
+						this.eventHistoryItemFirstThrow = (throws.length > 5 ? "..., " : "") + throws
+							.slice(Math.max(throws.length - 5, 1))
+							.map(item=>item.throw1 === "" ? "" : (item.throw1 >= 10000 ? "X" + Math.floor(item.throw1 / 10000) : item.throw1 % 1000) + "*".repeat(Math.floor(item.throw1 % 10000 / 1000)))
+							.filter(i=>i)
+							.join(", ");
+						this.eventHistoryItemSecondThrow = (throws.length > 5 ? "..., " : "") + throws
+							.slice(Math.max(throws.length - 5, 1))
+							.map(item=>item.throw2 === "" ? "" : (item.throw2 >= 10000 ? "X" + Math.floor(item.throw2 / 10000) : item.throw2 % 1000) + "*".repeat(Math.floor(item.throw2 % 10000 / 1000)))
+							.filter(i=>i)
+							.join(", ");
+						settings.store();						
 					},
 					showHistory: function() {
 						var to = new Date();
@@ -1244,6 +1264,7 @@
 							case 12: return this.language.publishGame;
 							case 13: return this.language.menuEvent;
 							case 14: return this.language.menuEventGame;
+							case 15: return this.language.menuInGame;
 						}
 					},
 					changeView: function(view, h=true) {
@@ -1254,6 +1275,7 @@
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
 						this.menuShown = true;
+						setTimeout(() => { window.dispatchEvent(new Event('resize')) }, 1000);
 						if(h && this.currentView != 12)
 							window.history.pushState({currentView: this.currentView}, "DartsForge: " + this.getViewName(), window.location.URL);
 					},
@@ -1684,7 +1706,7 @@
 						opt.value = -1;
 						opt.innerHTML = "No target";
 						r.appendChild(opt);
-					for (let i = 1; i < 64; i++) {
+					for (let i = 1; i <= 64; i++) {
 						var opt = document.createElement('option');
 						opt.value = i;
 						opt.innerHTML = "Target " + i;
