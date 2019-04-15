@@ -104,7 +104,8 @@ var languages = {
         messageReject3: " withdraw the application to ",
         messageJoin: " joined the community ",
         messageEventCreated: " event created.",
-        messageEventDeleted: " event deleted."
+        messageEventDeleted: " event deleted.",
+        menuTargetNumber: "Target #"
 
     },
     "ru": {
@@ -212,7 +213,9 @@ var languages = {
         messageReject3: " отозвал заявку в ",
         messageJoin: " присоединился к сообществу ",
         messageEventCreated: " событие создано.",
-        messageEventDeleted: " событие удалено."
+        messageEventDeleted: " событие удалено.",
+        menuTargetNumber: "Мишень №"
+
     }
 
 };

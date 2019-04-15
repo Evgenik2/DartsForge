@@ -55,6 +55,7 @@
 		<script src="language.js"></script>
 		<script src="vueComponents.js"></script>
 		<script src="flags.js"></script>
+		<script src="keyboard.js"></script>
 		<link href="media.css" rel="stylesheet" type="text/css" />
 		<script>
 			var currentView = 0;
@@ -222,7 +223,19 @@
 						<div class="dropdown-content-item" v-if="!userName" v-on:click="updateChangeCommunityList(); changeView(7); event.preventDefault();" :key="language.changeCommunity" ref="c23">{{language.changeCommunity}} </div>
 					</div>
 				</div>
-				<div class="menudropbtn" v-bind:class="{ 'menu-collapsed': userName }" v-on:click="logIn();" :key="language.menuLoginSignin" :key="language.menuLoginSignin" ref="1000">{{language.menuLoginSignin}}</div>
+				<div class="menudropbtn" v-bind:class="{ 'menu-collapsed': userName || (community && targetNumber > 0) }" v-on:click="logIn();" :key="language.menuLoginSignin" :key="language.menuLoginSignin" ref="1000">{{language.menuLoginSignin}}</div>
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': userName || targetNumber < 0 }">
+						<div class="menudropbtn" v-on:click="toggleMenuShow('targetDropdown');">
+							<div class="menubtnContent">
+								<div class="menuelement" :key="userName" ref="1001">{{language.menuTargetNumber}}{{targetNumber}}</div>
+								<div class="menudroparrow menuelement">▼</div>
+							</div>
+						</div>
+						<div id="targetDropdown" class="dropdown-content">
+							<div class="dropdown-content-item menuelement" v-on:click="changeLanguage(); event.preventDefault();" :key="language.language" ref="c27"><i :class="[language.flag]"></i> {{language.language}}</div>
+							<div class="dropdown-content-item" v-on:click="logIn(); event.preventDefault();" :key="language.menuLoginSignin" ref="c28">{{language.menuLoginSignin}}</div> 
+						</div>
+					</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !userName }">
 					<div class="menudropbtn" v-on:click="toggleMenuShow('userDropdown');">
 						<div class="menubtnContent">
@@ -405,7 +418,6 @@
 							<div id="courtCommunityError" class="dialog-error"></div>
 						</div>
 						<div class="menu-row">
-							<!--<div class="loginButton" v-on:click="requestCommunitiesList(); event.preventDefault();">{{language.refresh}}</div>-->
 							<div class="loginButton" v-on:click="courtCommunity(); event.preventDefault();" :key="language.courtCommunityBtn" ref="c53">{{language.courtCommunityBtn}}</div>
 						</div>
 					</div>	
@@ -421,7 +433,7 @@
 						<div class="menu-row">
 							<select class="menu-key menu-select-key" id="changeCommunityName" v-bind="community"></select>
 						</div>
-						<div class="menu-row" v-if="!userName">
+						<div class="menu-row" v-bind:class="{ 'menu-collapsed': userName }">
 							<select class="menu-key menu-select-key" id="changeTargetNumber" v-bind="targetNumber"></select>
 						</div>
 						<div class="menu-row">
@@ -502,11 +514,14 @@
 							<div class="menu-empty"></div>
 								<div class="menu-row">
 									<div class="menu-text"><label for="eventName" class="menu-text-span" :key="language.menuEventName" ref="c64">{{language.menuEventName}}</label></div>
-									<select class="menu-input menu-event" id="eventName" v-model="game.eventName">
-									</select>
-									<select v-bind:class="{ 'menu-collapsed': targets.length == 0 }" class="menu-input menu-target" id="target" v-model="game.target">
+									<select class="menu-input" id="eventName" v-model="game.eventName">
 									</select>
 								</div>
+								<div class="menu-row" v-bind:class="{ 'menu-collapsed': targets.length == 0 }">
+										<div class="menu-text"><label for="eventName" class="menu-text-span" :key="language.menuEventName" ref="c64">{{language.menuTargetNumber}}</label></div>
+										<select class="menu-input" id="target" v-model="game.target">
+										</select>
+									</div>
 								<div class="menu-row">
 									<div class="menu-text">
 										<label for="player1" class="menu-text-span" :key="language.menuFirstPlayer" ref="c65">{{language.menuFirstPlayer}}</label>
@@ -701,6 +716,7 @@
 					player1: undefined,
 					player2: undefined,
 					winner: undefined,
+					target: -1,
 					setLength: 1,
 					legLength: 3,
 					gameLength: 501,
@@ -745,6 +761,7 @@
 							game.player1 = g.player1;
 							game.player2 = g.player2;
 							game.eventName = g.eventName;
+							game.target = g.target;
 							game.setLength = g.setLength;
 							game.legLength = g.legLength;
 							game.gameLength = g.gameLength;
@@ -1243,17 +1260,18 @@
 					changeViewBack: function() {
 						window.history.back();
 					},
-					requestCommunitiesList: async function() {
+					updateChangeCommunityList: async function() {
 						settings.communities = keyboardKeys.communities = await DartsPublicApi('getCommunities');
 						settings.store();
 						if(this.userName)
 							fillOpt("changeCommunityName", this.communitiesList, i => this.communitiesList[i], i => this.communitiesList[i]);
 						else
-							fillOpt("changeCommunityName", this.communities, i => this.communities[i].Name, i => this.communities[i].Name);
+							fillOpt("changeCommunityName", this.communities, i => this.communities[i].Name + ' (' + this.communities[i].Region +')', i => this.communities[i].Name);
 					},
-					updateChangeCommunityList: function() {
-						if(!this.userName) {
-							fillOpt("element", settings.communities, i => settings.communities[i].Name + ' (' + settings.communities[i].Region +')', i => settings.communities[i].Name);
+					requestCommunitiesList: function() {
+						if(this.userName) {
+							fillOpt("courtCommunityName", settings.communities, i => settings.communities[i].Name + ' (' + settings.communities[i].Region +')', i => settings.communities[i].Name);
+							var r = document.getElementById("courtCommunityName");
 							if(r.selectedIndex >= 0)
 								this.courtCommunityName = r.options[r.selectedIndex].value;
 						}
@@ -1417,7 +1435,8 @@
 									e.changeable = this.communityData.Owner == this.userName || this.communityData.Referees.includes(this.userName);
 									return e;
 								}).sort((a, b) => b.Date < a.Date ? -1 : 1);
-							fillOpt("eventName", this.communityData.Events, i => this.communityData.Events[i].EventName, i => this.communityData.Events[i].EventName);
+							let ev = this.communityData.Events.filter(v => v.Active);
+							fillOpt("eventName", ev, i => ev[i].EventName, i => ev[i].EventName);
 							fillOpt("player1", this.communityData.Rating, i => this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
 							fillOpt("player2", this.communityData.Rating, i => this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
 							let stats = this.communityData.Rating.find(e=>e.UserName == this.userName);
@@ -1440,7 +1459,9 @@
 								];
 							if(this.communityData.targets) {
 								this.targets = this.communityData.targets;
-								fillOpt("target", this.targets, i => this.targets[i] ? this.targets[i] : "No", i => this.targets[i]);
+								if(this.targets.length > 0 && this.targets.indexOf(-1) < 0)
+									this.targets.push(-1);
+								fillOpt("target", this.targets, i => this.targets[i] > 0 ? this.targets[i] : "No", i => this.targets[i]);
 							}
 						}
 					},
@@ -1613,96 +1634,31 @@
 					}
 				}
 			});
+			function closeAllMenus() {
+				let dropdowns = document.getElementsByClassName("dropdown-content");
+					for (let i = 0; i < dropdowns.length; i++) {
+						let openDropdown = dropdowns[i];
+						if (openDropdown.classList.contains('show')) 
+							openDropdown.classList.remove('show');
+					}
+			}
+			function toggleMenuShow(element) {
+				closeAllMenus();
+				document.getElementById(element).classList.toggle("show");
+			}
 			async function startAll() {
-					banner = new Vue({
-							el: "#installBanner",
-							data: {
-								language: languages[settings.language]
-							},
-							methods: {
-								close: function() {
-
-								}
-							}
-						});
-					/*var swipeBlock = document.getElementById("scoring");
-					swipe(swipeBlock, { maxTime: 1000, minTime: 100, maxDist: 150,  minDist: 60 });
-					swipeBlock.addEventListener("swipe", function() {
-						if(e.detail.swipeType == "right") {
-							gameComponent.legN--;
-							if(gameComponent.legN < 0)
-								gameComponent.legN = 0;
-						}
-						if(e.detail.swipeType == "left") {
-							gameComponent.legN++;
-							if(gameComponent.legN >= gameComponent.legs.length)
-								gameComponent.legN = gameComponent.legs.length - 1;
-						}
-					});
-					*/
-
-		//			if(curUrl.indexOf("community=")) {
-		//				keyboardKeys.community = curUrl.split("community=")[1];
-		//				keyboardKeys.changeView(8);
-		//			} else {
-						game.restoreLastState();
-						settings.restore();
-		//			}
+					await initCognito();
+					game.restoreLastState();
+					await settings.restore();
 					game.updateAll();
-					var app = document.getElementById("app");
-					var keyPressTimer = null;
-					var keyLongPress = false;
-					document.onkeydown = e => {
-						if (keyPressTimer === null)
-							keyPressTimer = setTimeout(() => {
-								keyLongPress = true;
-							}, 1000);
-					};
-					document.onkeyup = e => {
-						if (keyPressTimer !== null) {
-							clearTimeout(keyPressTimer);
-							keyPressTimer = null;
-						}
-						if(!keyboardKeys.menuShown && keyboardKeys.currentView == 0)
-						switch(e.keyCode ? e.keyCode : e.keyChar) {
-							case 48: case 96: case 45: keyboardKeys.keyboardClick(0);break;
-							case 49: case 97: case 35: keyboardKeys.keyboardClick(1);break;
-							case 50: case 98: case 40: keyboardKeys.keyboardClick(2);break;
-							case 51: case 99: case 34: keyboardKeys.keyboardClick(3);break;
-							case 52: case 100: case 37: keyboardKeys.keyboardClick(4);break;
-							case 53: case 101: case 12: keyboardKeys.keyboardClick(5);break;
-							case 54: case 102: case 39: keyboardKeys.keyboardClick(6);break;
-							case 55: case 103: case 36: keyboardKeys.keyboardClick(7);break;
-							case 56: case 104: case 38: keyboardKeys.keyboardClick(8);break;
-							case 57: case 105: case 33: keyboardKeys.keyboardClick(9);break;
-							case 13: keyLongPress ? keyboardKeys.keyboardLongOk() : keyboardKeys.keyboardOk();break;
-							case 8: keyboardKeys.keyboardDelete();break;
-							case 46: keyboardKeys.value = keyboardKeys.closes = keyboardKeys.doubles = 0; break;
-							case 27: keyboardKeys.menuShown = true; break;
-						}
-						keyLongPress = false;
-					};
+				
 					fillOpt("newCommunityRegion", flags, i => flags[i][1], i => flags[i][0]);
 
 					if(settings.userName) 
 						keyboardKeys.refreshProfile();
 					window.fitText(document.getElementsByClassName("marker-view-score"), 0.2);
-
-
-					function toggleMenuShow(element) {
-						closeAllMenus();
-						document.getElementById(element).classList.toggle("show");
-					}
 					window.onclick = function(event) {
 						if (!event.target.matches('.menuelement') && !event.target.parentElement.matches('.menuelement')&& !event.target.parentElement.parentElement.matches('.menuelement')) closeAllMenus();
-					}
-					function closeAllMenus() {
-						let dropdowns = document.getElementsByClassName("dropdown-content");
-							for (let i = 0; i < dropdowns.length; i++) {
-								let openDropdown = dropdowns[i];
-								if (openDropdown.classList.contains('show')) 
-									openDropdown.classList.remove('show');
-							}
 					}
 					window.onpopstate = function(event) {
 						keyboardKeys.currentView = event.state ? event.state.currentView : 0;

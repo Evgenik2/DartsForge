@@ -141,39 +141,42 @@ var settings = {
     store: function() {
         setRecord("Settings", "settings", JSON.stringify(this));
     },
-    restore: function() {
-        getRecord("Settings", "settings", function(data) {
-            if(!data) {
-                keyboardKeys.userName = settings.userName;
-                settings.store();
-            } else {
-                var r = JSON.parse(data);
-                settings.endings = r.endings == undefined ? "Default" : r.endings;
-                settings.language = r.language == undefined ? "en" : r.language;
-                banner.language = languages[settings.language];
-                keyboardKeys.newSetLength = settings.newSetLength = r.newSetLength;
-                keyboardKeys.newLegLength = settings.newLegLength = r.newLegLength;
-                keyboardKeys.newGameLength = settings.newGameLength = r.newGameLength;
-                keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
-                keyboardKeys.userName = settings.userName;
-                if(r.communities) keyboardKeys.communities = settings.communities = r.communities;
-                if(r.community) keyboardKeys.community = settings.community = r.community;
-                if(r.eventHistoryItemLegs) keyboardKeys.eventHistoryItemLegs = settings.eventHistoryItemLegs = r.eventHistoryItemLegs;
-                if(r.eventHistoryItemList) keyboardKeys.eventHistoryItemList = settings.eventHistoryItemList = r.eventHistoryItemList;
-                if(r.eventData) keyboardKeys.eventData = settings.eventData = r.eventData;
-                if(r.eventName) keyboardKeys.eventName = settings.eventName = r.eventName;
-                if(r.eventHistory) keyboardKeys.eventHistory = settings.eventHistory = r.eventHistory;
-                if(keyboardKeys.currentView == 13 || keyboardKeys.currentView == 14)
-                    keyboardKeys.updateEventHistoryData(keyboardKeys.eventData);
-                if(keyboardKeys.community && r.communityData && r.communityData.Rating)
-                    keyboardKeys.communityData = settings.communityData = r.communityData;
-                keyboardKeys.requestCommunitiesList();
-                keyboardKeys.updateChangeCommunityList();
-                if(!keyboardKeys.userName && keyboardKeys.currentView != 10 && keyboardKeys.currentView != 13 && keyboardKeys.currentView != 14) {
-                    keyboardKeys.changeView(keyboardKeys.community ? 8 : 7);
+    restore: async function() {
+        await new Promise(function(resolve, reject) {
+            getRecord("Settings", "settings", function(data) {
+                if(!data) {
+                    keyboardKeys.userName = settings.userName;
+                    settings.store();
+                } else {
+                    var r = JSON.parse(data);
+                    settings.endings = r.endings == undefined ? "Default" : r.endings;
+                    settings.language = r.language == undefined ? "en" : r.language;
+                    keyboardKeys.newSetLength = settings.newSetLength = r.newSetLength;
+                    keyboardKeys.newLegLength = settings.newLegLength = r.newLegLength;
+                    keyboardKeys.newGameLength = settings.newGameLength = r.newGameLength;
+                    keyboardKeys.newNoStartSwap = settings.newNoStartSwap = r.newNoStartSwap;
+                    keyboardKeys.userName = settings.userName;
+                    if(r.communities) keyboardKeys.communities = settings.communities = r.communities;
+                    if(r.community) keyboardKeys.community = settings.community = r.community;
+                    if(r.eventHistoryItemLegs) keyboardKeys.eventHistoryItemLegs = settings.eventHistoryItemLegs = r.eventHistoryItemLegs;
+                    if(r.eventHistoryItemList) keyboardKeys.eventHistoryItemList = settings.eventHistoryItemList = r.eventHistoryItemList;
+                    if(r.eventData) keyboardKeys.eventData = settings.eventData = r.eventData;
+                    if(r.eventName) keyboardKeys.eventName = settings.eventName = r.eventName;
+                    if(r.eventHistory) keyboardKeys.eventHistory = settings.eventHistory = r.eventHistory;
+                    keyboardKeys.targetNumber = settings.targetNumber = r.targetNumber;
+                    if(keyboardKeys.currentView == 13 || keyboardKeys.currentView == 14)
+                        keyboardKeys.updateEventHistoryData(keyboardKeys.eventData);
+                    if(keyboardKeys.community && r.communityData && r.communityData.Rating)
+                        keyboardKeys.communityData = settings.communityData = r.communityData;
+                    keyboardKeys.requestCommunitiesList();
+                    keyboardKeys.updateChangeCommunityList();
+                    if(!keyboardKeys.userName && keyboardKeys.currentView != 10 && keyboardKeys.currentView != 13 && keyboardKeys.currentView != 14) {
+                        keyboardKeys.changeView(keyboardKeys.community ? 8 : 7);
+                    }
+                    game.updateAll();
                 }
-                game.updateAll();
-            }
+                resolve();
+            });
         });
     }
 };
@@ -203,22 +206,31 @@ function initCognitoSDK() {
     auth.useCodeGrantFlow();
     return auth;
 }
-var auth = initCognitoSDK();
-var curUrl = window.location.href;
-auth.userhandler = {
-    onSuccess: function(result) {
-        if(curUrl.indexOf("token") != -1 || curUrl.indexOf("code") != -1)
-            window.location.replace('/');
+var auth;
+async function initCognito() { 
+    await new Promise(function(resolve, reject) {
+        var curUrl = window.location.href;
+        auth = initCognitoSDK();
+        auth.userhandler = {
+            onSuccess: function(result) {
+                if(curUrl.indexOf("token") != -1 || curUrl.indexOf("code") != -1)
+                    window.location.replace('/');
+                if(auth.username)
+                    settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
+                resolve();
+            },
+            onFailure: function(err) {
+                console.log("Error! " + err);
+                reject();
+            }
+        };
+        auth.parseCognitoWebResponse(curUrl);
         if(auth.username)
             settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
-    },
-    onFailure: function(err) {
-    }
-};
-auth.parseCognitoWebResponse(curUrl);
-    
-if(auth.username)
-    settings.userName = decodeURIComponent(auth.username.split('').map(x => '%' + x.charCodeAt(0).toString(16)).join(''));
+        if(curUrl.indexOf("code=") < 0) 
+            resolve();
+    });
+}
 var ws;
 function start() {
     ws = new WebSocket("wss://5me0v9emlj.execute-api.us-east-2.amazonaws.com/dev");
@@ -237,9 +249,11 @@ function start() {
         }
         switch(data.action) {
             case "target": 
-                if(keyboardKeys.targets.indexOf (data.target) <= 0)
+                if(keyboardKeys.targets.indexOf(-1) < 0)
+                    keyboardKeys.targets.push(-1);
+                if(keyboardKeys.targets.indexOf(data.target) < 0)
                     keyboardKeys.targets.push(data.target);
-                fillOpt("target", keyboardKeys.targets, i => keyboardKeys.targets[i] ? keyboardKeys.targets[i] : "No", i => keyboardKeys.targets[i]);
+                fillOpt("target", keyboardKeys.targets, i => keyboardKeys.targets[i] > 0 ? keyboardKeys.targets[i] : "No", i => keyboardKeys.targets[i]);
                 break;
             case "courtCommunity":
                 if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable &&
@@ -292,9 +306,10 @@ function start() {
                     keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.game.refereeTimestamp);
                     keyboardKeys.gip.push(data.game);
                     keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
-                    if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
-                        keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
-                    }
+                    let t = data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
+                    if( t || (keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp))
+                        keyboardKeys.showEventHistoryItem(data.game.timeStamp, t);
+                }
                 break;
             case "gipFinished":
                 if(keyboardKeys.community == data.community) {
@@ -310,10 +325,11 @@ function start() {
                     }
                     if(data.game.player1 == keyboardKeys.userName || data.game.player2 == keyboardKeys.userName)
                         keyboardKeys.refreshProfile();
-                    if(keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
-                        keyboardKeys.showEventHistoryItem(data.game.timeStamp, false);
+                    let t = data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
                     if(keyboardKeys.currentView == 13)
                         keyboardKeys.showEventHistory(keyboardKeys.eventData);
+                    else if(t || keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
+                        keyboardKeys.showEventHistoryItem(data.game.timeStamp, t);
                 }
                 break;
         }

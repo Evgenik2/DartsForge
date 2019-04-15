@@ -35,7 +35,8 @@ self.addEventListener('install', e => {
               root + 'fittext.js',
               root + 'amazon-cognito-auth.min.js',
               root + 'Game501.js',
-              root + 'Chart.min.js'
+              root + 'Chart.min.js',
+              root + 'keyboard.js'
             ]);
         })
     );
