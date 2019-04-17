@@ -258,21 +258,21 @@ function start() {
             case "courtCommunity":
                 if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable &&
                     !keyboardKeys.profile.Joins.find(e=>e.CommunityName == data.community && e.UserName == data.userName)) {
-                        keyboardKeys.alert(data.userName + keyboardKeys.language.joinMessage1 + data.comunity);
+                        keyboardKeys.alert(data.userName + keyboardKeys.language.joinMessage1 + data.community);
                         keyboardKeys.profile.Joins.push({CommunityName: data.community, UserName: data.userName, language: keyboardKeys.language});
                         keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
                     }
                     break;
             case "rejectCourt":
                 if(keyboardKeys.community == data.community && keyboardKeys.communityData.changeable) {
-                    keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject1 + data.comunity + keyboardKeys.language.messageReject2);
+                    keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject3 + data.community);
                     keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
                     keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
                 }
                 break;
             case "rejectJoin":
                 if(data.userName == keyboardKeys.userName || (keyboardKeys.community == data.community && keyboardKeys.communityData.changeable)) {
-                    keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject3 + data.comunity);
+                    keyboardKeys.alert(data.userName + keyboardKeys.language.messageReject1 + data.community + keyboardKeys.language.messageReject2);
                     keyboardKeys.profile.Joins = keyboardKeys.profile.Joins.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
                     keyboardKeys.waitingJoining = keyboardKeys.profile.Joins;
                     keyboardKeys.profile.Courts = keyboardKeys.profile.Courts.filter(e=>!(e.CommunityName == data.community && e.UserName == data.userName));
@@ -280,7 +280,7 @@ function start() {
                 }
                 break;
             case "joinCommunity":
-                keyboardKeys.alert(data.userName + keyboardKeys.language.messageJoin + data.comunity);
+                keyboardKeys.alert(data.userName + keyboardKeys.language.messageJoin + data.community);
                 await keyboardKeys.refreshProfile();
                 break;
             case "deleteEvent":
@@ -306,7 +306,7 @@ function start() {
                     keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.game.refereeTimestamp);
                     keyboardKeys.gip.push(data.game);
                     keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
-                    let t = data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
+                    let t = keyboardKeys.targetNumber > 0 && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
                     if( t || (keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp))
                         keyboardKeys.showEventHistoryItem(data.game.timeStamp, t);
                 }
@@ -325,7 +325,7 @@ function start() {
                     }
                     if(data.game.player1 == keyboardKeys.userName || data.game.player2 == keyboardKeys.userName)
                         keyboardKeys.refreshProfile();
-                    let t = data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
+                    let t = keyboardKeys.targetNumber > 0 && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
                     if(keyboardKeys.currentView == 13)
                         keyboardKeys.showEventHistory(keyboardKeys.eventData);
                     else if(t || keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)

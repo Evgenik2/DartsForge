@@ -95,6 +95,8 @@ module.exports.handler = async function(event, context) {
                 let i = { connectionId : event.requestContext.connectionId, community: community, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 };
                 if(body.userName)
                     i.userName = body.userName;
+                if(body.target)
+                    i.target = body.target;
                 await documentClient.put({
                     TableName: 'ConnectionTable',
                     Item: i
@@ -119,7 +121,12 @@ module.exports.handler = async function(event, context) {
        
                     }
                 }
-                
+                if(body.target)
+                    await send(event, community, {
+                        action: "target",
+                        community: community,
+    					target: body.target 
+                    }); 
                 break;
             case "courtCommunity":
                 return await send(event, community, {

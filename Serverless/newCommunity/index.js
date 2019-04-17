@@ -79,6 +79,7 @@ var getCommunities = async function() {
 var communityData = async function(communityName) {
     let community = (await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise()).Item; 
     community.Referees = community.Referees ? community.Referees.values : [];
+    community.Referees = [];
     return community;
 };
 var getCommunity = async function(communityName) {
@@ -96,16 +97,32 @@ var getCommunity = async function(communityName) {
         TableName : process.env.GameEventsTableName }).promise();
     if(communityEvents.Items)
         community.Events = communityEvents.Items;
+
+    let targets = await documentClient.query({ 
+        KeyConditionExpression: "community = :communityName",
+        ExpressionAttributeValues: { ":communityName": communityName }, 
+        TableName : "ConnectionTable" }).promise();
+
+    if(targets.Items)
+        community.targets = targets.Items.map(i=>i.target).filter((v,i,s)=> v && s.indexOf(v)===i);
     return community;
 };
 var changePlayerStatus = async function(userName, communityName, playerName, status) {
     if(!communityName) throw 'Community name is not defined';
     let community = await getCommunity(communityName);
     if(community.Owner != userName) throw 'Only owner can change player status';
-    if(status == "Referee" && !community.Referees.includes(playerName))
-        community.Referees.push(playerName);
-    if(status == "Player")
+    let p = await userProfile(playerName);
+    if(status == "Referee") {
+        if(!community.Referees.includes(playerName))
+            community.Referees.push(playerName);
+        if(!p.RefereeCommunities.includes(communityName))
+            p.RefereeCommunities.push(communityName);
+    }
+    if(status == "Player") {
         community.Referees = community.Referees.filter(v => v != playerName);
+        p.RefereeCommunities = p.RefereeCommunities.filter(v => v != communityName);
+    }
+    await updateProfile(p);
     community.Rating = undefined;
     community.Events = undefined;
     community.Referees = community.Referees.length>0 ? documentClient.createSet(community.Referees) : undefined;

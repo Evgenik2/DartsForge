@@ -225,7 +225,7 @@
 					</div>
 				</div>
 				<div class="menudropbtn" v-bind:class="{ 'menu-collapsed': userName || (community && targetNumber > 0) }" v-on:click="logIn();" :key="language.menuLoginSignin" :key="language.menuLoginSignin" ref="1000">{{language.menuLoginSignin}}</div>
-				<div class="dropdown" v-bind:class="{ 'menu-collapsed': userName || targetNumber < 0 }">
+				<div class="dropdown" v-bind:class="{ 'menu-collapsed': userName || !targetNumber || targetNumber < 0 }">
 						<div class="menudropbtn" v-on:click="toggleMenuShow('targetDropdown');">
 							<div class="menubtnContent">
 								<div class="menuelement" :key="userName" ref="1001">{{language.menuTargetNumber}}{{targetNumber}}</div>
@@ -291,6 +291,36 @@
 					</div>
 				</div>
 			</div>
+			<div id="eventGame" class="history" v-bind:class="{ 'menu-collapsed': currentView != 14 }">
+					<div class="history-container">
+						<div class="history-data" v-if="eventHistoryItemList[0]">
+								<div class="events-row">
+										<div :key="eventHistoryItemList[0].timeStamp" ref="c4001">{{new Date(eventHistoryItemList[0].timeStamp).toLocaleString()}}</div>
+										<div  :key="eventHistoryItemList[0].timeStamp" ref="c4001">{{eventHistoryItemList[0].player1}} VS {{eventHistoryItemList[0].player2}}</div>
+								</div>
+							<div class="events-row stats-row">
+								<div class="stats-row-header" :key="language.menuSets" ref="c38">{{language.menuSets}}</div>
+								<div :key="eventHistoryItemList[0].setLength" ref="c39">{{eventHistoryItemList[0].setLength}}</div>
+							</div>
+							<div class="events-row stats-row">
+								<div class="stats-row-header" :key="language.menuLegs" ref="c40">{{language.menuLegs}}</div>
+								<div :key="eventHistoryItemList[0].legLength" ref="c41">{{eventHistoryItemList[0].legLength}}</div>
+							</div>
+							<div class="events-row stats-row">
+								<div class="stats-row-header" :key="language.menuGame" ref="c42">{{language.menuGame}}</div>
+								<div :key="eventHistoryItemList[0].gameLength" ref="c43">{{eventHistoryItemList[0].gameLength}}</div>
+							</div>
+							<div class="events-row stats-row" v-if="eventHistoryItemList[0].finished && userName">
+								<div class="loginButton" v-longpress="deleteGame" v-on:click="event.preventDefault();" v-bind:class="{ 'menu-collapsed': !communityData.changeable }" :key="language.deleteGame" ref="c44">{{language.deleteGame}}</div>
+							</div>	
+							<history-component  is="history-component" kind="full" v-if="eventHistoryItemList[0]" v-for="item in eventHistoryItemList" v-bind:item="item" v-bind:key="item.timeStamp">
+							</history-component>
+							<game-set-component is="game-set-component" v-if="eventHistoryItemLegs" v-for="item in eventHistoryItemLegs" v-bind:item="item" v-bind:key="item.leg">
+							</game-set-component>
+						</div>
+					</div>
+			</div>
+				
 			<div id="eventGIP" class="eventGIP" v-if="eventHistoryItemList[0] && eventHistoryItemLegs.length > 0" v-bind:class="{ 'menu-collapsed': currentView != 15 }">
 						<div class="eventGip-header">
 								<div class="scoring-head">
@@ -309,8 +339,8 @@
 						</div>
 						<div class="marker-container">
 							<div id="scoring-left" v-if="legs" class="eventGip-marker-view" v-bind:class="{ 'element-collapsed': !markerView || game.finished }">
-									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 1 }" :key="legs[legs.length - 1].left1" ref="c76">{{legs[legs.length - 1].left1}}</div>
-									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 2 }" :key="legs[legs.length - 1].left2" ref="c77">{{legs[legs.length - 1].left2}}</div>
+									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': eventHistoryItemLegs[eventHistoryItemLegs.length - 1].next == 1 }" :key="eventHistoryItemLegs[eventHistoryItemLegs.length - 1].left1" ref="c76">{{eventHistoryItemLegs[eventHistoryItemLegs.length - 1].left1}}</div>
+									<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': eventHistoryItemLegs[eventHistoryItemLegs.length - 1].next == 2 }" :key="eventHistoryItemLegs[eventHistoryItemLegs.length - 1].left2" ref="c77">{{eventHistoryItemLegs[eventHistoryItemLegs.length - 1].left2}}</div>
 							</div>
 						</div>
 						<div class="eventGip-header">
@@ -535,9 +565,10 @@
 											</svg>
 										</div>
 										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▼</div>
-									</div>
-									<select class="menu-input" id="player1" v-model="game.player1">
-									</select>
+									</div>								
+									<input class="menu-input" id="player1" v-model="game.player1" list="player1-list">
+									<datalist id="player1-list">
+									</datalist>
 								</div>
 								<div class="menu-row">
 									<div class="menu-text">
@@ -550,8 +581,9 @@
 										</div>
 										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▲</div>
 									</div>
-									<select class="menu-input" id="player2" v-model="game.player2">
-									</select>
+									<input class="menu-input" id="player2" v-model="game.player2" list="player2-list">
+									<datalist id="player2-list">
+									</datalist>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
 									<div class="menu-text"><label class="menu-text-span" :key="language.menuGame" ref="c67">{{language.menuGame}}</label></div>
@@ -589,7 +621,7 @@
 									<div class="menu-text menu-text-ver dialog-error" :key="newGameError" ref="1006">{{newGameError}}</div>
 								</div>
 								<div class="menu-row menu-entering-collapsed">
-									<div class="menu-text menu-text-ver">v.1.05</div>
+									<div class="menu-text menu-text-ver">v.1.06</div>
 								</div>
 								<div class="menu-empty"></div>
 						</div>
@@ -1285,10 +1317,16 @@
 					updateChangeCommunityList: async function() {
 						settings.communities = keyboardKeys.communities = await DartsPublicApi('getCommunities');
 						settings.store();
-						if(this.userName)
+						let r = document.getElementById("changeCommunityName");
+						if(this.userName) {
 							fillOpt("changeCommunityName", this.communitiesList, i => this.communitiesList[i], i => this.communitiesList[i]);
-						else
+							r.selectedIndex = this.communitiesList.indexOf(this.community);						
+						}	else {
 							fillOpt("changeCommunityName", this.communities, i => this.communities[i].Name + ' (' + this.communities[i].Region +')', i => this.communities[i].Name);
+							r.selectedIndex = this.communities.findIndex(i => i.Name == this.community);
+						}
+						r = document.getElementById("changeTargetNumber");
+						r.selectedIndex = !this.targetNumber || this.targetNumber < 0 ? 0 : this.targetNumber;
 					},
 					requestCommunitiesList: function() {
 						if(this.userName) {
@@ -1459,8 +1497,8 @@
 								}).sort((a, b) => b.Date < a.Date ? -1 : 1);
 							let ev = this.communityData.Events.filter(v => v.Active);
 							fillOpt("eventName", ev, i => ev[i].EventName, i => ev[i].EventName);
-							fillOpt("player1", this.communityData.Rating, i => this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
-							fillOpt("player2", this.communityData.Rating, i => this.communityData.Rating[i].UserName + ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
+							fillOpt("player1-list", this.communityData.Rating, i => ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
+							fillOpt("player2-list", this.communityData.Rating, i => ' (Rating ' + Math.round(this.communityData.Rating[i].Rating) + ')', i => this.communityData.Rating[i].UserName);
 							let stats = this.communityData.Rating.find(e=>e.UserName == this.userName);
 							let p =  this.communityData.Rating.findIndex(e=>e.UserName == this.userName) + 1;
 							if(stats)
@@ -1668,6 +1706,22 @@
 				closeAllMenus();
 				document.getElementById(element).classList.toggle("show");
 			}
+			var r = document.getElementById("alert");
+			r.onclick = ()=> {
+				if (!r.classList.contains('alert-hidden')) 
+					r.classList.add("alert-hidden");
+			};
+			var r = document.getElementById("changeTargetNumber");
+			var opt = document.createElement('option');
+				opt.value = -1;
+				opt.innerHTML = "No target";
+				r.appendChild(opt);
+			for (let i = 1; i <= 64; i++) {
+				var opt = document.createElement('option');
+				opt.value = i;
+				opt.innerHTML = "Target " + i;
+				r.appendChild(opt);
+			}
 			async function startAll() {
 					await initCognito();
 					game.restoreLastState();
@@ -1695,23 +1749,6 @@
 					keyboardKeys.requestCommunitiesList();
 					if(document.getElementsByTagName('ya-tr-span').length > 0 || document.getElementsByClassName("translated-ltr").length > 0)
 						keyboardKeys.currentView = -1;
-					var r = document.getElementById("alert");
-					r.onclick = ()=> {
-						if (!r.classList.contains('alert-hidden')) 
-							r.classList.add("alert-hidden");
-					};
-					
-					var r = document.getElementById("changeTargetNumber");
-					var opt = document.createElement('option');
-						opt.value = -1;
-						opt.innerHTML = "No target";
-						r.appendChild(opt);
-					for (let i = 1; i <= 64; i++) {
-						var opt = document.createElement('option');
-						opt.value = i;
-						opt.innerHTML = "Target " + i;
-						r.appendChild(opt);
-					}
 					let clean = ()=> {
 						if(keyboardKeys.gip)
 								keyboardKeys.gip = keyboardKeys.gip.filter(e=>(new Date() - e.lastUpdated) < 15*60*1000);
