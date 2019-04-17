@@ -566,7 +566,7 @@
 										</div>
 										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▼</div>
 									</div>								
-									<input class="menu-input" id="player1" v-model="game.player1" list="player1-list">
+									<input class="menu-input" id="player1" v-model="game.player1" list="player1-list" v-bind:class="{'scoring-throw-next':guest1}">
 									<datalist id="player1-list">
 									</datalist>
 								</div>
@@ -581,7 +581,7 @@
 										</div>
 										<div class="menu-btn" v-on:click="[game.player1, game.player2] = [game.player2, game.player1]">▲</div>
 									</div>
-									<input class="menu-input" id="player2" v-model="game.player2" list="player2-list">
+									<input class="menu-input" id="player2" v-model="game.player2" list="player2-list" v-bind:class="{'scoring-throw-next':guest2}">
 									<datalist id="player2-list">
 									</datalist>
 								</div>
@@ -681,7 +681,7 @@
 										<div class="marker-view-score" v-bind:class="{ 'scoring-throw-next': legs[legs.length - 1].next == 2 }" :key="legs[legs.length - 1].left2" ref="c77">{{legs[legs.length - 1].left2}}</div>
 								</div>
 								<div class="scoring-head">
-									<div class="scoring-player" v-on:click="prev" :key="legs[legN].player1" ref="c78">{{legs[legN].player1}}</div>
+									<div class="scoring-player" v-on:click="prev" :key="legs[legN].player1" ref="c78" v-bind:class="{'scoring-throw-next':guest1}">{{legs[legN].player1}}</div>
 									<div class="scoring-leg" v-bind:class="{ 'element-collapsed': showSeparator }" :key="legs[legN].leg" ref="c79">
 												{{language.leg}} {{legs[legN].leg + 1}}
 									</div>
@@ -694,7 +694,7 @@
 												{{language.leg}} {{legs[legN].leg + 1}}
 											</div>
 									</div>
-									<div class="scoring-player" v-on:click="next" :key="legs[legN].player2" ref="c82">{{legs[legN].player2}}</div>
+									<div class="scoring-player" v-on:click="next" :key="legs[legN].player2" ref="c82" v-bind:class="{'scoring-throw-next':guest2}">{{legs[legN].player2}}</div>
 								</div>
 								<div id="scoring-throws">
 									<div id="scoring-throws-group">
@@ -853,6 +853,10 @@
 											];
 						keyboardKeys.scrollToView();
 						keyboardKeys.updateGameSettingsError();
+						if(keyboardKeys.communityData && keyboardKeys.communityData.Rating) {
+							keyboardKeys.guest1 = keyboardKeys.communityData.Rating.findIndex(e=> e.UserName == game.player1) < 0;
+							keyboardKeys.guest2 = keyboardKeys.communityData.Rating.findIndex(e=> e.UserName == game.player2) < 0;
+						}
 					},
 					nextThrow: function(value) {
 						if(!this.lastLeg || this.lastLeg.next == 0) return;
@@ -937,6 +941,8 @@
 					waitingAgreement: [],
 					waitingJoining: [],
 					markerView: true,
+					guest1: false,
+					guest2: false,
 					language: languages[settings.language],
 					languages: languages,
 					languageName: settings.language,
@@ -995,9 +1001,13 @@
 				},
 				watch: {
 					'game.player1': function(val, preVal){
+						if(this.communityData && this.communityData.Rating)
+							this.guest1 = this.communityData.Rating.findIndex(e=> e.UserName == val) < 0;
 						game.updateAll();
 					},
 					'game.player2': function(val, preVal){
+						if(this.communityData && this.communityData.Rating)
+							this.guest2 = this.communityData.Rating.findIndex(e=> e.UserName == val) < 0;
 						game.updateAll();
 					},
 				},
@@ -1523,6 +1533,7 @@
 									this.targets.push(-1);
 								fillOpt("target", this.targets, i => this.targets[i] > 0 ? this.targets[i] : "No", i => this.targets[i]);
 							}
+							game.updateAll();
 						}
 					},
 					rejectCourt: async function(item) {
