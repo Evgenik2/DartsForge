@@ -105,7 +105,13 @@ var languages = {
         messageJoin: " joined the community ",
         messageEventCreated: " event created.",
         messageEventDeleted: " event deleted.",
-        menuTargetNumber: "Target #"
+        menuTargetNumber: "Target #",
+        menuSetupCamera: "Setup camera",
+        audioSource: "Audio source",
+        targetSource: "Target source",
+        portraitSource: "Portrait source",
+
+
 
     },
     "ru": {
@@ -214,8 +220,11 @@ var languages = {
         messageJoin: " присоединился к сообществу ",
         messageEventCreated: " событие создано.",
         messageEventDeleted: " событие удалено.",
-        menuTargetNumber: "Мишень №"
-
+        menuTargetNumber: "Мишень №",
+        menuSetupCamera: "Настройка камер",
+        audioSource: "Микрофон",
+        targetSource: "Камера на мишень",
+        portraitSource: "Камера на игрока",
     }
 
 };

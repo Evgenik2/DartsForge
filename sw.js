@@ -36,7 +36,8 @@ self.addEventListener('install', e => {
               root + 'amazon-cognito-auth.min.js',
               root + 'Game501.js',
               root + 'Chart.min.js',
-              root + 'keyboard.js'
+              root + 'keyboard.js',
+              root + 'camera.js'
             ]);
         })
     );

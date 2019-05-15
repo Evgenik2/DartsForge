@@ -56,6 +56,7 @@
 		<script src="vueComponents.js"></script>
 		<script src="flags.js"></script>
 		<script src="keyboard.js"></script>
+		<script src="camera.js"></script>
 		<link href="media.css" rel="stylesheet" type="text/css" />
 		<script>
 			var currentView = 0;
@@ -161,6 +162,7 @@
 					</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 14 }" :key="language.menuEventGame" ref="c14">{{language.menuEventGame}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 15 }" :key="language.menuEventGame" ref="c14">{{language.menuInGame}}</div>
+					<div v-bind:class="{ 'menu-collapsed': currentView != 16 }" :key="language.menuEventGame" ref="c14">{{language.menuSetupCamera}}</div>
 				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !wait }" >
 					<div class="menudropbtn">
@@ -233,6 +235,7 @@
 							</div>
 						</div>
 						<div id="targetDropdown" class="dropdown-content">
+							<div class="dropdown-content-item" v-on:click="showSettingsCamera(); event.preventDefault();" :key="language.menuSetupCamera" ref="c21">{{language.menuSetupCamera}} </div>
 							<div class="dropdown-content-item menuelement" v-on:click="changeLanguage(); event.preventDefault();" :key="language.language" ref="c27"><i :class="[language.flag]"></i> {{language.language}}</div>
 							<div class="dropdown-content-item" v-on:click="logIn(); event.preventDefault();" :key="language.menuLoginSignin" ref="c28">{{language.menuLoginSignin}}</div> 
 						</div>
@@ -320,7 +323,23 @@
 						</div>
 					</div>
 			</div>
-				
+			<div id="setupCamera" class="eventGIP" v-bind:class="{ 'menu-collapsed': currentView != 16 }">
+					<div class="setupVideo-header">
+						<div class="setupVideo-select">
+								<label for="audioSource">{{language.audioSource}}</label><select class="menu-key menu-select-key" id="audioSource" v-model="audioDeviceId"></select>
+						</div>
+						<div class="setupVideo-select">
+								<label for="portraitSource">{{language.portraitSource}}</label><select class="menu-key menu-select-key" id="portraitSource" v-model="portraitDeviceId"></select>
+						</div>
+						<div class="setupVideo-select">
+								<label for="targetSource">{{language.targetSource}}</label><select class="menu-key menu-select-key" id="targetSource" v-model="targetDeviceId"></select>
+						</div>
+					</div>
+					<div class="video-container">
+						<canvas class="setupVideo" id="videoCanvas"></canvas>
+					</div>
+			</div>
+
 			<div id="eventGIP" class="eventGIP" v-if="eventHistoryItemList[0] && eventHistoryItemLegs.length > 0" v-bind:class="{ 'menu-collapsed': currentView != 15 }">
 						<div class="eventGip-header">
 								<div class="scoring-head">
@@ -917,7 +936,10 @@
 				};
 			keyboardKeys = new Vue({
 				el: "#app",
-				data: {				
+				data: {		
+					audioDeviceId: undefined,
+					portraitDeviceId: undefined,
+					targetDeviceId: undefined,		
 					wait: false,
 					userName: undefined,
 					targetNumber: -1,
@@ -1000,12 +1022,30 @@
 							} ]
 				},
 				watch: {
-					'game.player1': function(val, preVal){
+					'audioDeviceId': function(val, preVal) {
+						if(settings.audioDeviceId != val) {
+							settings.audioDeviceId = val;
+							settings.store();
+						}
+					},
+					'portraitDeviceId': function(val, preVal) {
+						if(settings.portraitDeviceId != val) {
+							settings.portraitDeviceId = val;
+							settings.store();
+						}
+					},
+					'targetDeviceId': function(val, preVal) {
+						if(settings.targetDeviceId != val) {
+							settings.targetDeviceId = val;
+							settings.store();
+						}
+					},
+					'game.player1': function(val, preVal) {
 						if(this.communityData && this.communityData.Rating)
 							this.guest1 = this.communityData.Rating.findIndex(e=> e.UserName == val) < 0;
 						game.updateAll();
 					},
-					'game.player2': function(val, preVal){
+					'game.player2': function(val, preVal) {
 						if(this.communityData && this.communityData.Rating)
 							this.guest2 = this.communityData.Rating.findIndex(e=> e.UserName == val) < 0;
 						game.updateAll();
@@ -1106,7 +1146,39 @@
 						this.updateEventHistoryData(this.eventData);
 						this.changeView(13);
 					},
+					showSettingsCamera: async function() {
+						var canvas = document.getElementById("videoCanvas");
+						var ctx = canvas.getContext("2d");
+						var videoContainer;
+//						var webcam1 = document.getElementById('webcam1');
+//						var webcam2 = document.getElementById('webcam2');
+						    //audioSelect.onchange = ()=> {getStream(video1Select, webcam1)};
+//						portraitSource.onchange = ()=> {getStream(portraitSource, webcam1)};
+//						targetSource.onchange = ()=> {getStream(targetSource, webcam2)};
+//						if (navigator.getUserMedia) {
+//							navigator.getUserMedia({ audio: false, video: true },
+//											function(stream) {
+//												var video = document.getElementById('webcam1');
+//												try {
+//													video.srcObject = stream;
+//												} catch (error) {
+//													video.src = window.URL.createObjectURL(stream);
+//												}
+//												video.onloadedmetadata = function(e) {
+//													video.play();
+//												};
+//											},
+//											function(err) {
+//												console.log("The following error occured: " + err.name);
+//											}
+//									);
+//								} else {
+//									console.log("getUserMedia not supported");
+//								}
+						this.changeView(16);
+					},
 					showEventHistoryItem: function(t, h=true) {
+						
 						var eventHistoryItem = this.eventHistory.find((i) => { return i.timeStamp == t});
 						if(!eventHistoryItem) {
 							eventHistoryItem = this.gip.find((i) => { return i.timeStamp == t});
@@ -1307,10 +1379,18 @@
 							case 13: return this.language.menuEvent;
 							case 14: return this.language.menuEventGame;
 							case 15: return this.language.menuInGame;
+							case 16: return this.language.menuSetupCamera;
 						}
 					},
 					changeView: function(view, h=true) {
 						this.currentView = view;
+						switch(view) {
+							case 15: 
+
+								break;
+							case 16:
+								break;
+						}
 						document.getElementById("publishGameError").innerHTML = "";
 						document.getElementById("keyScore").classList.remove("animError");
 						var elm = document.getElementById("scoring-data");
@@ -1733,6 +1813,9 @@
 				opt.innerHTML = "Target " + i;
 				r.appendChild(opt);
 			}
+			navigator.getUserMedia = navigator.getUserMedia ||
+                         navigator.webkitGetUserMedia ||
+                         navigator.mozGetUserMedia;
 			async function startAll() {
 					await initCognito();
 					game.restoreLastState();
@@ -1769,7 +1852,9 @@
 							setTimeout(cleaner, 60000);
 					}
 					cleaner();
-					start();
+					startWebSocket();
+					
+					await initDevices('audioSource', 'portraitSource', 'targetSource');
 			}
 			startAll();
 		</script>

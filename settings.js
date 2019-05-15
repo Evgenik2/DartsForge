@@ -1,11 +1,17 @@
-function fillOpt(element, arr, h, v) {
+function fillOpt(element, arr, h, v, d) {
     var r = document.getElementById(element);
     if(!r) return;
     r.innerHTML = "";
     for (i = r.options.length - 1; i >= 0 ; i--)
         r.options[i] = null;
+    if(d) {
+        let opt = document.createElement('option');
+        opt.innerHTML = d;
+        opt.value = d;
+        r.appendChild(opt);
+    }
     for (let i = 0; i < arr.length; i++) {
-        var opt = document.createElement('option');
+        let opt = document.createElement('option');
         opt.innerHTML = h(i);
         opt.value = v(i);
         r.appendChild(opt);
@@ -173,6 +179,10 @@ var settings = {
                     if(!keyboardKeys.userName && keyboardKeys.currentView != 10 && keyboardKeys.currentView != 13 && keyboardKeys.currentView != 14) {
                         keyboardKeys.changeView(keyboardKeys.community ? 8 : 7);
                     }
+                    keyboardKeys.audioDeviceId = settings.audioDeviceId = r.audioDeviceId;
+                    keyboardKeys.portraitDeviceId = settings.portraitDeviceId = r.portraitDeviceId;
+                    keyboardKeys.targetDeviceId = settings.targetDeviceId = r.targetDeviceId;
+
                     game.updateAll();
                 }
                 resolve();
@@ -232,7 +242,7 @@ async function initCognito() {
     });
 }
 var ws;
-function start() {
+function startWebSocket() {
     ws = new WebSocket("wss://5me0v9emlj.execute-api.us-east-2.amazonaws.com/dev");
     ws.onopen = function() { 
         ws.send(JSON.stringify({ "action": "join", "community": settings.community, "userName": keyboardKeys.userName, target: keyboardKeys.userName || keyboardKeys.targetNumber < 0 ? undefined : keyboardKeys.targetNumber }));
@@ -317,7 +327,7 @@ function start() {
                     keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.refereeTimestamp);
                     keyboardKeys.gip.sort((a,b)=>a.refereeTimestamp.localeCompare(b.refereeTimestamp));
                     await keyboardKeys.updateCommunityData();
-                    if(keyboardKeys.eventName == data.game.eventName) {
+                    if(data.game && keyboardKeys.eventName == data.game.eventName) {
                         keyboardKeys.eventHistory.push(data.game);
                         keyboardKeys.eventHistory.sort((a, b) => b.timeStamp.localeCompare(a.timeStamp));
                         settings.eventHistory = keyboardKeys.eventHistory;

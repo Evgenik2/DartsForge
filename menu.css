@@ -539,3 +539,22 @@
 .menu-exportBtn {
     height: 5vmax;
 }
+.setupVideo {
+    flex: 1;
+    display: flex;
+    border: 0.3vmax solid #111111;
+    width: 45vmax;
+    height: 45vmax;
+}
+.video-container {
+    display: flex;
+
+    align-content: center;
+}
+.setupVideo-header {
+    margin: 1vmax;
+    display: flex;
+}
+.setupVideo-select {
+    margin: 0.3vmax;
+}

@@ -79,7 +79,6 @@ var getCommunities = async function() {
 var communityData = async function(communityName) {
     let community = (await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise()).Item; 
     community.Referees = community.Referees ? community.Referees.values : [];
-    community.Referees = [];
     return community;
 };
 var getCommunity = async function(communityName) {
@@ -254,10 +253,10 @@ var mergeStats = function(player, baseStats, stats) {
     
     if(!baseStats.t180) baseStats.t180 = 0;
     baseStats.t180 += stats["180"][player];
-   
+
     if(!baseStats.HC) baseStats.HC = 0;
     baseStats.HC = Math.max(baseStats.HC, stats["HC"][player]);
-    
+
     if(!baseStats.BestLeg || baseStats.BestLeg < 9) baseStats.BestLeg = 10000;
     if(stats.Best[player] > 8 && stats["Best"][player] > 8) baseStats.BestLeg = Math.min(baseStats.BestLeg, stats["Best"][player]);
     if(baseStats.BestLeg > 9999) baseStats.BestLeg = 0;
@@ -276,7 +275,7 @@ var mergeStats = function(player, baseStats, stats) {
     
     if(!baseStats.LooseGames) baseStats.LooseGames = 0;
     baseStats.LooseGames += stats["LooseGames"][player];
-    
+  
     if(!baseStats.DrawGames) baseStats.DrawGames = 0;
     baseStats.DrawGames += stats["DrawGames"][player];  
     
@@ -389,21 +388,33 @@ var deleteGroupStats = function(baseStats, stats, gameData) {
 var eloChange = (points, ratinga, ratingb) => {
     return 16 * (points - 1.0 / (1.0 + Math.pow(10, (ratingb - ratinga) / 400.0)));
 };
-var updateCommunityRating = async function(communityName, gameData, stats) {
-    let fp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player1 }, TableName : process.env.CommunityRatingTableName }).promise()).Item; 
-    if(!fp) fp = {"CommunityName" : communityName, "UserName" : gameData.player1, "Rating" : 1600};
-    let sp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player2 }, TableName : process.env.CommunityRatingTableName }).promise()).Item; 
-    if(!sp) sp = {"CommunityName" : communityName, "UserName" : gameData.player2, "Rating" : 1600};
-    if(!fp.Rating) fp.Rating = 1600;
-    if(!sp.Rating) sp.Rating = 1600;
-    let e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
-    fp.Rating += e;
-    sp.Rating -= e;
-    mergeStats("player1", fp, stats);
-    mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : process.env.CommunityRatingTableName }).promise();
-    await documentClient.put({ Item : sp, TableName : process.env.CommunityRatingTableName }).promise();
-    return  { FirstPlayerRating: fp.Rating, SecondPlayerRating: sp.Rating, RatingChange: e };
+var updateCommunityRating = async function(communityName, gameData, stats, g1, g2) {
+    let fp, sp;
+    if(!g1) {
+        fp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player1 }, TableName : process.env.CommunityRatingTableName }).promise()).Item; 
+        if(!fp) fp = {"CommunityName" : communityName, "UserName" : gameData.player1, "Rating" : 1600};
+        if(!fp.Rating) fp.Rating = 1600;
+    }
+    if(!g2) {
+        sp = (await documentClient.get({ Key: { "CommunityName" : communityName, "UserName" : gameData.player2 }, TableName : process.env.CommunityRatingTableName }).promise()).Item; 
+        if(!sp) sp = {"CommunityName" : communityName, "UserName" : gameData.player2, "Rating" : 1600};
+        if(!sp.Rating) sp.Rating = 1600;
+    }
+    let e = 0;
+    if(!g1 && !g2) {
+        e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
+        fp.Rating += e;
+        sp.Rating -= e;
+    }
+    if(!g1) {
+        mergeStats("player1", fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.CommunityRatingTableName }).promise();
+    }
+    if(!g2) {
+        mergeStats("player2", sp, stats);
+        await documentClient.put({ Item : sp, TableName : process.env.CommunityRatingTableName }).promise();
+    }
+    return  { FirstPlayerRating: fp ? fp.Rating : 0, SecondPlayerRating: sp ? sp.Rating : 0, RatingChange: e };
 };
 var updateCommunityStats = async function(communityName, gameData, stats) {
     let baseStats = (await documentClient.get({ Key: { "Name" : communityName }, TableName : process.env.CommunitiesTableName }).promise()).Item; 
@@ -419,37 +430,62 @@ var updateEventStats = async function(communityName, eventName, gameData, stats)
     await documentClient.put({ Item : baseStats, TableName : process.env.GameEventsTableName }).promise();
     return "Ok";
 };
-var updateRegionRating = async function(region, gameData, stats) {
-    let fp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player1 }, TableName : process.env.RegionRatingTableName }).promise()).Item; 
-    if(!fp) fp = {"Region" : region, "UserName" : gameData.player1, "Rating" : 1600};
-    let sp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player2 }, TableName : process.env.RegionRatingTableName }).promise()).Item; 
-    if(!sp) sp = {"Region" : region, "UserName" : gameData.player2, "Rating" : 1600};
-    if(!fp.Rating) fp.Rating = 1600;
-    if(!sp.Rating) sp.Rating = 1600;
-    let e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
-    fp.Rating += e;
-    sp.Rating -= e;
-    mergeStats("player1", fp, stats);
-    mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : process.env.RegionRatingTableName }).promise();
-    await documentClient.put({ Item : sp, TableName : process.env.RegionRatingTableName }).promise();
-    return  { FirstPlayerRating: fp.Rating, SecondPlayerRating: sp.Rating, RatingChange: e };
+var updateRegionRating = async function(region, gameData, stats, g1, g2) {
+    let fp, sp;
+    if(!g1) {
+        fp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player1 }, TableName : process.env.RegionRatingTableName }).promise()).Item; 
+        if(!fp) fp = {"Region" : region, "UserName" : gameData.player1, "Rating" : 1600};
+        if(!fp.Rating) fp.Rating = 1600;
+    }
+    if(!g2) {
+        sp = (await documentClient.get({ Key: { "Region" : region, "UserName" : gameData.player2 }, TableName : process.env.RegionRatingTableName }).promise()).Item; 
+        if(!sp) sp = {"Region" : region, "UserName" : gameData.player2, "Rating" : 1600};
+        if(!sp.Rating) sp.Rating = 1600;
+    }
+
+    let e = 0;
+    if(!g1 && !g2) {
+        e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
+        fp.Rating += e;
+        sp.Rating -= e;
+    }
+    if(!g1) {
+        mergeStats("player1", fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.RegionRatingTableName }).promise();
+    }
+    if(!g2) {
+        mergeStats("player2", sp, stats);
+        await documentClient.put({ Item : sp, TableName : process.env.RegionRatingTableName }).promise();
+    }
+    return  { FirstPlayerRating: fp ? fp.Rating : 0, SecondPlayerRating: sp ? sp.Rating : 0, RatingChange: e };
 };
-var updateWorldRating = async function(gameData, stats) {
-    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1 }, TableName : process.env.WorldRatingTableName }).promise()).Item; 
-    if(!fp) fp = {"UserName" : gameData.player1, "Rating" : 1600};
-    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2 }, TableName : process.env.WorldRatingTableName }).promise()).Item; 
-    if(!sp) sp = {"UserName" : gameData.player2, "Rating" : 1600};
-    if(!fp.Rating) fp.Rating = 1600;
-    if(!sp.Rating) sp.Rating = 1600;
-    let e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
-    fp.Rating += e;
-    sp.Rating -= e;
-    mergeStats("player1", fp, stats);
-    mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : process.env.WorldRatingTableName }).promise();
-    await documentClient.put({ Item : sp, TableName : process.env.WorldRatingTableName }).promise();
-    return  { FirstPlayerRating: fp.Rating, SecondPlayerRating: sp.Rating, RatingChange: e };
+var updateWorldRating = async function(gameData, stats, g1, g2) {
+    let fp, sp;
+    if(!g1) {
+        fp = (await documentClient.get({ Key: { "UserName" : gameData.player1 }, TableName : process.env.WorldRatingTableName }).promise()).Item; 
+        if(!fp) fp = {"UserName" : gameData.player1, "Rating" : 1600};
+        if(!fp.Rating) fp.Rating = 1600;
+    }
+    if(!g2) {
+        sp = (await documentClient.get({ Key: { "UserName" : gameData.player2 }, TableName : process.env.WorldRatingTableName }).promise()).Item; 
+        if(!sp) sp = {"UserName" : gameData.player2, "Rating" : 1600};
+        if(!sp.Rating) sp.Rating = 1600;
+    }
+    let e = 0;
+    if(!g1 && !g2) {
+        e = eloChange(stats.WonGames.player1 + stats.DrawGames.player1 * 0.5, fp.Rating, sp.Rating);
+        fp.Rating += e;
+        sp.Rating -= e;
+    }
+    if(!g1) {
+        mergeStats("player1", fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.WorldRatingTableName }).promise();
+    }
+    if(!g2) {
+        mergeStats("player2", sp, stats);
+        await documentClient.put({ Item : sp, TableName : process.env.WorldRatingTableName }).promise();
+    }
+    return  { FirstPlayerRating: fp ? fp.Rating : 0, SecondPlayerRating: sp ? sp.Rating : 0, RatingChange: e };
 };
 var getWeekNumber = function(cd) {
     var d = new Date(Date.UTC(cd.getFullYear(), cd.getMonth(), cd.getDate()));
@@ -458,23 +494,27 @@ var getWeekNumber = function(cd) {
     var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
     return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
 };
-var updateWeeklyRating = async function(communityName, gameData, stats, cr, rr, wr) {
+var updateWeeklyRating = async function(communityName, gameData, stats, cr, rr, wr, g1, g2) {
     var cd = new Date(gameData.timeStamp);
     let week = cd.getFullYear() + '_' + getWeekNumber(cd);
-    let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
-    if(!fp) fp = {"UserName" : gameData.player1, "Week": week};
-    fp["Community" + communityName + "Rating"] = cr.FirstPlayerRating;
-    fp.RegionRating = rr.FirstPlayerRating;
-    fp.WorldRating = wr.FirstPlayerRating;
-    let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
-    if(!sp) sp = {"UserName" : gameData.player2, "Week": week};
-    sp["Community" + communityName + "Rating"] = cr.SecondPlayerRating;
-    sp.RegionRating = rr.SecondPlayerRating;
-    sp.WorldRating = wr.SecondPlayerRating;
-    mergeStats("player1", fp, stats);
-    mergeStats("player2", sp, stats);
-    await documentClient.put({ Item : fp, TableName : process.env.UserWeeklyRatingTableName }).promise();
-    await documentClient.put({ Item : sp, TableName : process.env.UserWeeklyRatingTableName }).promise();
+    if(!g1) {
+        let fp = (await documentClient.get({ Key: { "UserName" : gameData.player1, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
+        if(!fp) fp = {"UserName" : gameData.player1, "Week": week};
+        fp["Community" + communityName + "Rating"] = cr.FirstPlayerRating;
+        fp.RegionRating = rr.FirstPlayerRating;
+        fp.WorldRating = wr.FirstPlayerRating;
+        mergeStats("player1", fp, stats);
+        await documentClient.put({ Item : fp, TableName : process.env.UserWeeklyRatingTableName }).promise();
+    }
+    if(!g2) {
+        let sp = (await documentClient.get({ Key: { "UserName" : gameData.player2, "Week": week }, TableName : process.env.UserWeeklyRatingTableName }).promise()).Item; 
+        if(!sp) sp = {"UserName" : gameData.player2, "Week": week};
+        sp["Community" + communityName + "Rating"] = cr.SecondPlayerRating;
+        sp.RegionRating = rr.SecondPlayerRating;
+        sp.WorldRating = wr.SecondPlayerRating;
+        mergeStats("player2", sp, stats);
+        await documentClient.put({ Item : sp, TableName : process.env.UserWeeklyRatingTableName }).promise();
+    }
     return "Ok";
 };
 var getEvent = async function(userName, communityName, eventName) {
@@ -588,7 +628,7 @@ var deleteGame = async function(userName, communityName, eventName, refereeTimes
     await documentClient.delete({ Key: { "CommunityEvent" : communityName + '_' + eventName, "RefereeTimestamp" : refereeTimestamp }, TableName : process.env.GamesTableName }).promise();
     return "Deleted";
 };
-var storeGame = async function(userName, communityName, region, eventName, gameData, stats) {
+var storeGame = async function(userName, communityName, region, eventName, gameData, stats, g1, g2) {
     await documentClient.put({ Item : { 
         "CommunityEvent" : communityName + '_' + eventName, 
         "RefereeTimestamp" : gameData.timeStamp + '_' + userName,
@@ -606,12 +646,14 @@ var storeGame = async function(userName, communityName, region, eventName, gameD
     },
     ConditionExpression: 'attribute_not_exists(CommunityEvent) AND attribute_not_exists(RefereeTimestamp)',
     TableName : process.env.GamesTableName }).promise();
-    let cr = await updateCommunityRating(communityName, gameData, stats);
-    let rr = await updateRegionRating(region, gameData, stats);
-    let wr = await updateWorldRating(gameData, stats);
-    await updateWeeklyRating(communityName, gameData, stats, cr, rr, wr);
+    let cr = await updateCommunityRating(communityName, gameData, stats, g1, g2);
+    let rr = await updateRegionRating(region, gameData, stats, g1, g2);
+    let wr = await updateWorldRating(gameData, stats, g1, g2);
+
+    await updateWeeklyRating(communityName, gameData, stats, cr, rr, wr, g1, g2);
     await updateCommunityStats(communityName, gameData, stats);
     await updateEventStats(communityName, eventName, gameData, stats);
+
     return { CommunityRating: cr, RegionRating: rr, WorldRating: wr };
 };
 var gameFinished = async function(userName, communityName, region, eventName, gameData) {
@@ -626,14 +668,17 @@ var gameFinished = async function(userName, communityName, region, eventName, ga
         throw 'User '+userName+' is not found in community ' + communityName;
     if(!community.Events.find( r=>r.EventName == eventName && r.Active))
         throw 'Event '+eventName+' is not found in community ' + communityName;
+    let g1 = false, g2 = false;
     if(!community.Rating.find( r=>r.UserName == gameData.player1))
-        throw 'User '+gameData.player1+' is not found in community ' + communityName;
+        g1 = true;
+        //throw 'User '+gameData.player1+' is not found in community ' + communityName;
     if(!community.Rating.find( r=>r.UserName == gameData.player2))
-        throw 'User '+gameData.player2+' is not found in community ' + communityName;
+        g2 = true;
+        //throw 'User '+gameData.player2+' is not found in community ' + communityName;
     if(gameData.player1 == gameData.player2)
         throw 'Players should be different';
     let stats = Game501.Verify(gameData);
-    let res = await storeGame(userName, communityName, region, eventName, gameData, stats);
+    let res = await storeGame(userName, communityName, region, eventName, gameData, stats, g1, g2);
     
     return { message: "Ok", value: res };
 };
@@ -682,6 +727,6 @@ exports.newCommunity = async function(event, context) {
       	        return JSON.stringify({ action: action, message: 'Command not recognized' });
   		}
     } catch (e) {
- 	    return JSON.stringify({ error: e, message: 'Something goes wrong' });
+ 	    return JSON.stringify({ error: JSON.stringify(e), message: 'Something goes wrong' });
     }
 };
