@@ -41,6 +41,18 @@ function download(filename, text) {
   
     document.body.removeChild(element);
 }
+function downloadBlob(filename, blob) {
+    var element = document.createElement('a');
+    element.setAttribute('href', window.URL.createObjectURL(blob));
+    element.setAttribute('download', filename);
+  
+    element.style.display = 'none';
+    document.body.appendChild(element);
+  
+    element.click();
+  
+    document.body.removeChild(element);
+}
 async function GetToken() {
     return await new Promise(function(resolve, reject) {
         auth.userhandler = {
@@ -140,6 +152,12 @@ var settings = {
     newNoStartSwap: false,
     endings: "Default",
     language: "en",
+    portraitTop: 0,
+    portraitLeft: 0,
+    portraitScale: 1, 
+    targetTop: 0,
+    targetLeft: 0,
+    targetScale: 1, 
     getEnding: function(value, defaultValue) { 
         var e = endings[this.endings]; 
         return e[value] ? e[value] : defaultValue;
@@ -182,7 +200,12 @@ var settings = {
                     keyboardKeys.audioDeviceId = settings.audioDeviceId = r.audioDeviceId;
                     keyboardKeys.portraitDeviceId = settings.portraitDeviceId = r.portraitDeviceId;
                     keyboardKeys.targetDeviceId = settings.targetDeviceId = r.targetDeviceId;
-
+                    settings.portraitTop = r.portraitTop;
+                    settings.portraitLeft = r.portraitLeft;
+                    settings.portraitScale = r.portraitScale;
+                    settings.targetTop = r.targetTop;
+                    settings.targetLeft = r.targetLeft;
+                    settings.targetScale = r.targetScale;
                     game.updateAll();
                 }
                 resolve();
@@ -317,6 +340,8 @@ function startWebSocket() {
                     keyboardKeys.gip.push(data.game);
                     keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
                     let t = keyboardKeys.targetNumber > 0 && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
+                    if(t && !recorder)
+                        startRecord();
                     if( t || (keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp))
                         keyboardKeys.showEventHistoryItem(data.game.timeStamp, t);
                 }
@@ -336,6 +361,8 @@ function startWebSocket() {
                     if(data.game.player1 == keyboardKeys.userName || data.game.player2 == keyboardKeys.userName)
                         keyboardKeys.refreshProfile();
                     let t = keyboardKeys.targetNumber > 0 && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
+                    if(t && recorder)
+                        finishRecord();
                     if(keyboardKeys.currentView == 13)
                         keyboardKeys.showEventHistory(keyboardKeys.eventData);
                     else if(t || keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
@@ -346,7 +373,7 @@ function startWebSocket() {
     };
     ws.onclose = function(){
         // Try to reconnect in 5 seconds
-        setTimeout(start, 5000);
+        setTimeout(startWebSocket, 5000);
     };
 }
     

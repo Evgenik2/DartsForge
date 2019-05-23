@@ -542,14 +542,17 @@
 .setupVideo {
     flex: 1;
     display: flex;
-    border: 0.3vmax solid #111111;
-    width: 45vmax;
-    height: 45vmax;
+    width: 100%;
 }
 .video-container {
     display: flex;
-
-    align-content: center;
+    flex: 1;
+    justify-content: center;
+}
+.video-container2 {
+    display: flex;
+    width: 7vmax;
+    justify-content: center;
 }
 .setupVideo-header {
     margin: 1vmax;
@@ -557,4 +560,34 @@
 }
 .setupVideo-select {
     margin: 0.3vmax;
+}
+
+.ratio {
+    width: 90%; /* здесь можно установить любую нужную ширину */
+}
+
+.ratio-inner {
+    position: relative;
+    height: 0;
+    border: none;
+}
+
+.ratio-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #eee;
+}
+
+.ratio-16-9 {
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+.video-btn {
+    width: 3vmax;
+    height: 3vmax;
+    background: blue;
+    color: white;
+    border: 1px solid white;
 }

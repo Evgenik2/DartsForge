@@ -92,7 +92,7 @@ module.exports.handler = async function(event, context) {
 //                }).promise();
         switch(action) {
             case "join":
-                let i = { connectionId : event.requestContext.connectionId, community: community, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 };
+                let i = { connectionId : event.requestContext.connectionId, community: community, TTL: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 };
                 if(body.userName)
                     i.userName = body.userName;
                 if(body.target)

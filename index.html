@@ -164,6 +164,15 @@
 					<div v-bind:class="{ 'menu-collapsed': currentView != 15 }" :key="language.menuEventGame" ref="c14">{{language.menuInGame}}</div>
 					<div v-bind:class="{ 'menu-collapsed': currentView != 16 }" :key="language.menuEventGame" ref="c14">{{language.menuSetupCamera}}</div>
 				</div>
+				<div class="video-container2" id="videoContainer2" v-bind:class="{ 'menu-collapsed': !recorder }">
+						<div class="ratio">
+								<div class="ratio-inner ratio-16-9">
+										<div class="ratio-content">
+												<canvas class="setupVideo" id="videoCanvas2"></canvas>
+										</div>
+								</div>
+						</div>
+				</div>
 				<div class="dropdown" v-bind:class="{ 'menu-collapsed': !wait }" >
 					<div class="menudropbtn">
 						<svg class="menudropsvg menuelement" viewBox="0 0 210 297">
@@ -335,8 +344,35 @@
 								<label for="targetSource">{{language.targetSource}}</label><select class="menu-key menu-select-key" id="targetSource" v-model="targetDeviceId"></select>
 						</div>
 					</div>
-					<div class="video-container">
-						<canvas class="setupVideo" id="videoCanvas"></canvas>
+					<div class="setupVideo-header">
+						<div></div>
+					</div>
+					<div class="video-container" id="videoContainer">
+						<div class="ratio">
+								<div class="ratio-inner ratio-16-9">
+										<div class="ratio-content">
+												<canvas class="setupVideo" id="videoCanvas"></canvas>
+												<div class="setupVideo-header">
+													<div class="video-btn" v-on:click="videoPosition(1)">U</div>
+													<div class="video-btn" v-on:click="videoPosition(2)">D</div>
+													<div class="video-btn" v-on:click="videoPosition(3)">L</div>
+													<div class="video-btn" v-on:click="videoPosition(4)">R</div>
+													<div class="video-btn" v-on:click="videoPosition(5)">Z+</div>
+													<div class="video-btn" v-on:click="videoPosition(6)">Z-</div>
+													<div class="video-btn" v-on:click="videoPosition(13)">Rs</div>
+												</div>
+												<div class="setupVideo-header">
+													<div class="video-btn" v-on:click="videoPosition(7)">U</div>
+													<div class="video-btn" v-on:click="videoPosition(8)">D</div>
+													<div class="video-btn" v-on:click="videoPosition(9)">L</div>
+													<div class="video-btn" v-on:click="videoPosition(10)">R</div>
+													<div class="video-btn" v-on:click="videoPosition(11)">Z+</div>
+													<div class="video-btn" v-on:click="videoPosition(12)">Z-</div>
+													<div class="video-btn" v-on:click="videoPosition(14)">Rs</div>
+												</div>
+										</div>
+								</div>
+						</div>
 					</div>
 			</div>
 
@@ -1026,18 +1062,21 @@
 						if(settings.audioDeviceId != val) {
 							settings.audioDeviceId = val;
 							settings.store();
+							videoContainer.init();
 						}
 					},
 					'portraitDeviceId': function(val, preVal) {
 						if(settings.portraitDeviceId != val) {
 							settings.portraitDeviceId = val;
 							settings.store();
+							videoContainer.init();
 						}
 					},
 					'targetDeviceId': function(val, preVal) {
 						if(settings.targetDeviceId != val) {
 							settings.targetDeviceId = val;
 							settings.store();
+							videoContainer.init();
 						}
 					},
 					'game.player1': function(val, preVal) {
@@ -1146,10 +1185,36 @@
 						this.updateEventHistoryData(this.eventData);
 						this.changeView(13);
 					},
+					videoPosition : function(i) {
+							switch(i) {
+								case 1: settings.portraitTop -= 15; break;
+								case 2: settings.portraitTop += 15; break;
+								case 3: settings.portraitLeft -= 15; break;
+								case 4: settings.portraitLeft += 15; break;
+								case 5: settings.portraitScale *= 1.1; break;
+								case 6: settings.portraitScale *= 0.9; break;
+								
+								case 7: settings.targetTop -= 15; break;
+								case 8: settings.targetTop += 15; break;
+								case 9: settings.targetLeft -= 15; break;
+								case 10: settings.targetLeft += 15; break;
+								case 11: settings.targetScale *= 1.1; break;
+								case 12: settings.targetScale *= 0.9; break;
+								case 13:
+									settings.portraitTop = 0;
+									settings.portraitLeft = 0;
+									settings.portraitScale = 1;
+									break;
+								case 14:
+									settings.targetTop = 0;
+									settings.targetLeft = 0;
+									settings.targetScale = 1;
+									break;
+							}
+							settings.store();
+					},
 					showSettingsCamera: async function() {
-						var canvas = document.getElementById("videoCanvas");
-						var ctx = canvas.getContext("2d");
-						var videoContainer;
+						await videoContainer.init();
 //						var webcam1 = document.getElementById('webcam1');
 //						var webcam2 = document.getElementById('webcam2');
 						    //audioSelect.onchange = ()=> {getStream(video1Select, webcam1)};
@@ -1853,10 +1918,11 @@
 					}
 					cleaner();
 					startWebSocket();
-					
 					await initDevices('audioSource', 'portraitSource', 'targetSource');
 			}
-			startAll();
+//			window.addEventListener('load', function () {
+				startAll();
+//			});
 		</script>
 	</body>
 </html>
