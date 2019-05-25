@@ -129,24 +129,10 @@ var videoContainer = {
     }
 };
 function update() {
+    let item = keyboardKeys.eventHistoryItemList[0];
+    let f = item && item.finished;
     videoContainer.ctx.clearRect(0, 0, videoContainer.canvas.width, videoContainer.canvas.height); 
     if(videoContainer.ready) { 
-//        if(videoContainer.portraitVideoLoaded) {
-//            videoContainer.portraitVideo.muted = true;
-//            videoContainer.ctx.save();
-//            videoContainer.ctx.rect(0, 0, videoContainer.canvas.width / 2, videoContainer.canvas.height);
-//            videoContainer.ctx.clip();
-//            videoContainer.ctx.drawImage(videoContainer.portraitVideo, settings.portraitLeft, settings.portraitTop, videoContainer.portraitVideo.videoWidth * settings.portraitScale, videoContainer.portraitVideo.videoHeight * settings.portraitScale);
-//            videoContainer.ctx.restore();
-//        }
-//        if(videoContainer.targetVideoLoaded) {
-//            videoContainer.targetVideo.muted = true;
-//            videoContainer.ctx.save();
-//            videoContainer.ctx.rect(videoContainer.canvas.width / 2, 0, videoContainer.canvas.width / 2, videoContainer.canvas.height);
-//            videoContainer.ctx.clip();
-//            videoContainer.ctx.drawImage(videoContainer.targetVideo, videoContainer.canvas.width / 2 + settings.targetLeft, settings.targetTop, videoContainer.targetVideo.videoWidth * settings.targetScale, videoContainer.targetVideo.videoHeight * settings.targetScale);
-//            videoContainer.ctx.restore();
-//        }
         if(videoContainer.portraitVideoLoaded) {
             videoContainer.portraitVideo.muted = true;
             let vw = videoContainer.portraitVideo.videoWidth;
@@ -158,8 +144,7 @@ function update() {
             videoContainer.ctx.drawImage(videoContainer.portraitVideo,
                 dl - settings.portraitLeft * cw, -settings.portraitTop * ch, vh * s / settings.portraitScale, vh / settings.portraitScale, 0, 0, cw, ch);
         }
-        if(videoContainer.targetVideoLoaded) 
-        {
+        if(videoContainer.targetVideoLoaded) {
             videoContainer.targetVideo.muted = true;
             let vw = videoContainer.targetVideo.videoWidth;
             let vh = videoContainer.targetVideo.videoHeight;
@@ -171,7 +156,10 @@ function update() {
                 dl - settings.targetLeft * cw, -settings.targetTop * ch, vh * s / settings.targetScale, vh / settings.targetScale, videoContainer.portraitVideoLoaded ? cw : 0, 0, cw, ch);
         }
     }
-    drawScore(0.05, 0.75, 0.4, 0.2);
+    if(!f)
+        drawScore(0.05, 0.75, 0.4, 0.2);
+    else
+        drawStats(0.2, 0.1, 0.6, 0.8);
     videoContainer.previewCtx.clearRect(0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height); 
     videoContainer.previewCtx.drawImage(videoContainer.canvas, 0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height);
     videoContainer.previewCtx2.clearRect(0, 0, videoContainer.previewCanvas2.width, videoContainer.previewCanvas2.height); 
@@ -245,6 +233,44 @@ function drawScore(x, y, w, h) {
 //    ctx.strokeRect(x+5, y+5, w-5, h-5);
 //    ctx.font = 'bold 30px sans-serif';
 //    ctx.strokeText("Stroke text", 20, 100);
+}
+function drawStats(x, y, w, h) {
+    //3 3 1 1 1 1
+    let leg = keyboardKeys.eventHistoryItemLegs[keyboardKeys.eventHistoryItemLegs.length - 1];
+    let item = keyboardKeys.eventHistoryItemList[0];
+    let ctx = videoContainer.ctx;
+    let cw = videoContainer.canvas.width;
+    let ch = videoContainer.canvas.height;
+    x = x * cw;
+    y = y * ch;
+    w = w * cw;
+    h = h * ch;
+
+    if(item.setLength == 1) {
+        ctxrect(ctx, "#444444aa", "white", x, y, w, h, 0, 0, 100, 10, "Best of " + (item ? item.legLength : 7) + " legs", "center");
+        ctxrect(ctx, "#444444aa", "white", x, y, w, h, 0, 20, 40, 10, "Won legs", "center");
+        ctxrect(ctx, "#004400aa", "white", x, y, w, h, 40, 20, 30, 10, item ? item.wonLegs1 : 0, "center");
+        ctxrect(ctx, "#440000aa", "white", x, y, w, h, 70, 20, 30, 10, item ? item.wonLegs2 : 0, "center");
+    } else {
+        ctxrect(ctx, "#444444", "white", x, y, w, h, 0, 0, 100, 10, "Best of " + (intem ? item.setLength : 5) + " sets of " + (item ? item.legLength : 7) + " legs", "center");
+        ctxrect(ctx, "#444444", "white", x, y, w, h, 0, 20, 40, 10, "Won sets", "center");
+        ctxrect(ctx, "#004400aa", "white", x, y, w, h, 40, 20, 30, 10, item ? item.wonSets1 : 0, "center");
+        ctxrect(ctx, "#440000aa", "white", x, y, w, h, 70, 20, 40, 10, item ? item.wonSets2 : 0, "center");
+    }
+    ctxrect(ctx, "#004400aa", "white", x, y, w, h, 0, 10, 50, 10, item ? item.player1 : "First Player", "center");
+    ctxrect(ctx, "#440000aa", "white", x, y, w, h, 50, 10, 50, 10, item ? item.player2 : "Second Player", "center");
+    let yy = 30;
+    let hh = 70 / item.stats.length;
+    if(item)
+        item.stats.forEach(element => {
+            ctxrect(ctx, "#444444aa", "white", x, y, w, h, 0, yy, 40, hh, element.name, "center");
+            ctxrect(ctx, "#004400aa", "white", x, y, w, h, 40, yy, 30, hh, element.player1, "center");
+            ctxrect(ctx, "#440000aa", "white", x, y, w, h, 70, yy, 30, hh, element.player2, "center");            
+            yy += hh;
+        });
+
+
+
 }
 async function initDevices(audioSelect, video1Select, video2Select) {
     let deviceInfos = await navigator.mediaDevices.enumerateDevices();
