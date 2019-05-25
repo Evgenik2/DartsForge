@@ -1,3 +1,4 @@
+let resolutionList = [{x:1920, y:1080}, {x:1366, y:768}, {x:1280, y:720}, {x:1136, y:640}, {x:1024, y:576}, {x:854, y:480}, {x:640, y:360}];
 function fillOpt(element, arr, h, v, d) {
     var r = document.getElementById(element);
     if(!r) return;
@@ -158,6 +159,8 @@ var settings = {
     targetTop: 0,
     targetLeft: 0,
     targetScale: 1, 
+    resolutionX: resolutionList[0].x,
+    resolutionY: resolutionList[0].y,
     getEnding: function(value, defaultValue) { 
         var e = endings[this.endings]; 
         return e[value] ? e[value] : defaultValue;
@@ -206,6 +209,8 @@ var settings = {
                     settings.targetTop = r.targetTop;
                     settings.targetLeft = r.targetLeft;
                     settings.targetScale = r.targetScale;
+                    settings.resolutionX = r.resolutionX ? r.resolutionX : resolutionList[0].x;
+                    settings.resolutionY = r.resolutionY ? r.resolutionY : resolutionList[0].y;
                     game.updateAll();
                 }
                 resolve();
@@ -280,6 +285,7 @@ function startWebSocket() {
             alert(evt.data);
             return;
         }
+        let t = data.game && keyboardKeys.targetNumber > 0 && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
         switch(data.action) {
             case "target": 
                 if(keyboardKeys.targets.indexOf(-1) < 0)
@@ -328,6 +334,9 @@ function startWebSocket() {
                     await keyboardKeys.updateCommunityData();
                 }
                 break;
+            case "gipStart":
+                if(t)
+                    restartRecord();
             case "gipUpdate":
                 if(keyboardKeys.community == data.community) {
                     let s = Game501.Verify(data.game);
@@ -338,10 +347,9 @@ function startWebSocket() {
                     data.game.stats = [s["100+"], s["140+"], s["180"], s["Av"], s["HC"], s["Dbls"], s["%"], s["Best"], s["LWAT"]];
                     keyboardKeys.gip = keyboardKeys.gip.filter(e=>e.refereeTimestamp != data.game.refereeTimestamp);
                     keyboardKeys.gip.push(data.game);
-                    keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
-                    let t = keyboardKeys.targetNumber > 0 && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
                     if(t && !recorder)
                         startRecord();
+                    keyboardKeys.gip.sort((a,b)=>b.refereeTimestamp.localeCompare(a.refereeTimestamp));
                     if( t || (keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp))
                         keyboardKeys.showEventHistoryItem(data.game.timeStamp, t);
                 }

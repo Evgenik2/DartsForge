@@ -370,6 +370,11 @@
 													<div class="video-btn" v-on:click="videoPosition(12)">Z-</div>
 													<div class="video-btn" v-on:click="videoPosition(14)">Rs</div>
 												</div>
+												<div class="setupVideo-header">
+														<div class="setupVideo-select">
+																<label for="recorderResolution">{{language.recorderResolution}}</label><select class="menu-key menu-select-key" id="recorderResolution" @change="resolutionChange($event)"></select>
+														</div>
+												</div>
 										</div>
 								</div>
 						</div>
@@ -1185,19 +1190,25 @@
 						this.updateEventHistoryData(this.eventData);
 						this.changeView(13);
 					},
+					resolutionChange : function(event) {
+						settings.resolutionX = resolutionList[event.target.selectedIndex].x;
+						settings.resolutionY = resolutionList[event.target.selectedIndex].y;
+						settings.store();
+						videoContainer.init();
+					},
 					videoPosition : function(i) {
 							switch(i) {
-								case 1: settings.portraitTop -= 15; break;
-								case 2: settings.portraitTop += 15; break;
-								case 3: settings.portraitLeft -= 15; break;
-								case 4: settings.portraitLeft += 15; break;
+								case 1: settings.portraitTop -= 0.05; break;
+								case 2: settings.portraitTop += 0.05; break;
+								case 3: settings.portraitLeft -= 0.05; break;
+								case 4: settings.portraitLeft += 0.05; break;
 								case 5: settings.portraitScale *= 1.1; break;
 								case 6: settings.portraitScale *= 0.9; break;
 								
-								case 7: settings.targetTop -= 15; break;
-								case 8: settings.targetTop += 15; break;
-								case 9: settings.targetLeft -= 15; break;
-								case 10: settings.targetLeft += 15; break;
+								case 7: settings.targetTop -= 0.05; break;
+								case 8: settings.targetTop += 0.05; break;
+								case 9: settings.targetLeft -= 0.05; break;
+								case 10: settings.targetLeft += 0.05; break;
 								case 11: settings.targetScale *= 1.1; break;
 								case 12: settings.targetScale *= 0.9; break;
 								case 13:
@@ -1253,6 +1264,8 @@
 							if(h)
 								this.changeView(14);
 						}
+						if(!eventHistoryItem)
+							return;
 						settings.eventHistoryItemLegs = this.eventHistoryItemLegs = eventHistoryItem.legs;
 						settings.eventHistoryItemList = this.eventHistoryItemList = [eventHistoryItem];
 						let throws = eventHistoryItem.legs[eventHistoryItem.legs.length - 1].throws
@@ -1314,7 +1327,7 @@
 						deleteAll("CurrentGame");
 						game.updateAll();
 						this.menuShown = false;
-						sendWS({ action: "gipUpdate", game: game });
+						sendWS({ action: "gipStart", game: game });
 					},
 					updateGameSettingsError: function() {
 						this.newGameError = undefined;
@@ -1448,10 +1461,12 @@
 						}
 					},
 					changeView: function(view, h=true) {
+						if(this.currentView == 16) {
+							stopCameras();
+						}
 						this.currentView = view;
 						switch(view) {
 							case 15: 
-
 								break;
 							case 16:
 								break;
@@ -1888,7 +1903,9 @@
 					game.updateAll();
 				
 					fillOpt("newCommunityRegion", flags, i => flags[i][1], i => flags[i][0]);
-
+					fillOpt("recorderResolution", resolutionList, i=>resolutionList[i].x + "x" + resolutionList[i].y, i=>resolutionList[i]);
+					var r = document.getElementById("recorderResolution");
+					r.selectedIndex = resolutionList.findIndex(i => i.x == settings.resolutionX && i.y == settings.resolutionY);
 					if(settings.userName) 
 						keyboardKeys.refreshProfile();
 					window.fitText(document.getElementsByClassName("marker-view-score"), 0.2);

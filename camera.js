@@ -1,6 +1,11 @@
 
 let recorder = undefined;
 let allChunks = [];
+let recorderTimeout = undefined;
+async function restartRecord() {
+    await finishRecord();
+    startRecord();
+}
 async function startRecord() {
     if(settings.targetDeviceId == "Off" && settings.portraitDeviceId == "Off")
         return;
@@ -16,16 +21,42 @@ async function startRecord() {
     recorder.onstop = (e) => {
         const fullBlob = new Blob(allChunks, { 'type' : 'video/webm' });
         let leg = keyboardKeys.eventHistoryItemLegs[keyboardKeys.eventHistoryItemLegs.length - 1];
-        downloadBlob(new Date().toISOString() + "_" + leg.player1 + "_vs_" + leg.player2 + ".webm", fullBlob);
+        if(keyboardKeys.eventHistoryItemList[0].finished)
+            downloadBlob(new Date().toISOString() + "_" + leg.player1 + "_vs_" + leg.player2 + ".webm", fullBlob);
         recorder = undefined;
+        allChunks = [];
     }
-    recorder.start();
-    setTimeout(() => {
+    recorder.start();        
+    recorderTimeout = setTimeout(() => {
         finishRecord();
     }, 60*60*1000);
 }
 async function finishRecord() {
-    await recorder.stop();
+    if(recorderTimeout) {
+        clearTimeout(recorderTimeout);
+        recorderTimeout = undefined;
+    }
+    if(recorder) {
+        await recorder.stop();
+        recorder = undefined;
+    }
+    stopCameras();
+}
+async function stopCameras() {
+    videoContainer.portraitVideoLoaded = false;
+    if(videoContainer.portraitVideo && videoContainer.portraitVideo.srcObject) {
+        videoContainer.portraitVideo.srcObject.getTracks().forEach(function(track) {
+            track.stop();
+        });
+        delete videoContainer.portraitVideo;
+    }
+    videoContainer.targetVideoLoaded = false;
+    if(videoContainer.targetVideo && videoContainer.targetVideo.srcObject) {
+        videoContainer.targetVideo.srcObject.getTracks().forEach(function(track) {
+            track.stop();
+        });
+        delete videoContainer.targetVideo;
+    }
 }
 var videoContainer = {
     initialized: false,
@@ -50,12 +81,10 @@ var videoContainer = {
         this.previewCanvas2 = document.getElementById("videoCanvas2");
         this.canvas = document.createElement("canvas");
 //        document.getElementById("setupCamera").appendChild(this.canvas);
-        this.canvas.width = 1920;
-        this.canvas.height = 1080;
-        this.previewCanvas.width = 1920;
-        this.previewCanvas.height = 1080;
-        this.previewCanvas2.width = 1920;
-        this.previewCanvas2.height = 1080;
+        
+
+        this.previewCanvas2.width = this.previewCanvas.width = this.canvas.width = settings.resolutionX;
+        this.previewCanvas2.height = this.previewCanvas.height = this.canvas.height = settings.resolutionY;
         this.ctx = this.canvas.getContext("2d");
         this.previewCtx = this.previewCanvas.getContext("2d");
         this.previewCtx2 = this.previewCanvas2.getContext("2d");
@@ -127,7 +156,7 @@ function update() {
             let s = cw / ch;
             let dl = (vw - vh * s) / 2;
             videoContainer.ctx.drawImage(videoContainer.portraitVideo,
-                dl - settings.portraitLeft, -settings.portraitTop, vh * s / settings.portraitScale, vh / settings.portraitScale, 0, 0, cw, ch);
+                dl - settings.portraitLeft * cw, -settings.portraitTop * ch, vh * s / settings.portraitScale, vh / settings.portraitScale, 0, 0, cw, ch);
         }
         if(videoContainer.targetVideoLoaded) 
         {
@@ -139,10 +168,10 @@ function update() {
             let s = cw / ch;
             let dl = (vw - vh * s) / 2;
             videoContainer.ctx.drawImage(videoContainer.targetVideo,
-                dl - settings.targetLeft, -settings.targetTop, vh * s / settings.targetScale, vh * settings.targetScale, videoContainer.portraitVideoLoaded ? cw : 0, 0, cw, ch);
+                dl - settings.targetLeft * cw, -settings.targetTop * ch, vh * s / settings.targetScale, vh / settings.targetScale, videoContainer.portraitVideoLoaded ? cw : 0, 0, cw, ch);
         }
     }
-    drawScore(30, 800, 900, 200);
+    drawScore(0.05, 0.75, 0.4, 0.2);
     videoContainer.previewCtx.clearRect(0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height); 
     videoContainer.previewCtx.drawImage(videoContainer.canvas, 0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height);
     videoContainer.previewCtx2.clearRect(0, 0, videoContainer.previewCanvas2.width, videoContainer.previewCanvas2.height); 
@@ -171,38 +200,45 @@ function drawScore(x, y, w, h) {
     let leg = keyboardKeys.eventHistoryItemLegs[keyboardKeys.eventHistoryItemLegs.length - 1];
     let item = keyboardKeys.eventHistoryItemList[0];
     let ctx = videoContainer.ctx;
+    let cw = videoContainer.canvas.width;
+    let ch = videoContainer.canvas.height;
+    x = x * cw;
+    y = y * ch;
+    w = w * cw;
+    h = h * ch;
+
     if(item.setLength == 1) {
-        ctxrect(ctx, "#444444", "white", x, y, w, h, 20, 0, 50, 20, "Best of " + item.legLength + " legs");
-        ctxrect(ctx, "white", "black", x, y, w, h, 20, 20, 50, 30, leg.player1 ? leg.player1 : "Player 1");
-        ctxrect(ctx, "white", "black", x, y, w, h, 20, 50, 50, 30, leg.player2 ? leg.player2 : "Player 2");
+        ctxrect(ctx, "#444444", "white", x, y, w, h, 20, 0, 50, 20, "Best of " + (item ? item.legLength : 7) + " legs");
+        ctxrect(ctx, "white", "black", x, y, w, h, 20, 20, 50, 30, leg && leg.player1 ? leg.player1 : "First Player");
+        ctxrect(ctx, "white", "black", x, y, w, h, 20, 50, 50, 30, leg && leg.player2 ? leg.player2 : "Second Player");
         ctxrect(ctx, "#444444", "white", x, y, w, h, 70, 0, 10, 20, "Legs", "center");
         ctxrect(ctx, "#444444", "white", x, y, w, h, 80, 0, 15, 20, "", "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 70, 20, 10, 30, item.wonLegs1, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 70, 50, 10, 30, item.wonLegs2, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 80, 20, 15, 30, leg.left1, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 80, 50, 15, 30, leg.left2, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 70, 20, 10, 30, item ? item.wonLegs1 : 0, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 70, 50, 10, 30, item ? item.wonLegs2 : 0, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 80, 20, 15, 30, leg ? leg.left1 : 501, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 80, 50, 15, 30, leg ? leg.left2 : 501, "center");
     } else {
-        ctxrect(ctx, "#444444", "white", x, y, w, h, 15, 0, 45, 20, "Best of " + item.setLength + " sets of " + item.legLength + " legs");
-        ctxrect(ctx, "white", "black", x, y, w, h, 15, 20, 45, 30, leg.player1 ? leg.player1 : "Player 1");
-        ctxrect(ctx, "white", "black", x, y, w, h, 15, 50, 45, 30, leg.player2 ? leg.player2 : "Player 2");
+        ctxrect(ctx, "#444444", "white", x, y, w, h, 15, 0, 45, 20, "Best of " + (intem ? item.setLength : 5) + " sets of " + (item ? item.legLength : 7) + " legs");
+        ctxrect(ctx, "white", "black", x, y, w, h, 15, 20, 45, 30, leg && leg.player1 ? leg.player1 : "First Player");
+        ctxrect(ctx, "white", "black", x, y, w, h, 15, 50, 45, 30, leg && leg.player2 ? leg.player2 : "Second Player");
         ctxrect(ctx, "#444444", "white", x, y, w, h, 60, 0, 10, 20, "Sets", "center");
         ctxrect(ctx, "#444444", "white", x, y, w, h, 70, 0, 10, 20, "Legs", "center");
         ctxrect(ctx, "#444444", "white", x, y, w, h, 80, 0, 15, 20, "", "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 60, 20, 10, 30, item.wonSets1, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 60, 50, 10, 30, item.wonSets2, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 70, 20, 10, 30, item.wonLegs1, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 70, 50, 10, 30, item.wonLegs2, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 80, 20, 15, 30, leg.left1, "center");
-        ctxrect(ctx, "green", "white", x, y, w, h, 80, 50, 15, 30, leg.left2, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 60, 20, 10, 30, item ? item.wonSets1 : 0, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 60, 50, 10, 30, item ? item.wonSets2 : 0, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 70, 20, 10, 30, item ? item.wonLegs1 : 0, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 70, 50, 10, 30, item ? item.wonLegs2 : 0, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 80, 20, 15, 30, leg ? leg.left1 : 501, "center");
+        ctxrect(ctx, "green", "white", x, y, w, h, 80, 50, 15, 30, leg ? leg.left2 : 501, "center");
     }
-    let e1 = settings.getEnding(leg.left1, undefined);
-    let e2 = settings.getEnding(leg.left2, undefined);
+    let e1 = settings.getEnding(leg ? leg.left1 : 501, undefined);
+    let e2 = settings.getEnding(leg ? leg.left2 : 501, undefined);
     if(e1)
         ctxrect(ctx, "red", "white", x, y, w, h, 0, 26, 20, 18, e1, "center");
     if(e2)
         ctxrect(ctx, "red", "white", x, y, w, h, 0, 56, 20, 18, e2, "center");
 
-    ctxrect(ctx, "transparent", "red", x, y, w, h, 96, leg.next == 1 ? 21 : 51, 5, 25, "<");
+    ctxrect(ctx, "transparent", "red", x, y, w, h, 96, leg && leg.next == 1 ? 21 : 51, 5, 25, "<");
     
 //    ctx.strokeStyle = "white";
 //    ctx.lineWidth = 5;

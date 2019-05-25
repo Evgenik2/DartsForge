@@ -110,8 +110,7 @@ var languages = {
         audioSource: "Audio source",
         targetSource: "Target source",
         portraitSource: "Portrait source",
-
-
+        recorderResolution: "Resolution"
 
     },
     "ru": {
@@ -225,6 +224,7 @@ var languages = {
         audioSource: "Микрофон",
         targetSource: "Камера на мишень",
         portraitSource: "Камера на игрока",
+        recorderResolution: "Разрешение"
     }
 
 };
