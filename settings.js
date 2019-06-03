@@ -1,4 +1,7 @@
 let resolutionList = [{x:1920, y:1080}, {x:1366, y:768}, {x:1280, y:720}, {x:1136, y:640}, {x:1024, y:576}, {x:854, y:480}, {x:640, y:360}];
+var recognition;
+var askForMic = 1;
+
 function fillOpt(element, arr, h, v, d) {
     var r = document.getElementById(element);
     if(!r) return;
@@ -211,6 +214,7 @@ var settings = {
                     settings.targetScale = r.targetScale;
                     settings.resolutionX = r.resolutionX ? r.resolutionX : resolutionList[0].x;
                     settings.resolutionY = r.resolutionY ? r.resolutionY : resolutionList[0].y;
+                    keyboardKeys.micEnabled = settings.micEnabled = r.micEnabled;
                     game.updateAll();
                 }
                 resolve();
@@ -218,6 +222,91 @@ var settings = {
         });
     }
 };
+function recognitionDefined() {
+    return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window || 'mozSpeechRecognition' in window;
+}
+function getRecognition() {
+    return new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
+}
+function recogVoice() { 
+    if (recognitionDefined()) {
+        if(!recognition)
+            recognition = getRecognition();
+        else 
+            recognition.abort();
+        if(!keyboardKeys.micEnabled || keyboardKeys.currentView != 0 || keyboardKeys.menuShown)
+            return;
+        recognition.lang = settings.language == "ru" ? "ru-Ru" : "en-US";
+        recognition.continuous = false; 
+        recognition.interimResults = false; 
+        recognition.onresult = function(e) { 
+            var result = event.results[event.resultIndex];
+            if (result.isFinal) {
+                let voice = result[0].transcript.trim();
+                switch(voice) {
+                    case "отмена":
+                    case "отменить":
+                    case "undo":
+                        keyboardKeys.keyboardDelete();
+                        return;
+                }
+                let dots = 0;
+                let closes = 0;
+                if(voice.includes("одна попытка") || voice.includes("1 попытка"))
+                    dots = 1;
+                if(voice.includes("две попытки") || voice.includes("2 попытки"))
+                    dots = 2;
+                if(voice.includes("три попытки") || voice.includes("3 попытки"))
+                    dots = 3;
+                if(voice.includes("первым") || voice.includes("first"))
+                    closes = 1;
+                if(voice.includes("вторым") || voice.includes("second"))
+                    closes = 2;
+                if(voice.includes("третьим") || voice.includes("third"))
+                    closes = 3;
+                keyboardKeys.doubles = dots;
+                keyboardKeys.closes = closes;
+                if(dots > 0 && closes > 0)
+                    setTimeout(() => keyboardKeys.keyboardOk(), 1000);
+                else {
+                    let s = voice.split(',').join(' ').split('-').join(' ').split(':').join(' ').split(' ');
+                    console.log('Final: ' + voice);
+                    keyboardKeys.voice = voice;
+                    let v = -1;
+                    s.forEach(e => {
+                        e = e.trim();
+                        let parsed = parseInt(e);
+                        if (!isNaN(parsed) && parsed >= 0 && parsed <= 180) 
+                            v = parsed;
+                    });
+                    if (v >= 0) {
+                        keyboardKeys.value = v;
+                        setTimeout(() => keyboardKeys.keyboardOk(), 1000);
+                    }
+                }
+                setTimeout(() => keyboardKeys.voice = '', 3000);
+            } else {
+                console.log('Voice: ', result[0].transcript);
+                keyboardKeys.voice = result[0].transcript;
+            }
+        } 
+        recognition.onerror = function(event) { 
+            if (event.error == 'not-allowed') { 
+                askForMic == 0; 
+                alert('You restricted microphone.'); 
+            } else { 
+                console.log('Error: ' + event.error); 
+            } 
+        } 
+        recognition.onend = function(e) {
+            console.log('Recognition end'); 
+            setTimeout(() => recogVoice(), 100);
+        }
+        if (askForMic == 1) { 
+            recognition.start(); 
+        } 
+    }
+} 
 
 function initCognitoSDK() {
     var hostUrl = document.URL.split("?")[0];

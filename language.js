@@ -110,8 +110,9 @@ var languages = {
         audioSource: "Audio source",
         targetSource: "Target source",
         portraitSource: "Portrait source",
-        recorderResolution: "Resolution"
-
+        recorderResolution: "Resolution",
+        toggleMicOn: "Enable voice recognition",
+        toggleMicOff: "Disable voice recognition",
     },
     "ru": {
         flag: "flag-RU",
@@ -224,7 +225,9 @@ var languages = {
         audioSource: "Микрофон",
         targetSource: "Камера на мишень",
         portraitSource: "Камера на игрока",
-        recorderResolution: "Разрешение"
+        recorderResolution: "Разрешение",
+        toggleMicOn: "Включить распознование речи",
+        toggleMicOff: "Выключить распознование речи",
     }
 
 };

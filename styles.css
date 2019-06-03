@@ -119,6 +119,25 @@ body::-webkit-scrollbar {
     border-radius: 20%;
     border-color: transparent;
 }
+.score-key-score {
+    text-align: center;
+    display: flex;
+    flex: 5;
+    background: white;
+    color: #666666;
+    font-size: 6vmax;
+    justify-content: center;
+    align-items: center;
+}
+.score-key-voice {
+    text-align: center;
+    display: flex;
+    flex: 1;
+    color: #666666;
+    font-size: 1vmax;
+    justify-content: center;
+    align-items: center;
+}
 .score-ok-key:active {
     background: #888888;
 }

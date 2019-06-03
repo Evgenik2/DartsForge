@@ -263,6 +263,8 @@
 						<div class="dropdown-content-item menuelement" v-on:click="changeEnding(); event.preventDefault();" :key="endings" ref="c26">{{endings}}</div>
 						<div class="dropdown-content-item menuelement" v-on:click="changeLanguage(); event.preventDefault();" :key="language.language" ref="c27"><i :class="[language.flag]"></i> {{language.language}}</div>
 						<!--<div class="dropdown-content-item" v-on:click="showHistory()">{{language.menuHistory}}</div>-->
+						<div class="dropdown-content-item menuelement" v-on:click="toggleMic(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': micEnabled || !recognitionDefined }" :key="language.toggleMicOn" ref="c27">{{language.toggleMicOn}}</div>
+						<div class="dropdown-content-item menuelement" v-on:click="toggleMic(); event.preventDefault();" v-bind:class="{ 'menu-collapsed': !micEnabled || !recognitionDefined }" :key="language.toggleMicOff" ref="c27">{{language.toggleMicOff}}</div>
 						<div class="dropdown-content-item" v-bind:class="{ 'menu-collapsed': !userName }" v-on:click="logOut(); event.preventDefault();" :key="language.menuLogout" ref="c28">{{language.menuLogout}}</div> 
 					</div>
 				</div>
@@ -709,7 +711,11 @@
 						</div>
 						<div id="keyboard-score" class="keyboard-score" v-bind:class="{ 'element-collapsed': menuShown }">
 							<div class="keyboard-row">
-								<div class="score-key" id="keyScore" :key="value" ref="c75">{{value}}</div>
+								<div class="keyboard-score score-key">
+									<div class="score-key-voice" v-bind:class="{ 'element-collapsed': !micEnabled }"></div>
+									<div class="score-key-score" id="keyScore" :key="value" ref="c75">{{value}}</div>
+									<div class="score-key-voice" v-bind:class="{ 'element-collapsed': !micEnabled }">{{voice}}</div>
+								</div>
 							</div>
 							<div class="keyboard-row">
 								<div class="score-ok-key" id="keyOk" v-on:click="keyboardOk" v-longpress="keyboardLongOk">Ok</div>
@@ -977,7 +983,10 @@
 				};
 			keyboardKeys = new Vue({
 				el: "#app",
-				data: {		
+				data: {	
+					recognitionDefined: recognitionDefined(),	
+					voice: '',
+					micEnabled: false,
 					audioDeviceId: undefined,
 					portraitDeviceId: undefined,
 					targetDeviceId: undefined,		
@@ -1140,6 +1149,7 @@
 						this.menuShown = true;
 						var elm = document.getElementById("keyScore");
 						elm.classList.remove("animError");
+						recogVoice();
 					},
 					keyboardClick: function (value) {
 						var v = this.value * 10 + value;
@@ -1169,7 +1179,7 @@
 						if(i >= k.length)
 							i = 0;
 						settings.language = this.languageName = k[i];
-						banner.language = this.language = languages[this.languageName];
+						this.language = languages[this.languageName];
 						settings.store();
 						game.updateAll();
 					},
@@ -1189,6 +1199,11 @@
 						settings.eventName = this.eventName = event.EventName;
 						this.updateEventHistoryData(this.eventData);
 						this.changeView(13);
+					},
+					toggleMic: function() {
+						this.micEnabled = settings.micEnabled = !this.micEnabled;
+						settings.store();
+						recogVoice();
 					},
 					resolutionChange : function(event) {
 						settings.resolutionX = resolutionList[event.target.selectedIndex].x;
@@ -1302,6 +1317,7 @@
 						if(!game.refereeTimestamp)
 							game.refereeTimestamp = game.timeStamp.toISOString() + '_' + this.userName;
 						sendWS({ action: "gipUpdate", game: game });
+						recogVoice();
 					},
 					newGame: function() {
 						this.newGameError = undefined;
@@ -1328,6 +1344,7 @@
 						game.updateAll();
 						this.menuShown = false;
 						sendWS({ action: "gipStart", game: game });
+						recogVoice();
 					},
 					updateGameSettingsError: function() {
 						this.newGameError = undefined;
@@ -1397,6 +1414,7 @@
 							game.updateAll();
 							this.game = game;
 							this.value = 0;
+							this.voice = '';
 							this.closes = 0;
 						} else {
 						//	this.keyboardOk(event);
@@ -1423,6 +1441,7 @@
 						game.updateAll();
 						this.game = game;
 						this.value = 0;
+						this.voice = '';
 						this.closes = 0;
 						this.doubles = game.minimumDoubles();
 						this.minimumDoubles = game.minimumDoubles();
@@ -1477,6 +1496,7 @@
 						elm.classList.remove("animSwipeRight");
 						elm.classList.remove("animSwipeLeft");
 						this.menuShown = true;
+						recogVoice();
 						setTimeout(() => { window.dispatchEvent(new Event('resize')) }, 1000);
 						if(h && this.currentView != 12)
 							window.history.pushState({currentView: this.currentView}, "DartsForge: " + this.getViewName(), window.location.URL);
