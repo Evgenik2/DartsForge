@@ -590,14 +590,17 @@
 					</div>
 					<div class="dialog-content">
 						<div class="menu-row">
-							<div class="community-rating-userName" :key="language.publishWin" ref="c61">{{language.publishWin}} {{game.winner}}</div>
+							<div class="menu-row-center">
+								<div class="menu-row-centered" :key="language.publishWin" ref="c61">{{language.publishWin}}</div>
+								<div class="menu-row-centered-red" :key="language.publishWin" ref="c161">{{game.winner}}</div>
+							</div>
 						</div>
 						<div class="menu-row">
 							<div id="publishGameError" class="dialog-error"></div>
 						</div>
 						<div class="menu-row" v-bind:class="{ 'menu-collapsed': wait }">
-							<div class="loginButton" v-on:click="publishGame(); event.preventDefault();" :key="language.publishGameBtn" ref="c62">{{language.publishGameBtn}}</div>
-							<div class="loginButton" v-on:click="keyboardDelete(); changeView(0); event.preventDefault();" :key="language.publishGameUndoBtn" ref="c63">{{language.publishGameUndoBtn}}</div>
+							<div class="loginButton" v-on:click="publishGame(); event.preventDefault();" :key="language.publishGameBtn" ref="c62">{{language.publishGameBtn}} ({{publishGameTicks}})</div>
+							<div class="loginButton" v-on:click="cancelPublishGame(); event.preventDefault();" :key="language.publishGameUndoBtn" ref="c63">{{language.publishGameUndoBtn}}</div>
 						</div>
 					</div>	
 				</div>
@@ -790,6 +793,7 @@
 		<script defer async>
 			var keyboardKeys;
 			var banner;
+			var publishGameTimer;
 			function deleteAllCookies() {
 				var cookies = document.cookie.split(";");
 				for (let i = 0; i < cookies.length; i++) {
@@ -992,6 +996,7 @@
 					targetDeviceId: undefined,		
 					wait: false,
 					userName: undefined,
+					publishGameTicks: 0,
 					targetNumber: -1,
 					targets: [],
 					communities: [],
@@ -1485,6 +1490,14 @@
 						}
 						this.currentView = view;
 						switch(view) {
+							case 12:
+								this.publishGameTicks = 8;
+								publishGameTimer = setInterval(() => {
+									this.publishGameTicks--;
+									if(this.publishGameTicks < 0)
+										this.publishGame();
+								}, 1000);
+								break;
 							case 15: 
 								break;
 							case 16:
@@ -1757,7 +1770,13 @@
 							this.changeView(0);
 						}
 					},
+					cancelPublishGame: function() {
+						clearTimeout(publishGameTimer);
+						this.keyboardDelete(); 
+						this.changeView(0);
+					},
 					publishGame: async function(g) {
+						clearTimeout(publishGameTimer);
 						if(!g) g = game;
 						if(!g.community) g.community = this.community;
 						if(!g.communityRegion) g.communityRegion = this.communityData.Region;
@@ -1921,7 +1940,12 @@
 					game.restoreLastState();
 					await settings.restore();
 					game.updateAll();
-				
+					if(keyboardKeys.communityData) {
+						let ev = keyboardKeys.communityData.Events.filter(v => v.Active);
+						fillOpt("eventName", ev, i => ev[i].EventName, i => ev[i].EventName);
+						fillOpt("player1-list", keyboardKeys.communityData.Rating, i => ' (Rating ' + Math.round(keyboardKeys.communityData.Rating[i].Rating) + ')', i => keyboardKeys.communityData.Rating[i].UserName);
+						fillOpt("player2-list", keyboardKeys.communityData.Rating, i => ' (Rating ' + Math.round(keyboardKeys.communityData.Rating[i].Rating) + ')', i => keyboardKeys.communityData.Rating[i].UserName);
+					}
 					fillOpt("newCommunityRegion", flags, i => flags[i][1], i => flags[i][0]);
 					fillOpt("recorderResolution", resolutionList, i=>resolutionList[i].x + "x" + resolutionList[i].y, i=>resolutionList[i]);
 					var r = document.getElementById("recorderResolution");
@@ -1956,6 +1980,13 @@
 					cleaner();
 					startWebSocket();
 					await initDevices('audioSource', 'portraitSource', 'targetSource');
+			}
+			function onSignIn(googleUser) {
+				var profile = googleUser.getBasicProfile();
+				console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+				console.log('Name: ' + profile.getName());
+				console.log('Image URL: ' + profile.getImageUrl());
+				console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
 			}
 //			window.addEventListener('load', function () {
 				startAll();

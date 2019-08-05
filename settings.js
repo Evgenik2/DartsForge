@@ -2,6 +2,15 @@ let resolutionList = [{x:1920, y:1080}, {x:1366, y:768}, {x:1280, y:720}, {x:113
 var recognition;
 var askForMic = 1;
 
+function formatDateEvent(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+    return "Daily " + [year, month, day].join('.');
+}
 function fillOpt(element, arr, h, v, d) {
     var r = document.getElementById(element);
     if(!r) return;
@@ -258,11 +267,13 @@ function recogVoice() {
                     dots = 2;
                 if(voice.includes("три попытки") || voice.includes("3 попытки"))
                     dots = 3;
-                if(voice.includes("первым") || voice.includes("first"))
+                if(voice.includes("1 дротиком") || voice.includes("первым") || voice.includes("first")) {
+                    dots = 1;
                     closes = 1;
-                if(voice.includes("вторым") || voice.includes("second"))
+                }
+                if(voice.includes("2 дротиком") || voice.includes("вторым") || voice.includes("second"))
                     closes = 2;
-                if(voice.includes("третьим") || voice.includes("third"))
+                if(voice.includes("3 дротиком") || voice.includes("третьим") || voice.includes("third"))
                     closes = 3;
                 keyboardKeys.doubles = dots;
                 keyboardKeys.closes = closes;
@@ -276,9 +287,17 @@ function recogVoice() {
                     s.forEach(e => {
                         e = e.trim();
                         let parsed = parseInt(e);
-                        if (!isNaN(parsed) && parsed >= 0 && parsed <= 180) 
-                            v = parsed;
+                        if (!isNaN(parsed)) {
+                            if(parsed > 180 && (Math.floor(parsed / 1000) == parsed % 1000))
+                                parsed = parsed % 1000;
+                            if(parsed > 180 && (Math.floor(parsed / 100) == parsed % 100))
+                                parsed = parsed % 100;
+                            if(parsed >= 0 && parsed <= 180) 
+                                v = parsed;
+                        }
                     });
+                    if(voice == "что")
+                        v = 100;
                     if (v >= 0) {
                         keyboardKeys.value = v;
                         setTimeout(() => keyboardKeys.keyboardOk(), 1000);
@@ -455,14 +474,14 @@ function startWebSocket() {
                         settings.eventHistory = keyboardKeys.eventHistory;
                         settings.store();
                     }
-                    if(data.game.player1 == keyboardKeys.userName || data.game.player2 == keyboardKeys.userName)
+                    if(data.game && (data.game.player1 == keyboardKeys.userName || data.game.player2 == keyboardKeys.userName))
                         keyboardKeys.refreshProfile();
-                    let t = keyboardKeys.targetNumber > 0 && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
+                    let t = keyboardKeys.targetNumber > 0 && data.game && data.game.target == keyboardKeys.targetNumber && !keyboardKeys.userName;
                     if(t && recorder)
                         finishRecord();
                     if(keyboardKeys.currentView == 13)
                         keyboardKeys.showEventHistory(keyboardKeys.eventData);
-                    else if(t || keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp)
+                    else if(data.game && (t || keyboardKeys.eventHistoryItemList[0].refereeTimestamp == data.game.refereeTimestamp && game.refereeTimestamp != data.game.refereeTimestamp))
                         keyboardKeys.showEventHistoryItem(data.game.timeStamp, t);
                 }
                 break;

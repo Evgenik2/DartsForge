@@ -160,10 +160,13 @@ function update() {
         drawScore(0.05, 0.75, 0.4, 0.2);
     else
         drawStats(0.2, 0.1, 0.6, 0.8);
-    videoContainer.previewCtx.clearRect(0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height); 
-    videoContainer.previewCtx.drawImage(videoContainer.canvas, 0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height);
-    videoContainer.previewCtx2.clearRect(0, 0, videoContainer.previewCanvas2.width, videoContainer.previewCanvas2.height); 
-    videoContainer.previewCtx2.drawImage(videoContainer.canvas, 0, 0, videoContainer.previewCanvas2.width, videoContainer.previewCanvas2.height);
+    if(keyboardKeys.currentView == 16) {
+        videoContainer.previewCtx.clearRect(0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height); 
+        videoContainer.previewCtx.drawImage(videoContainer.canvas, 0, 0, videoContainer.previewCanvas.width, videoContainer.previewCanvas.height);
+    } else {
+        videoContainer.previewCtx2.clearRect(0, 0, videoContainer.previewCanvas2.width, videoContainer.previewCanvas2.height); 
+        videoContainer.previewCtx2.drawImage(videoContainer.canvas, 0, 0, videoContainer.previewCanvas2.width, videoContainer.previewCanvas2.height);
+    }
     requestAnimationFrame(update);
 }
 function ctxrect(ctx, bg, fg, x, y, w, h, c, r, cs, rs, text, align) {
@@ -206,7 +209,7 @@ function drawScore(x, y, w, h) {
         ctxrect(ctx, "green", "white", x, y, w, h, 80, 20, 15, 30, leg ? leg.left1 : 501, "center");
         ctxrect(ctx, "green", "white", x, y, w, h, 80, 50, 15, 30, leg ? leg.left2 : 501, "center");
     } else {
-        ctxrect(ctx, "#444444", "white", x, y, w, h, 15, 0, 45, 20, "Best of " + (intem ? item.setLength : 5) + " sets of " + (item ? item.legLength : 7) + " legs");
+        ctxrect(ctx, "#444444", "white", x, y, w, h, 15, 0, 45, 20, "Best of " + (item ? item.setLength : 5) + " sets of " + (item ? item.legLength : 7) + " legs");
         ctxrect(ctx, "white", "black", x, y, w, h, 15, 20, 45, 30, leg && leg.player1 ? leg.player1 : "First Player");
         ctxrect(ctx, "white", "black", x, y, w, h, 15, 50, 45, 30, leg && leg.player2 ? leg.player2 : "Second Player");
         ctxrect(ctx, "#444444", "white", x, y, w, h, 60, 0, 10, 20, "Sets", "center");

@@ -147,6 +147,25 @@
     justify-content: center;
     font-size: 2vmax;
 }
+.menu-row-center {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    justify-content: center;
+    font-size: 3vmax;
+}
+.menu-row-centered {
+    color: #666666;
+}
+.menu-row-centered-red {
+    margin-left: 1vmax;
+    color: #aa4444;
+}
+.publishing {
+    background-color: blue;
+    width: 5px;
+    height: 1vmax;
+}
 .profile-row {
     display: flex;
     margin-bottom: 0.5vmax;
@@ -324,7 +343,19 @@
 .community-rating-userName {
     display: flex;
     flex: 1;
+    align-content: center;
+    font-size: 3vmax;
+    vertical-align: baseline;
     color: #111111;
+    justify-content: center;
+}
+.community-rating-userName-winner {
+    display: flex;
+    flex: 1;
+    align-content: center;
+    font-size: 3vmax;
+    vertical-align: baseline;
+    color: #881111;
     justify-content: center;
 }
 .community-rating-n {
